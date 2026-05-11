@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Login — UDJCS</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --accent: #e94560;
+            --dark: #1a1a2e;
+            --darker: #0f3460;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .login-wrap {
+            width: 100%;
+            max-width: 420px;
+            padding: 16px;
+        }
+
+        .login-card {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            backdrop-filter: blur(12px);
+            box-shadow:
+                0 8px 32px rgba(0, 0, 0, 0.4),
+                0 0 0 1px rgba(233, 69, 96, 0.15),
+                inset 0 1px 0 rgba(255,255,255,0.06);
+            overflow: hidden;
+        }
+
+        /* Header strip */
+        .login-header {
+            background: rgba(0,0,0,0.25);
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+            padding: 28px 32px 24px;
+            text-align: center;
+        }
+
+        .login-logo {
+            width: 64px;
+            height: 64px;
+            object-fit: contain;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5), 0 0 0 3px rgba(233,69,96,0.35);
+            margin-bottom: 14px;
+        }
+
+        .login-title {
+            color: #fff;
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin: 0 0 3px;
+            letter-spacing: 0.3px;
+        }
+
+        .login-sub {
+            color: rgba(255,255,255,0.45);
+            font-size: 0.73rem;
+            margin: 0;
+        }
+
+        /* Body */
+        .login-body {
+            padding: 28px 32px 32px;
+        }
+
+        .form-label {
+            color: rgba(255,255,255,0.65);
+            font-size: 0.78rem;
+            font-weight: 500;
+            margin-bottom: 6px;
+        }
+
+        .form-control {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.12);
+            color: #fff;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 0.88rem;
+            transition: border-color 0.18s, background 0.18s;
+        }
+
+        .form-control:focus {
+            background: rgba(255,255,255,0.1);
+            border-color: var(--accent);
+            color: #fff;
+            box-shadow: 0 0 0 3px rgba(233,69,96,0.2);
+        }
+
+        .form-control::placeholder { color: rgba(255,255,255,0.25); }
+
+        .input-group-text {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.12);
+            color: rgba(255,255,255,0.4);
+            border-right: none;
+            border-radius: 8px 0 0 8px;
+        }
+
+        .input-group .form-control { border-left: none; border-radius: 0 8px 8px 0; }
+
+        .btn-login {
+            background: var(--accent);
+            border: none;
+            color: #fff;
+            font-weight: 600;
+            font-size: 0.9rem;
+            padding: 11px;
+            border-radius: 8px;
+            width: 100%;
+            margin-top: 8px;
+            letter-spacing: 0.3px;
+            transition: background 0.18s, transform 0.1s;
+        }
+
+        .btn-login:hover { background: #c73652; transform: translateY(-1px); }
+        .btn-login:active { transform: translateY(0); }
+
+        .alert-danger {
+            background: rgba(233,69,96,0.15);
+            border: 1px solid rgba(233,69,96,0.3);
+            color: #ff8fa3;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            padding: 10px 14px;
+        }
+
+        .login-footer {
+            text-align: center;
+            color: rgba(255,255,255,0.2);
+            font-size: 0.65rem;
+            margin-top: 20px;
+        }
+
+        /* 3D accent line at top */
+        .accent-bar {
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-wrap">
+    <div class="login-card">
+
+        <div class="accent-bar"></div>
+
+        <div class="login-header">
+            <img th:src="@{/images/logo.jpeg}" alt="UDJCS Logo" class="login-logo">
+            <p class="login-title">United Digambar Jain Community</p>
+            <p class="login-sub">Trust Management System &nbsp;·&nbsp; Admin Portal</p>
+        </div>
+
+        <div class="login-body">
+
+            <div th:if="${error}" class="alert alert-danger mb-4">
+                <i class="bi bi-exclamation-circle me-2"></i>
+                <span th:text="${error}"></span>
+            </div>
+
+            <form th:action="@{/login}" method="post">
+
+                <div class="mb-3">
+                    <label class="form-label">Username</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-person"></i></span>
+                        <input type="text" name="username" class="form-control"
+                               placeholder="Enter username" autocomplete="username" autofocus required>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">Password</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                        <input type="password" name="password" class="form-control"
+                               placeholder="Enter password" autocomplete="current-password" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-login">
+                    <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+                </button>
+
+            </form>
+        </div>
+    </div>
+
+    <p class="login-footer">
+        &copy; 2025 United Digambar Jain Community &nbsp;·&nbsp; All rights reserved
+    </p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

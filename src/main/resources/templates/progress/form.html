@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head><title>Add / Edit Progress</title></head>
+<body>
+
+<th:block layout:fragment="page-title"
+          th:text="${item.id == null ? 'Add' : 'Edit'} + ' Progress Record'">Progress</th:block>
+
+<div layout:fragment="content">
+    <div class="card shadow-sm border-0" style="max-width:680px;">
+        <div class="card-header bg-white border-bottom fw-semibold"
+             th:text="${item.id == null ? 'Add Progress Record' : 'Edit Progress Record'}"></div>
+        <div class="card-body">
+            <form th:action="${item.id == null ? '/progress' : '/progress/' + item.id}"
+                  th:object="${item}" method="post">
+
+                <div class="row g-3">
+
+                    <div class="col-12">
+                        <label class="form-label fw-medium">Activity <span class="text-danger">*</span></label>
+                        <select class="form-select" th:field="*{activityId}"
+                                th:classappend="${#fields.hasErrors('activityId')} ? ' is-invalid'">
+                            <option value="">-- Select Activity --</option>
+                            <option th:each="a : ${activities}"
+                                    th:value="${a.id}"
+                                    th:text="${a.activityName} + ' [' + ${a.activityCategory.categoryName} + ']'"></option>
+                        </select>
+                        <div class="invalid-feedback" th:errors="*{activityId}"></div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-medium">Progress Date <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control" th:field="*{progressDate}"
+                               th:classappend="${#fields.hasErrors('progressDate')} ? ' is-invalid'">
+                        <div class="invalid-feedback" th:errors="*{progressDate}"></div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-medium">Status <span class="text-danger">*</span></label>
+                        <select class="form-select" th:field="*{status}"
+                                th:classappend="${#fields.hasErrors('status')} ? ' is-invalid'">
+                            <option value="">-- Select Status --</option>
+                            <option value="On Track">On Track</option>
+                            <option value="Delayed">Delayed</option>
+                            <option value="At Risk">At Risk</option>
+                            <option value="Completed">Completed</option>
+                        </select>
+                        <div class="invalid-feedback" th:errors="*{status}"></div>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label fw-medium">
+                            Progress <span class="text-danger">*</span>
+                            <span id="pctLabel" class="ms-2 badge bg-primary"
+                                  th:text="${item.progressPercentage != null} ? ${item.progressPercentage} + '%' : '0%'"></span>
+                        </label>
+                        <input type="range" class="form-range" id="progressSlider"
+                               min="0" max="100" step="1"
+                               th:value="${item.progressPercentage != null} ? ${item.progressPercentage} : 0"
+                               oninput="document.getElementById('pctLabel').textContent=this.value+'%'; document.getElementById('progressPercentage').value=this.value;">
+                        <input type="number" class="form-control mt-1" id="progressPercentage"
+                               th:field="*{progressPercentage}" min="0" max="100"
+                               th:classappend="${#fields.hasErrors('progressPercentage')} ? ' is-invalid'"
+                               oninput="document.getElementById('progressSlider').value=this.value; document.getElementById('pctLabel').textContent=this.value+'%';">
+                        <div class="invalid-feedback" th:errors="*{progressPercentage}"></div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-medium">Milestone</label>
+                        <input type="text" class="form-control" th:field="*{milestone}"
+                               th:classappend="${#fields.hasErrors('milestone')} ? ' is-invalid'"
+                               placeholder="e.g. Script finalised">
+                        <div class="invalid-feedback" th:errors="*{milestone}"></div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-medium">Recorded By</label>
+                        <input type="text" class="form-control" th:field="*{recordedBy}"
+                               th:classappend="${#fields.hasErrors('recordedBy')} ? ' is-invalid'">
+                        <div class="invalid-feedback" th:errors="*{recordedBy}"></div>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label fw-medium">Description</label>
+                        <textarea class="form-control" th:field="*{description}" rows="2"
+                                  th:classappend="${#fields.hasErrors('description')} ? ' is-invalid'"></textarea>
+                        <div class="invalid-feedback" th:errors="*{description}"></div>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label fw-medium">Notes</label>
+                        <textarea class="form-control" th:field="*{notes}" rows="2"
+                                  th:classappend="${#fields.hasErrors('notes')} ? ' is-invalid'"></textarea>
+                        <div class="invalid-feedback" th:errors="*{notes}"></div>
+                    </div>
+
+                </div>
+
+                <div class="d-flex gap-2 mt-4">
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="bi bi-check-lg me-1"></i>Save
+                    </button>
+                    <a th:href="@{/progress}" class="btn btn-outline-secondary px-4">Cancel</a>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>

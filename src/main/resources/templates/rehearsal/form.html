@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head><title>Add / Edit Rehearsal</title></head>
+<body>
+
+<th:block layout:fragment="page-title"
+          th:text="${item.id == null ? 'Add' : 'Edit'} + ' Rehearsal'">Rehearsal</th:block>
+
+<div layout:fragment="content">
+    <div class="card shadow-sm border-0" style="max-width:680px;">
+        <div class="card-header bg-white border-bottom fw-semibold"
+             th:text="${item.id == null ? 'Add New Rehearsal' : 'Edit Rehearsal'}"></div>
+        <div class="card-body">
+            <form th:action="${item.id == null ? '/rehearsals' : '/rehearsals/' + item.id}"
+                  th:object="${item}" method="post">
+
+                <div class="row g-3">
+
+                    <div class="col-12">
+                        <label class="form-label fw-medium">Activity <span class="text-danger">*</span></label>
+                        <select class="form-select" th:field="*{activityId}"
+                                th:classappend="${#fields.hasErrors('activityId')} ? ' is-invalid'">
+                            <option value="">-- Select Activity --</option>
+                            <option th:each="a : ${activities}"
+                                    th:value="${a.id}"
+                                    th:text="${a.activityName} + ' [' + ${a.activityCategory.categoryName} + ']'"></option>
+                        </select>
+                        <div class="invalid-feedback" th:errors="*{activityId}"></div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-medium">Rehearsal Date <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control" th:field="*{rehearsalDate}"
+                               th:classappend="${#fields.hasErrors('rehearsalDate')} ? ' is-invalid'">
+                        <div class="invalid-feedback" th:errors="*{rehearsalDate}"></div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-medium">Status <span class="text-danger">*</span></label>
+                        <select class="form-select" th:field="*{status}"
+                                th:classappend="${#fields.hasErrors('status')} ? ' is-invalid'">
+                            <option value="">-- Select Status --</option>
+                            <option value="Scheduled">Scheduled</option>
+                            <option value="Completed">Completed</option>
+                            <option value="Cancelled">Cancelled</option>
+                            <option value="Postponed">Postponed</option>
+                        </select>
+                        <div class="invalid-feedback" th:errors="*{status}"></div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-medium">Start Time</label>
+                        <input type="time" class="form-control" th:field="*{startTime}">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-medium">End Time</label>
+                        <input type="time" class="form-control" th:field="*{endTime}">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-medium">Venue</label>
+                        <input type="text" class="form-control" th:field="*{venue}"
+                               th:classappend="${#fields.hasErrors('venue')} ? ' is-invalid'">
+                        <div class="invalid-feedback" th:errors="*{venue}"></div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-medium">Conducted By</label>
+                        <input type="text" class="form-control" th:field="*{conductedBy}"
+                               th:classappend="${#fields.hasErrors('conductedBy')} ? ' is-invalid'">
+                        <div class="invalid-feedback" th:errors="*{conductedBy}"></div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-medium">Attendance</label>
+                        <input type="number" class="form-control" th:field="*{attendance}" min="0">
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label fw-medium">Notes</label>
+                        <textarea class="form-control" th:field="*{notes}" rows="2"
+                                  th:classappend="${#fields.hasErrors('notes')} ? ' is-invalid'"></textarea>
+                        <div class="invalid-feedback" th:errors="*{notes}"></div>
+                    </div>
+
+                </div>
+
+                <div class="d-flex gap-2 mt-4">
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="bi bi-check-lg me-1"></i>Save
+                    </button>
+                    <a th:href="@{/rehearsals}" class="btn btn-outline-secondary px-4">Cancel</a>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>

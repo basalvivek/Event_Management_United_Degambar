@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head><title>Rehearsal Schedule</title></head>
+<body>
+
+<th:block layout:fragment="page-title">Rehearsal Schedule</th:block>
+
+<div layout:fragment="content">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-semibold mb-0">Rehearsal Schedule</h5>
+        <a th:href="@{/rehearsals/new}" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-lg me-1"></i>Add New
+        </a>
+    </div>
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th>#</th>
+                        <th>Activity</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Venue</th>
+                        <th>Conducted By</th>
+                        <th>Attendance</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="item, stat : ${items}">
+                        <td class="text-muted" th:text="${stat.count}"></td>
+                        <td class="fw-medium" th:text="${item.activity.activityName}"></td>
+                        <td th:text="${#temporals.format(item.rehearsalDate, 'dd-MMM-yyyy')}"></td>
+                        <td>
+                            <span th:if="${item.startTime != null}" th:text="${item.startTime}"></span>
+                            <span th:if="${item.startTime != null and item.endTime != null}"> – </span>
+                            <span th:if="${item.endTime != null}" th:text="${item.endTime}"></span>
+                            <span th:if="${item.startTime == null and item.endTime == null}" class="text-muted">—</span>
+                        </td>
+                        <td th:text="${item.venue != null} ? ${item.venue} : '—'"></td>
+                        <td th:text="${item.conductedBy != null} ? ${item.conductedBy} : '—'"></td>
+                        <td th:text="${item.attendance != null} ? ${item.attendance} : '—'"></td>
+                        <td>
+                            <span th:with="sc=${item.status == 'Completed'} ? 'bg-success' : (${item.status == 'Cancelled'} ? 'bg-danger' : (${item.status == 'Postponed'} ? 'bg-warning text-dark' : 'bg-primary'))"
+                                  th:class="'badge ' + ${sc}"
+                                  th:text="${item.status}"></span>
+                        </td>
+                        <td class="text-end">
+                            <a th:href="@{/rehearsals/{id}/edit(id=${item.id})}" class="btn btn-sm btn-outline-warning">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form th:action="@{/rehearsals/{id}/delete(id=${item.id})}" method="post" class="d-inline"
+                                  onsubmit="return confirm('Delete this rehearsal?')">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(items)}">
+                        <td colspan="9" class="text-center text-muted py-4">No rehearsals found.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>

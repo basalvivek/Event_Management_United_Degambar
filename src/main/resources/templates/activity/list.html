@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head><title>Activities</title></head>
+<body>
+
+<th:block layout:fragment="page-title">Activities</th:block>
+
+<div layout:fragment="content">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-semibold mb-0">Activity Management</h5>
+        <a th:href="@{/activities/new}" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-lg me-1"></i>Add New
+        </a>
+    </div>
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th>#</th>
+                        <th>Activity Name</th>
+                        <th>Category</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Venue</th>
+                        <th>Responsible</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="item, stat : ${items}">
+                        <td class="text-muted" th:text="${stat.count}"></td>
+                        <td class="fw-medium" th:text="${item.activityName}"></td>
+                        <td><span class="badge bg-primary bg-opacity-75" th:text="${item.activityCategory.categoryName}"></span></td>
+                        <td th:text="${item.startDate != null} ? ${#temporals.format(item.startDate, 'dd-MMM-yyyy')} : '-'"></td>
+                        <td th:text="${item.endDate != null} ? ${#temporals.format(item.endDate, 'dd-MMM-yyyy')} : '-'"></td>
+                        <td th:text="${item.venue != null} ? ${item.venue} : '-'"></td>
+                        <td th:text="${item.responsiblePerson != null} ? ${item.responsiblePerson} : '-'"></td>
+                        <td>
+                            <span th:with="sc=${item.status == 'In Progress'} ? 'bg-primary' : (${item.status == 'Completed'} ? 'bg-success' : (${item.status == 'Cancelled'} ? 'bg-danger' : 'bg-secondary'))"
+                                  th:class="'badge ' + ${sc}"
+                                  th:text="${item.status}"></span>
+                        </td>
+                        <td class="text-end">
+                            <a th:href="@{/activities/{id}/edit(id=${item.id})}" class="btn btn-sm btn-outline-warning">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form th:action="@{/activities/{id}/delete(id=${item.id})}" method="post" class="d-inline"
+                                  onsubmit="return confirm('Delete this activity?')">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(items)}">
+                        <td colspan="9" class="text-center text-muted py-4">No activities found.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>

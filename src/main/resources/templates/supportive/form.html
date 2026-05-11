@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head><title>Supportive Organization Form</title></head>
+<body>
+
+<th:block layout:fragment="page-title"
+          th:text="${item.id == null ? 'Add Supportive Organization' : 'Edit Supportive Organization'}">
+    Supportive Organization
+</th:block>
+
+<div layout:fragment="content">
+
+    <div class="card shadow-sm border-0" style="max-width:820px;">
+        <div class="card-header bg-white border-bottom d-flex align-items-center gap-2 py-3">
+            <i class="bi bi-people text-primary fs-5"></i>
+            <span class="fw-semibold"
+                  th:text="${item.id == null ? 'Add Supportive Organization' : 'Edit Supportive Organization'}"></span>
+        </div>
+        <div class="card-body">
+
+            <form th:action="${item.id == null ? '/supportive' : '/supportive/' + item.id}"
+                  th:object="${item}" method="post" enctype="multipart/form-data">
+
+                <!-- ── Logo Upload ── -->
+                <div class="mb-4 p-3 rounded-3" style="background:#f8f9fa;border:1px dashed #dee2e6;">
+                    <label class="form-label fw-medium mb-2">
+                        <i class="bi bi-image me-1 text-primary"></i>Organization Logo
+                    </label>
+                    <div class="d-flex align-items-center gap-3 flex-wrap">
+                        <div id="logoPreviewWrap">
+                            <img th:if="${item.logoPath != null}" th:src="${item.logoPath}"
+                                 id="logoPreview" alt="Logo"
+                                 style="width:90px;height:90px;object-fit:contain;border-radius:10px;border:1px solid #dee2e6;background:#fff;padding:4px;">
+                            <div th:unless="${item.logoPath != null}" id="logoPlaceholder"
+                                 style="width:90px;height:90px;border-radius:10px;border:2px dashed #ced4da;background:#fff;display:flex;align-items:center;justify-content:center;">
+                                <i class="bi bi-people text-muted fs-2"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <input type="file" class="form-control form-control-sm" id="logoFile"
+                                   name="logoFile" accept="image/jpeg,image/png,image/gif,image/webp"
+                                   style="max-width:280px;" onchange="previewLogo(this)">
+                            <div class="form-text mt-1">
+                                JPG, PNG, GIF or WEBP &nbsp;·&nbsp; Max 5 MB
+                                <span th:if="${item.logoPath != null}" class="text-muted">
+                                    &nbsp;·&nbsp; Leave blank to keep current logo
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Row 1: Name + Type -->
+                <div class="row g-3 mb-3">
+                    <div class="col-md-7">
+                        <label class="form-label fw-medium">Organization Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" th:field="*{name}"
+                               placeholder="Enter organization name"
+                               th:classappend="${#fields.hasErrors('name')} ? ' is-invalid'">
+                        <div class="invalid-feedback" th:errors="*{name}"></div>
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label fw-medium">Organization Type</label>
+                        <select class="form-select" th:field="*{organizationType}">
+                            <option value="">— Select type —</option>
+                            <option value="Religious Trust">Religious Trust</option>
+                            <option value="Charitable Trust">Charitable Trust</option>
+                            <option value="NGO">NGO</option>
+                            <option value="Corporate">Corporate</option>
+                            <option value="Government Body">Government Body</option>
+                            <option value="Educational Institution">Educational Institution</option>
+                            <option value="Individual Sponsor">Individual Sponsor</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Row 2: Contact Person + Phone + Email -->
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-medium">Contact Person</label>
+                        <input type="text" class="form-control" th:field="*{contactPerson}"
+                               placeholder="Full name">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-medium">Contact Phone</label>
+                        <input type="text" class="form-control" th:field="*{contactPhone}"
+                               placeholder="+91 00000 00000">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-medium">Contact Email</label>
+                        <input type="email" class="form-control" th:field="*{contactEmail}"
+                               placeholder="contact@org.com"
+                               th:classappend="${#fields.hasErrors('contactEmail')} ? ' is-invalid'">
+                        <div class="invalid-feedback" th:errors="*{contactEmail}"></div>
+                    </div>
+                </div>
+
+                <!-- Row 3: Address -->
+                <div class="mb-3">
+                    <label class="form-label fw-medium">Address</label>
+                    <input type="text" class="form-control" th:field="*{address}"
+                           placeholder="Street address">
+                </div>
+
+                <!-- Row 4: City + State + Website -->
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-medium">City</label>
+                        <input type="text" class="form-control" th:field="*{city}" placeholder="City">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-medium">State</label>
+                        <input type="text" class="form-control" th:field="*{state}" placeholder="State">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-medium">Website</label>
+                        <input type="text" class="form-control" th:field="*{website}"
+                               placeholder="www.org.com">
+                    </div>
+                </div>
+
+                <!-- Row 5: Description -->
+                <div class="mb-4">
+                    <label class="form-label fw-medium">Description</label>
+                    <textarea class="form-control" th:field="*{description}" rows="3"
+                              placeholder="Brief description of this organization's support"></textarea>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="bi bi-check-lg me-1"></i>Save
+                    </button>
+                    <a th:href="@{/supportive}" class="btn btn-outline-secondary px-4">Cancel</a>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+</div>
+
+<th:block layout:fragment="page-scripts">
+<script>
+function previewLogo(input) {
+    if (input.files && input.files[0]) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            var wrap = document.getElementById('logoPreviewWrap');
+            var preview = document.getElementById('logoPreview');
+            if (!preview) {
+                wrap.innerHTML = '';
+                preview = document.createElement('img');
+                preview.id = 'logoPreview';
+                preview.alt = 'Logo';
+                preview.style = 'width:90px;height:90px;object-fit:contain;border-radius:10px;border:1px solid #dee2e6;background:#fff;padding:4px;';
+                wrap.appendChild(preview);
+            }
+            preview.src = e.target.result;
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+</script>
+</th:block>
+
+</body>
+</html>

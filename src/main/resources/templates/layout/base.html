@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title layout:title-pattern="$CONTENT_TITLE - UDJCS">UDJCS</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --sidebar-w: 260px;
+            --sidebar-bg: linear-gradient(160deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            --accent: #e94560;
+            --accent-light: #ff6b8a;
+            --muted: rgba(255,255,255,0.45);
+        }
+        body { background: #f0f2f5; font-family: 'Segoe UI', sans-serif; margin: 0; }
+
+        #sidebar {
+            position: fixed; top: 0; left: 0;
+            width: var(--sidebar-w); height: 100vh;
+            background: var(--sidebar-bg);
+            box-shadow: 4px 0 24px rgba(0,0,0,0.55), 8px 0 48px rgba(0,0,0,0.25);
+            z-index: 1000; overflow-y: auto;
+        }
+        #sidebar::after {
+            content: ''; position: absolute; top: 0; right: 0;
+            width: 3px; height: 100%;
+            background: linear-gradient(to bottom, var(--accent), transparent 40%, var(--accent));
+            opacity: 0.7;
+        }
+
+        .sb-brand {
+            padding: 18px 14px; display: flex; align-items: center; gap: 12px;
+            background: rgba(0,0,0,0.25); border-bottom: 1px solid rgba(255,255,255,0.07);
+        }
+        .sb-brand img {
+            width: 46px; height: 46px; object-fit: contain; border-radius: 8px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.5), 0 0 0 2px rgba(233,69,96,0.45);
+        }
+        .sb-brand-text { color: #fff; font-size: 0.77rem; font-weight: 600; line-height: 1.35; }
+        .sb-brand-text small { display: block; color: var(--muted); font-size: 0.63rem; font-weight: 400; }
+
+        .sb-label {
+            color: var(--muted); font-size: 0.59rem; font-weight: 700;
+            letter-spacing: 1.6px; text-transform: uppercase; padding: 14px 16px 5px;
+            display: block;
+        }
+
+        .sb-nav { list-style: none; padding: 0; margin: 0; }
+        .sb-nav li a {
+            color: rgba(255,255,255,0.72); padding: 9px 16px;
+            font-size: 0.81rem; display: flex; align-items: center; gap: 10px;
+            border-left: 3px solid transparent; transition: all 0.18s ease;
+            text-decoration: none;
+        }
+        .sb-nav li a i { font-size: 1rem; width: 20px; text-align: center; color: var(--muted); transition: color 0.18s; }
+        .sb-nav li a:hover { color: #fff; background: rgba(233,69,96,0.12); border-left-color: var(--accent-light); transform: translateX(3px); }
+        .sb-nav li a:hover i { color: var(--accent-light); }
+        .sb-nav li a.active { color: #fff; background: rgba(233,69,96,0.22); border-left-color: var(--accent); font-weight: 600; }
+        .sb-nav li a.active i { color: var(--accent); }
+        .sb-badge { margin-left: auto; background: rgba(255,255,255,0.07); color: var(--muted); font-size: 0.59rem; padding: 1px 6px; border-radius: 10px; }
+        .sb-divider { border-color: rgba(255,255,255,0.07); margin: 3px 14px; }
+
+        #sidebar::-webkit-scrollbar { width: 3px; }
+        #sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 4px; }
+
+        #main { margin-left: var(--sidebar-w); min-height: 100vh; display: flex; flex-direction: column; }
+
+        #topbar {
+            background: #fff; padding: 11px 24px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+            display: flex; align-items: center; justify-content: space-between;
+            position: sticky; top: 0; z-index: 100;
+        }
+        .topbar-title { font-size: 1.05rem; font-weight: 600; color: #1a1a2e; margin: 0; }
+        .topbar-sub { font-size: 0.75rem; color: #aaa; }
+
+        #content { padding: 24px; flex: 1; }
+        .alert { border: none; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
+    </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+
+    <div class="sb-brand">
+        <img th:src="@{/images/logo.jpeg}" alt="UDJCS">
+        <div class="sb-brand-text">
+            United Digambar<br>Jain Community
+            <small>Trust Management</small>
+        </div>
+    </div>
+
+    <ul class="sb-nav mt-1 pb-4">
+
+        <li><span class="sb-label">Organization</span></li>
+        <li><a th:href="@{/organization}"
+               th:class="${currentUri != null and currentUri.startsWith('/organization')} ? 'active'">
+            <i class="bi bi-building"></i> Organization Settings <span class="sb-badge">01</span></a></li>
+        <li><a th:href="@{/supportive}"
+               th:class="${currentUri != null and currentUri.startsWith('/supportive')} ? 'active'">
+            <i class="bi bi-people"></i> Supportive Org <span class="sb-badge">02</span></a></li>
+
+        <li><hr class="sb-divider"></li>
+
+        <li><span class="sb-label">Events</span></li>
+        <li><a th:href="@{/events}"
+               th:class="${currentUri != null and currentUri.startsWith('/events')} ? 'active'">
+            <i class="bi bi-calendar-event"></i> Event Organization <span class="sb-badge">03</span></a></li>
+        <li><a th:href="@{/participations}"
+               th:class="${currentUri != null and currentUri.startsWith('/participations')} ? 'active'">
+            <i class="bi bi-person-check"></i> Participations <span class="sb-badge">04</span></a></li>
+        <li><a th:href="@{/payments}"
+               th:class="${currentUri != null and currentUri.startsWith('/payments')} ? 'active'">
+            <i class="bi bi-cash-stack"></i> Payments <span class="sb-badge">05</span></a></li>
+
+        <li><hr class="sb-divider"></li>
+
+        <li><span class="sb-label">Infrastructure</span></li>
+        <li><a th:href="@{/venues}"
+               th:class="${currentUri != null and currentUri.startsWith('/venues')} ? 'active'">
+            <i class="bi bi-geo-alt"></i> Venue Management <span class="sb-badge">06</span></a></li>
+        <li><a th:href="@{/members}"
+               th:class="${currentUri != null and currentUri.startsWith('/members')} ? 'active'">
+            <i class="bi bi-person-vcard"></i> Member Registration <span class="sb-badge">07</span></a></li>
+
+        <li><hr class="sb-divider"></li>
+
+        <li><span class="sb-label">Activities</span></li>
+        <li><a th:href="@{/activity-categories}"
+               th:class="${currentUri != null and currentUri.startsWith('/activity-categories')} ? 'active'">
+            <i class="bi bi-tags"></i> Activity Categories <span class="sb-badge">08</span></a></li>
+        <li><a th:href="@{/activities}"
+               th:class="${currentUri != null and currentUri.startsWith('/activities')} ? 'active'">
+            <i class="bi bi-list-task"></i> Activities <span class="sb-badge">09</span></a></li>
+        <li><a th:href="@{/assignments}"
+               th:class="${currentUri != null and currentUri.startsWith('/assignments')} ? 'active'">
+            <i class="bi bi-person-lines-fill"></i> Assign Activities <span class="sb-badge">10</span></a></li>
+
+        <li><hr class="sb-divider"></li>
+
+        <li><span class="sb-label">Schedule &amp; Progress</span></li>
+        <li><a th:href="@{/rehearsals}"
+               th:class="${currentUri != null and currentUri.startsWith('/rehearsals')} ? 'active'">
+            <i class="bi bi-clock-history"></i> Rehearsal Schedule <span class="sb-badge">11</span></a></li>
+        <li><a th:href="@{/progress}"
+               th:class="${currentUri != null and currentUri.startsWith('/progress')} ? 'active'">
+            <i class="bi bi-bar-chart-steps"></i> Activities Progress <span class="sb-badge">12</span></a></li>
+
+    </ul>
+</nav>
+
+<!-- MAIN -->
+<div id="main">
+
+    <div id="topbar">
+        <h6 class="topbar-title" layout:fragment="page-title">Dashboard</h6>
+        <div class="d-flex align-items-center gap-3">
+            <span class="topbar-sub d-none d-md-inline">United Digambar Jain Community System</span>
+            <span class="text-muted" style="font-size:0.78rem;">
+                <i class="bi bi-person-circle me-1"></i>
+                <span th:text="${adminUser}">admin</span>
+            </span>
+            <form th:action="@{/logout}" method="post" class="mb-0">
+                <button type="submit" class="btn btn-outline-danger btn-sm">
+                    <i class="bi bi-box-arrow-right me-1"></i>Logout
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div id="content">
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+            <i class="bi bi-check-circle me-2"></i><span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+            <i class="bi bi-exclamation-circle me-2"></i><span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div layout:fragment="content"></div>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<th:block layout:fragment="page-scripts"></th:block>
+</body>
+</html>

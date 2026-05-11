@@ -1,0 +1,93 @@
+You are an elite AI systems architect and Claude optimization engineer.
+
+Your task is to generate an enterprise-grade `CLAUDE.md` file for this project.
+
+The generated CLAUDE.md must aggressively reduce unnecessary token usage while still maintaining high-quality engineering output.
+
+The CLAUDE.md should act as:
+- AI operating system
+- token control layer
+- coding governance file
+- response compression framework
+- development workflow optimizer
+
+The generated CLAUDE.md must be optimized specifically for:
+- Claude Sonnet
+- long-running coding sessions
+- large enterprise projects
+- modular development
+- incremental code generation
+
+---
+
+# PROJECT CONTEXT
+
+Project Name:
+United Digambar Jain Community System
+
+Project Type:
+Localhost desktop web application for charitable trust management.
+
+Primary goals:
+- Simple
+- Fast
+- Minimal resource usage
+- Low memory usage
+- Low token usage
+- Modular
+- Easy maintenance
+- Reusable code
+- Fast development
+
+Technology preference:
+- Java 21
+- Spring Boot
+- Spring MVC
+- Spring Data JPA
+- Thymeleaf
+- Maven
+- Bootstrap
+- PostgreSQL on DOCKER
+- No Lombok
+
+---
+
+# PROJECT MODULES
+
+1. Organization Settings
+2. Supportive Organization
+3. Event Organization
+4. Participation Organization
+5. Participation Payment
+6. Venue Management
+7. Member Registration
+8. Activity Category
+9. Activity Management
+10. Assign Activities
+11. Rehearsal Schedule
+12. Activities Progress
+
+---
+
+# CORE REQUIREMENTS
+
+The generated CLAUDE.md MUST:
+
+1. Reduce unnecessary token usage
+2. Prevent verbose explanations
+3. Prevent over-engineering
+4. Prevent unnecessary frameworks
+5. Prevent unnecessary file generation
+6. Encourage code reuse
+7. Encourage modular reusable CRUD
+8. Support incremental development
+9. Support large context management
+10. Optimize Claude memory usage
+
+---
+
+Generate highly optimized sections for:
+Create specialized lightweight agents inside CLAUDE.md 
+Create reusable skills
+
+Generate the BEST possible CLAUDE.md.

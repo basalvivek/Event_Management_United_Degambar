@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head><title>Add / Edit Member</title></head>
+<body>
+
+<th:block layout:fragment="page-title"
+          th:text="${item.id == null ? 'Add' : 'Edit'} + ' Member'">Member</th:block>
+
+<div layout:fragment="content">
+    <div class="card shadow-sm border-0" style="max-width:760px;">
+        <div class="card-header bg-white border-bottom fw-semibold"
+             th:text="${item.id == null ? 'Register New Member' : 'Edit Member'}"></div>
+        <div class="card-body">
+            <form th:action="${item.id == null ? '/members' : '/members/' + item.id}"
+                  th:object="${item}" method="post">
+
+                <div class="row g-3">
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-medium">First Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" th:field="*{firstName}"
+                               th:classappend="${#fields.hasErrors('firstName')} ? ' is-invalid'">
+                        <div class="invalid-feedback" th:errors="*{firstName}"></div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-medium">Last Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" th:field="*{lastName}"
+                               th:classappend="${#fields.hasErrors('lastName')} ? ' is-invalid'">
+                        <div class="invalid-feedback" th:errors="*{lastName}"></div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-medium">Phone <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" th:field="*{phone}"
+                               th:classappend="${#fields.hasErrors('phone')} ? ' is-invalid'">
+                        <div class="invalid-feedback" th:errors="*{phone}"></div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-medium">Email</label>
+                        <input type="email" class="form-control" th:field="*{email}"
+                               th:classappend="${#fields.hasErrors('email')} ? ' is-invalid'">
+                        <div class="invalid-feedback" th:errors="*{email}"></div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-medium">Date of Birth</label>
+                        <input type="date" class="form-control" th:field="*{dateOfBirth}"
+                               th:classappend="${#fields.hasErrors('dateOfBirth')} ? ' is-invalid'">
+                        <div class="invalid-feedback" th:errors="*{dateOfBirth}"></div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-medium">Gender <span class="text-danger">*</span></label>
+                        <select class="form-select" th:field="*{gender}"
+                                th:classappend="${#fields.hasErrors('gender')} ? ' is-invalid'">
+                            <option value="">-- Select --</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <div class="invalid-feedback" th:errors="*{gender}"></div>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label fw-medium">Address <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" th:field="*{address}"
+                               th:classappend="${#fields.hasErrors('address')} ? ' is-invalid'">
+                        <div class="invalid-feedback" th:errors="*{address}"></div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-medium">City <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" th:field="*{city}"
+                               th:classappend="${#fields.hasErrors('city')} ? ' is-invalid'">
+                        <div class="invalid-feedback" th:errors="*{city}"></div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-medium">State <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" th:field="*{state}"
+                               th:classappend="${#fields.hasErrors('state')} ? ' is-invalid'">
+                        <div class="invalid-feedback" th:errors="*{state}"></div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-medium">Membership Type <span class="text-danger">*</span></label>
+                        <select class="form-select" th:field="*{membershipType}"
+                                th:classappend="${#fields.hasErrors('membershipType')} ? ' is-invalid'">
+                            <option value="">-- Select --</option>
+                            <option value="General">General</option>
+                            <option value="Life">Life</option>
+                            <option value="Honorary">Honorary</option>
+                            <option value="Student">Student</option>
+                        </select>
+                        <div class="invalid-feedback" th:errors="*{membershipType}"></div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-medium">Membership Date <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control" th:field="*{membershipDate}"
+                               th:classappend="${#fields.hasErrors('membershipDate')} ? ' is-invalid'">
+                        <div class="invalid-feedback" th:errors="*{membershipDate}"></div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-medium">Occupation</label>
+                        <input type="text" class="form-control" th:field="*{occupation}"
+                               th:classappend="${#fields.hasErrors('occupation')} ? ' is-invalid'">
+                        <div class="invalid-feedback" th:errors="*{occupation}"></div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-medium">Status <span class="text-danger">*</span></label>
+                        <select class="form-select" th:field="*{status}"
+                                th:classappend="${#fields.hasErrors('status')} ? ' is-invalid'">
+                            <option value="">-- Select --</option>
+                            <option value="Active">Active</option>
+                            <option value="Inactive">Inactive</option>
+                            <option value="Suspended">Suspended</option>
+                        </select>
+                        <div class="invalid-feedback" th:errors="*{status}"></div>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label fw-medium">Notes</label>
+                        <textarea class="form-control" th:field="*{notes}" rows="2"
+                                  th:classappend="${#fields.hasErrors('notes')} ? ' is-invalid'"></textarea>
+                        <div class="invalid-feedback" th:errors="*{notes}"></div>
+                    </div>
+
+                </div>
+
+                <div class="d-flex gap-2 mt-4">
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="bi bi-check-lg me-1"></i>Save
+                    </button>
+                    <a th:href="@{/members}" class="btn btn-outline-secondary px-4">Cancel</a>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>

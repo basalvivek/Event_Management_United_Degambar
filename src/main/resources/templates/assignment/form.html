@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head><title>Add / Edit Assignment</title></head>
+<body>
+
+<th:block layout:fragment="page-title"
+          th:text="${item.id == null ? 'Add' : 'Edit'} + ' Assignment'">Assignment</th:block>
+
+<div layout:fragment="content">
+    <div class="card shadow-sm border-0" style="max-width:680px;">
+        <div class="card-header bg-white border-bottom fw-semibold"
+             th:text="${item.id == null ? 'Add New Assignment' : 'Edit Assignment'}"></div>
+        <div class="card-body">
+            <form th:action="${item.id == null ? '/assignments' : '/assignments/' + item.id}"
+                  th:object="${item}" method="post">
+
+                <div class="row g-3">
+
+                    <div class="col-12">
+                        <label class="form-label fw-medium">Activity <span class="text-danger">*</span></label>
+                        <select class="form-select" th:field="*{activityId}"
+                                th:classappend="${#fields.hasErrors('activityId')} ? ' is-invalid'">
+                            <option value="">-- Select Activity --</option>
+                            <option th:each="a : ${activities}"
+                                    th:value="${a.id}"
+                                    th:text="${a.activityName} + ' [' + ${a.activityCategory.categoryName} + ']'"></option>
+                        </select>
+                        <div class="invalid-feedback" th:errors="*{activityId}"></div>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label fw-medium">Member <span class="text-danger">*</span></label>
+                        <select class="form-select" th:field="*{memberId}"
+                                th:classappend="${#fields.hasErrors('memberId')} ? ' is-invalid'">
+                            <option value="">-- Select Member --</option>
+                            <option th:each="m : ${members}"
+                                    th:value="${m.id}"
+                                    th:text="${m.firstName} + ' ' + ${m.lastName} + ' — ' + ${m.phone}"></option>
+                        </select>
+                        <div class="invalid-feedback" th:errors="*{memberId}"></div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-medium">Assigned Date <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control" th:field="*{assignedDate}"
+                               th:classappend="${#fields.hasErrors('assignedDate')} ? ' is-invalid'">
+                        <div class="invalid-feedback" th:errors="*{assignedDate}"></div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-medium">Role <span class="text-danger">*</span></label>
+                        <select class="form-select" th:field="*{role}"
+                                th:classappend="${#fields.hasErrors('role')} ? ' is-invalid'">
+                            <option value="">-- Select Role --</option>
+                            <option value="Lead">Lead</option>
+                            <option value="Co-Lead">Co-Lead</option>
+                            <option value="Coordinator">Coordinator</option>
+                            <option value="Volunteer">Volunteer</option>
+                            <option value="Support">Support</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <div class="invalid-feedback" th:errors="*{role}"></div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-medium">Status <span class="text-danger">*</span></label>
+                        <select class="form-select" th:field="*{status}"
+                                th:classappend="${#fields.hasErrors('status')} ? ' is-invalid'">
+                            <option value="">-- Select Status --</option>
+                            <option value="Assigned">Assigned</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Completed">Completed</option>
+                            <option value="Dropped">Dropped</option>
+                        </select>
+                        <div class="invalid-feedback" th:errors="*{status}"></div>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label fw-medium">Notes</label>
+                        <textarea class="form-control" th:field="*{notes}" rows="2"
+                                  th:classappend="${#fields.hasErrors('notes')} ? ' is-invalid'"></textarea>
+                        <div class="invalid-feedback" th:errors="*{notes}"></div>
+                    </div>
+
+                </div>
+
+                <div class="d-flex gap-2 mt-4">
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="bi bi-check-lg me-1"></i>Save
+                    </button>
+                    <a th:href="@{/assignments}" class="btn btn-outline-secondary px-4">Cancel</a>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>

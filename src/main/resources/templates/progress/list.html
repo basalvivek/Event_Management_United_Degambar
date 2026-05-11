@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head><title>Activities Progress</title></head>
+<body>
+
+<th:block layout:fragment="page-title">Activities Progress</th:block>
+
+<div layout:fragment="content">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-semibold mb-0">Activities Progress</h5>
+        <a th:href="@{/progress/new}" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-lg me-1"></i>Add New
+        </a>
+    </div>
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th>#</th>
+                        <th>Activity</th>
+                        <th>Date</th>
+                        <th>Progress</th>
+                        <th>Milestone</th>
+                        <th>Recorded By</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="item, stat : ${items}">
+                        <td class="text-muted" th:text="${stat.count}"></td>
+                        <td class="fw-medium" th:text="${item.activity.activityName}"></td>
+                        <td th:text="${#temporals.format(item.progressDate, 'dd-MMM-yyyy')}"></td>
+                        <td style="min-width:140px;">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="progress flex-grow-1" style="height:8px;">
+                                    <div class="progress-bar"
+                                         th:style="'width:' + ${item.progressPercentage} + '%'"
+                                         th:classappend="${item.progressPercentage == 100} ? ' bg-success' : (${item.progressPercentage >= 60} ? ' bg-primary' : (${item.progressPercentage >= 30} ? ' bg-warning' : ' bg-danger'))">
+                                    </div>
+                                </div>
+                                <small class="fw-medium text-nowrap" th:text="${item.progressPercentage} + '%'"></small>
+                            </div>
+                        </td>
+                        <td th:text="${item.milestone != null} ? ${item.milestone} : '—'"></td>
+                        <td th:text="${item.recordedBy != null} ? ${item.recordedBy} : '—'"></td>
+                        <td>
+                            <span th:with="sc=${item.status == 'Completed'} ? 'bg-success' : (${item.status == 'On Track'} ? 'bg-primary' : (${item.status == 'At Risk'} ? 'bg-danger' : 'bg-warning text-dark'))"
+                                  th:class="'badge ' + ${sc}"
+                                  th:text="${item.status}"></span>
+                        </td>
+                        <td class="text-end">
+                            <a th:href="@{/progress/{id}/edit(id=${item.id})}" class="btn btn-sm btn-outline-warning">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form th:action="@{/progress/{id}/delete(id=${item.id})}" method="post" class="d-inline"
+                                  onsubmit="return confirm('Delete this progress record?')">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(items)}">
+                        <td colspan="8" class="text-center text-muted py-4">No progress records found.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>

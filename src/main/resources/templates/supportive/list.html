@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head><title>Supportive Organizations</title></head>
+<body>
+
+<th:block layout:fragment="page-title">Supportive Organizations</th:block>
+
+<div layout:fragment="content">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-semibold mb-0">
+            <i class="bi bi-people me-2 text-primary"></i>Supportive Organizations
+        </h5>
+        <a th:href="@{/supportive/new}" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-lg me-1"></i>Add Supportive Org
+        </a>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th style="width:60px;">Logo</th>
+                        <th>#</th>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Contact Person</th>
+                        <th>Phone</th>
+                        <th>City</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="item, stat : ${items}">
+                        <td>
+                            <img th:if="${item.logoPath != null}"
+                                 th:src="${item.logoPath}" alt="Logo"
+                                 style="width:42px;height:42px;object-fit:contain;border-radius:6px;border:1px solid #e9ecef;background:#fff;padding:2px;">
+                            <div th:unless="${item.logoPath != null}"
+                                 style="width:42px;height:42px;border-radius:6px;background:#f1f3f5;border:1px solid #e9ecef;display:flex;align-items:center;justify-content:center;">
+                                <i class="bi bi-people text-muted"></i>
+                            </div>
+                        </td>
+                        <td class="text-muted" th:text="${stat.count}"></td>
+                        <td class="fw-medium" th:text="${item.name}"></td>
+                        <td th:text="${item.organizationType ?: '-'}"></td>
+                        <td th:text="${item.contactPerson ?: '-'}"></td>
+                        <td th:text="${item.contactPhone ?: '-'}"></td>
+                        <td th:text="${item.city ?: '-'}"></td>
+                        <td class="text-end">
+                            <a th:href="@{/supportive/{id}/edit(id=${item.id})}"
+                               class="btn btn-sm btn-outline-warning me-1">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form th:action="@{/supportive/{id}/delete(id=${item.id})}"
+                                  method="post" class="d-inline"
+                                  onsubmit="return confirm('Delete this organization?')">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(items)}">
+                        <td colspan="8" class="text-center text-muted py-5">
+                            <i class="bi bi-people fs-3 d-block mb-2 opacity-25"></i>
+                            No supportive organizations found. Add one to get started.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head><title>Add / Edit Event</title></head>
+<body>
+
+<th:block layout:fragment="page-title"
+          th:text="${item.id == null ? 'Add' : 'Edit'} + ' Event'">Event</th:block>
+
+<div layout:fragment="content">
+    <div class="card shadow-sm border-0" style="max-width:720px;">
+        <div class="card-header bg-white border-bottom fw-semibold"
+             th:text="${item.id == null ? 'Add New Event' : 'Edit Event'}"></div>
+        <div class="card-body">
+            <form th:action="${item.id == null ? '/events' : '/events/' + item.id}"
+                  th:object="${item}" method="post">
+
+                <div class="row g-3">
+
+                    <div class="col-12">
+                        <label class="form-label fw-medium">Event Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" th:field="*{eventName}"
+                               th:classappend="${#fields.hasErrors('eventName')} ? ' is-invalid'">
+                        <div class="invalid-feedback" th:errors="*{eventName}"></div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-medium">Start Date <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control" th:field="*{eventDate}"
+                               th:classappend="${#fields.hasErrors('eventDate')} ? ' is-invalid'">
+                        <div class="invalid-feedback" th:errors="*{eventDate}"></div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-medium">End Date</label>
+                        <input type="date" class="form-control" th:field="*{endDate}"
+                               th:classappend="${#fields.hasErrors('endDate')} ? ' is-invalid'">
+                        <div class="invalid-feedback" th:errors="*{endDate}"></div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-medium">Event Type <span class="text-danger">*</span></label>
+                        <select class="form-select" th:field="*{eventType}"
+                                th:classappend="${#fields.hasErrors('eventType')} ? ' is-invalid'">
+                            <option value="">-- Select Type --</option>
+                            <option value="Religious">Religious</option>
+                            <option value="Cultural">Cultural</option>
+                            <option value="Social">Social</option>
+                            <option value="Community">Community</option>
+                            <option value="Educational">Educational</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <div class="invalid-feedback" th:errors="*{eventType}"></div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-medium">Status <span class="text-danger">*</span></label>
+                        <select class="form-select" th:field="*{status}"
+                                th:classappend="${#fields.hasErrors('status')} ? ' is-invalid'">
+                            <option value="">-- Select Status --</option>
+                            <option value="Planned">Planned</option>
+                            <option value="Active">Active</option>
+                            <option value="Completed">Completed</option>
+                            <option value="Cancelled">Cancelled</option>
+                        </select>
+                        <div class="invalid-feedback" th:errors="*{status}"></div>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label fw-medium">Venue <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" th:field="*{venue}"
+                               th:classappend="${#fields.hasErrors('venue')} ? ' is-invalid'">
+                        <div class="invalid-feedback" th:errors="*{venue}"></div>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label fw-medium">Organizer <span class="text-danger">*</span></label>
+                        <select class="form-select" th:field="*{organizerName}"
+                                th:classappend="${#fields.hasErrors('organizerName')} ? ' is-invalid'">
+                            <option value="">-- Select Organizer --</option>
+                            <option th:each="org : ${organizers}"
+                                    th:value="${org.name}"
+                                    th:text="${org.name}"></option>
+                        </select>
+                        <div class="invalid-feedback" th:errors="*{organizerName}"></div>
+                    </div>
+
+                    <div class="col-12"><hr class="my-1"><p class="fw-medium mb-2 text-secondary" style="font-size:0.82rem;">Contact Members</p></div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-medium">Contact Member 1 — Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" th:field="*{contactMember1Name}"
+                               th:classappend="${#fields.hasErrors('contactMember1Name')} ? ' is-invalid'">
+                        <div class="invalid-feedback" th:errors="*{contactMember1Name}"></div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-medium">Contact Member 1 — Phone <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" th:field="*{contactMember1Phone}"
+                               th:classappend="${#fields.hasErrors('contactMember1Phone')} ? ' is-invalid'">
+                        <div class="invalid-feedback" th:errors="*{contactMember1Phone}"></div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-medium">Contact Member 2 — Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" th:field="*{contactMember2Name}"
+                               th:classappend="${#fields.hasErrors('contactMember2Name')} ? ' is-invalid'">
+                        <div class="invalid-feedback" th:errors="*{contactMember2Name}"></div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-medium">Contact Member 2 — Phone <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" th:field="*{contactMember2Phone}"
+                               th:classappend="${#fields.hasErrors('contactMember2Phone')} ? ' is-invalid'">
+                        <div class="invalid-feedback" th:errors="*{contactMember2Phone}"></div>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label fw-medium">Description</label>
+                        <textarea class="form-control" th:field="*{description}" rows="3"
+                                  th:classappend="${#fields.hasErrors('description')} ? ' is-invalid'"></textarea>
+                        <div class="invalid-feedback" th:errors="*{description}"></div>
+                    </div>
+
+                </div>
+
+                <div class="d-flex gap-2 mt-4">
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="bi bi-check-lg me-1"></i>Save
+                    </button>
+                    <a th:href="@{/events}" class="btn btn-outline-secondary px-4">Cancel</a>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>

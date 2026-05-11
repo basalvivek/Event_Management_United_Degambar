@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head><title>Add / Edit Payment</title></head>
+<body>
+
+<th:block layout:fragment="page-title"
+          th:text="${item.id == null ? 'Add' : 'Edit'} + ' Payment'">Payment</th:block>
+
+<div layout:fragment="content">
+    <div class="card shadow-sm border-0" style="max-width:680px;">
+        <div class="card-header bg-white border-bottom fw-semibold"
+             th:text="${item.id == null ? 'Add New Payment' : 'Edit Payment'}"></div>
+        <div class="card-body">
+            <form th:action="${item.id == null ? '/payments' : '/payments/' + item.id}"
+                  th:object="${item}" method="post">
+
+                <div class="row g-3">
+
+                    <div class="col-12">
+                        <label class="form-label fw-medium">Organization</label>
+                        <select class="form-select" th:field="*{organizationId}">
+                            <option value="">-- Select Organization --</option>
+                            <option th:each="org : ${organizations}"
+                                    th:value="${org.id}"
+                                    th:text="${org.name}"></option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-medium">Amount (£)</label>
+                        <div class="input-group">
+                            <span class="input-group-text">£</span>
+                            <input type="number" class="form-control" th:field="*{amount}"
+                                   step="0.01" min="0"
+                                   th:classappend="${#fields.hasErrors('amount')} ? ' is-invalid'">
+                            <div class="invalid-feedback" th:errors="*{amount}"></div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-medium">Payment Date</label>
+                        <input type="date" class="form-control" th:field="*{paymentDate}"
+                               th:classappend="${#fields.hasErrors('paymentDate')} ? ' is-invalid'">
+                        <div class="invalid-feedback" th:errors="*{paymentDate}"></div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-medium">Payment Mode <span class="text-danger">*</span></label>
+                        <select class="form-select" th:field="*{paymentMode}"
+                                th:classappend="${#fields.hasErrors('paymentMode')} ? ' is-invalid'">
+                            <option value="">-- Select Mode --</option>
+                            <option value="Cash">Cash</option>
+                            <option value="Cheque">Cheque</option>
+                            <option value="Online Transfer">Online Transfer</option>
+                            <option value="UPI">UPI</option>
+                            <option value="Demand Draft">Demand Draft</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <div class="invalid-feedback" th:errors="*{paymentMode}"></div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-medium">Status <span class="text-danger">*</span></label>
+                        <select class="form-select" th:field="*{status}"
+                                th:classappend="${#fields.hasErrors('status')} ? ' is-invalid'">
+                            <option value="">-- Select Status --</option>
+                            <option value="Pending">Pending</option>
+                            <option value="Received">Received</option>
+                            <option value="Failed">Failed</option>
+                        </select>
+                        <div class="invalid-feedback" th:errors="*{status}"></div>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label fw-medium">Reference Number</label>
+                        <input type="text" class="form-control" th:field="*{referenceNumber}"
+                               th:classappend="${#fields.hasErrors('referenceNumber')} ? ' is-invalid'"
+                               placeholder="Cheque no. / Transaction ID / UTR">
+                        <div class="invalid-feedback" th:errors="*{referenceNumber}"></div>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label fw-medium">Notes</label>
+                        <textarea class="form-control" th:field="*{notes}" rows="2"
+                                  th:classappend="${#fields.hasErrors('notes')} ? ' is-invalid'"></textarea>
+                        <div class="invalid-feedback" th:errors="*{notes}"></div>
+                    </div>
+
+                </div>
+
+                <div class="d-flex gap-2 mt-4">
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="bi bi-check-lg me-1"></i>Save
+                    </button>
+                    <a th:href="@{/payments}" class="btn btn-outline-secondary px-4">Cancel</a>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>

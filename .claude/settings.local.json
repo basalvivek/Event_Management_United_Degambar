@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(New-Item -ItemType Directory -Force -Path \"C:\\\\Users\\\\VB\\\\Downloads\\\\00_AI_Projects\\\\Claude\\\\UnitedDigambar\\\\src\\\\main\\\\java\\\\com\\\\udjcs\\\\common\")",
+      "Bash(Out-Null)",
+      "Bash(New-Item -ItemType Directory -Force -Path \"C:\\\\Users\\\\VB\\\\Downloads\\\\00_AI_Projects\\\\Claude\\\\UnitedDigambar\\\\src\\\\main\\\\java\\\\com\\\\udjcs\\\\organization\")",
+      "Bash(New-Item -ItemType Directory -Force -Path \"C:\\\\Users\\\\VB\\\\Downloads\\\\00_AI_Projects\\\\Claude\\\\UnitedDigambar\\\\src\\\\main\\\\resources\\\\templates\\\\layout\")",
+      "Bash(New-Item -ItemType Directory -Force -Path \"C:\\\\Users\\\\VB\\\\Downloads\\\\00_AI_Projects\\\\Claude\\\\UnitedDigambar\\\\src\\\\main\\\\resources\\\\templates\\\\organization\")",
+      "Bash(New-Item -ItemType Directory -Force -Path \"C:\\\\Users\\\\VB\\\\Downloads\\\\00_AI_Projects\\\\Claude\\\\UnitedDigambar\\\\src\\\\main\\\\resources\\\\static\\\\images\")",
+      "Bash(New-Item -ItemType Directory -Force -Path \"C:\\\\Users\\\\VB\\\\Downloads\\\\00_AI_Projects\\\\Claude\\\\UnitedDigambar\\\\src\\\\main\\\\resources\\\\db\")",
+      "Bash(Write-Output \"Directories created.\")",
+      "PowerShell(New-Item *)",
+      "Bash(mvn compile *)",
+      "Bash(awk '/2026-05-11T17:26:55/,0')",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8082/login)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8082/events)",
+      "Bash(docker exec uniteddigambar-postgres-1 *)",
+      "Bash(curl -s -b /tmp/cookies.txt \"http://localhost:8082/participations/new\")",
+      "Bash(awk '/Restarting due to/,/Started Udjcs/')",
+      "Bash(curl -s -b /tmp/cookies.txt \"http://localhost:8082/assignments\" -o /dev/null -w \"%{http_code}\")",
+      "Bash(curl -s -b /tmp/cookies.txt \"http://localhost:8082/rehearsals\" -o /dev/null -w \"%{http_code}\")",
+      "Bash(curl -s -b /tmp/cookies.txt \"http://localhost:8082/progress\" -o /dev/null -w \"%{http_code}\")",
+      "Bash(git init *)",
+      "Bash(git remote *)",
+      "Bash(git add *)"
+    ]
+  }
+}

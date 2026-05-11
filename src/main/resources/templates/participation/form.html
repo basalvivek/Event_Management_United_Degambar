@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head><title>Add / Edit Participation</title></head>
+<body>
+
+<th:block layout:fragment="page-title"
+          th:text="${item.id == null ? 'Add' : 'Edit'} + ' Participation'">Participation</th:block>
+
+<div layout:fragment="content">
+<div>
+
+    <div class="card shadow-sm border-0" style="max-width:680px;">
+        <div class="card-header bg-white border-bottom fw-semibold"
+             th:text="${item.id == null ? 'Add New Participation' : 'Edit Participation'}"></div>
+        <div class="card-body">
+            <form th:action="${item.id == null ? '/participations' : '/participations/' + item.id}"
+                  th:object="${item}" method="post">
+
+                <div class="row g-3">
+
+                    <div class="col-12">
+                        <label class="form-label fw-medium">Event <span class="text-danger">*</span></label>
+                        <select class="form-select" th:field="*{eventId}"
+                                th:classappend="${#fields.hasErrors('eventId')} ? ' is-invalid'">
+                            <option value="">-- Select Event --</option>
+                            <option th:each="e : ${events}"
+                                    th:value="${e.id}"
+                                    th:text="${e.eventName} + ' (' + ${#temporals.format(e.eventDate, 'dd-MMM-yyyy')} + ')'"></option>
+                        </select>
+                        <div class="invalid-feedback" th:errors="*{eventId}"></div>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label fw-medium">Organization <span class="text-danger">*</span></label>
+                        <select class="form-select" th:field="*{organizationId}"
+                                th:classappend="${#fields.hasErrors('organizationId')} ? ' is-invalid'">
+                            <option value="">-- Select Organization --</option>
+                            <option th:each="org : ${organizations}"
+                                    th:value="${org.id}"
+                                    th:text="${org.name}"></option>
+                        </select>
+                        <div class="invalid-feedback" th:errors="*{organizationId}"></div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-medium">Participation Type <span class="text-danger">*</span></label>
+                        <select class="form-select" th:field="*{participationType}"
+                                th:classappend="${#fields.hasErrors('participationType')} ? ' is-invalid'">
+                            <option value="">-- Select Type --</option>
+                            <option value="Sponsor">Sponsor</option>
+                            <option value="Co-organizer">Co-organizer</option>
+                            <option value="Volunteer">Volunteer</option>
+                            <option value="Guest">Guest</option>
+                            <option value="Media">Media</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <div class="invalid-feedback" th:errors="*{participationType}"></div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-medium">Status <span class="text-danger">*</span></label>
+                        <select class="form-select" th:field="*{status}"
+                                th:classappend="${#fields.hasErrors('status')} ? ' is-invalid'">
+                            <option value="">-- Select Status --</option>
+                            <option value="Pending">Pending</option>
+                            <option value="Confirmed">Confirmed</option>
+                            <option value="Cancelled">Cancelled</option>
+                        </select>
+                        <div class="invalid-feedback" th:errors="*{status}"></div>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="form-label fw-medium mb-0">Participants</label>
+                            <button type="button" class="btn btn-outline-primary btn-sm"
+                                    data-bs-toggle="modal" data-bs-target="#memberModal">
+                                <i class="bi bi-person-plus me-1"></i>Add Member
+                            </button>
+                        </div>
+                        <div id="selectedMembersContainer" class="border rounded p-2 bg-light" style="min-height:60px;">
+                            <th:block th:each="m : ${item.members}">
+                                <div class="d-flex align-items-center gap-2 p-2 bg-white border rounded mb-1"
+                                     th:id="'member_card_' + ${m.id}">
+                                    <i class="bi bi-person-fill text-primary"></i>
+                                    <span class="fw-medium" th:text="${m.firstName} + ' ' + ${m.lastName}"></span>
+                                    <small class="text-muted" th:text="${m.phone}"></small>
+                                    <button type="button" class="btn btn-sm btn-outline-danger ms-auto"
+                                            th:onclick="'removeMember(' + ${m.id} + ')'">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                    <input type="hidden" name="memberIds"
+                                           th:value="${m.id}"
+                                           th:id="'member_input_' + ${m.id}">
+                                </div>
+                            </th:block>
+                            <p id="emptyMsg" class="text-muted small mb-0 p-1"
+                               th:style="${item.members.isEmpty()} ? '' : 'display:none'">
+                                No participants added yet.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label fw-medium">Notes</label>
+                        <textarea class="form-control" th:field="*{notes}" rows="2"
+                                  th:classappend="${#fields.hasErrors('notes')} ? ' is-invalid'"></textarea>
+                        <div class="invalid-feedback" th:errors="*{notes}"></div>
+                    </div>
+
+                </div><!-- end row -->
+
+                <div class="d-flex gap-2 mt-4">
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="bi bi-check-lg me-1"></i>Save
+                    </button>
+                    <a th:href="@{/participations}" class="btn btn-outline-secondary px-4">Cancel</a>
+                </div>
+
+            </form>
+        </div><!-- end card-body -->
+    </div><!-- end card -->
+
+    <!-- Member Selection Modal -->
+    <div class="modal fade" id="memberModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-people me-2"></i>Select Member</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="text" id="memberSearch" class="form-control mb-3"
+                           placeholder="Search by name or phone...">
+                    <div style="max-height:420px; overflow-y:auto;">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light sticky-top">
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Phone</th>
+                                    <th>City</th>
+                                    <th>Membership</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="memberTableBody">
+                                <tr th:each="m : ${memberList}" class="member-row"
+                                    th:data-name="${m.firstName} + ' ' + ${m.lastName}"
+                                    th:data-phone="${m.phone}">
+                                    <td class="fw-medium" th:text="${m.firstName} + ' ' + ${m.lastName}"></td>
+                                    <td th:text="${m.phone}"></td>
+                                    <td th:text="${m.city}"></td>
+                                    <td><span class="badge bg-primary bg-opacity-75" th:text="${m.membershipType}"></span></td>
+                                    <td class="text-end">
+                                        <button type="button" class="btn btn-sm btn-primary"
+                                                th:id="'modal_btn_' + ${m.id}"
+                                                th:data-id="${m.id}"
+                                                th:data-name="${m.firstName} + ' ' + ${m.lastName}"
+                                                th:data-phone="${m.phone}"
+                                                onclick="selectMember(this)">
+                                            <i class="bi bi-plus-lg"></i> Add
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div><!-- end scroll -->
+                </div><!-- end modal-body -->
+            </div><!-- end modal-content -->
+        </div><!-- end modal-dialog -->
+    </div><!-- end memberModal -->
+
+</div><!-- end wrapper -->
+</div><!-- end layout:fragment="content" -->
+
+<th:block layout:fragment="page-scripts">
+<script>
+    const selectedIds = new Set();
+
+    document.querySelectorAll('#selectedMembersContainer [id^="member_card_"]').forEach(function(card) {
+        selectedIds.add(card.id.replace('member_card_', ''));
+    });
+
+    function selectMember(btn) {
+        const id = String(btn.dataset.id);
+        if (selectedIds.has(id)) {
+            btn.innerHTML = '<i class="bi bi-check-lg"></i> Added';
+            btn.disabled = true;
+            return;
+        }
+        selectedIds.add(id);
+
+        const container = document.getElementById('selectedMembersContainer');
+        const div = document.createElement('div');
+        div.className = 'd-flex align-items-center gap-2 p-2 bg-white border rounded mb-1';
+        div.id = 'member_card_' + id;
+        div.innerHTML =
+            '<i class="bi bi-person-fill text-primary"></i>' +
+            '<span class="fw-medium">' + btn.dataset.name + '</span>' +
+            '<small class="text-muted">' + btn.dataset.phone + '</small>' +
+            '<button type="button" class="btn btn-sm btn-outline-danger ms-auto" onclick="removeMember(' + id + ')">' +
+                '<i class="bi bi-x-lg"></i>' +
+            '</button>' +
+            '<input type="hidden" name="memberIds" value="' + id + '" id="member_input_' + id + '">';
+        container.appendChild(div);
+
+        document.getElementById('emptyMsg').style.display = 'none';
+
+        btn.innerHTML = '<i class="bi bi-check-lg"></i> Added';
+        btn.disabled = true;
+
+        bootstrap.Modal.getInstance(document.getElementById('memberModal')).hide();
+    }
+
+    function removeMember(id) {
+        id = String(id);
+        selectedIds.delete(id);
+        const card = document.getElementById('member_card_' + id);
+        if (card) card.remove();
+
+        const modalBtn = document.getElementById('modal_btn_' + id);
+        if (modalBtn) {
+            modalBtn.innerHTML = '<i class="bi bi-plus-lg"></i> Add';
+            modalBtn.disabled = false;
+        }
+
+        if (selectedIds.size === 0) {
+            document.getElementById('emptyMsg').style.display = '';
+        }
+    }
+
+    document.getElementById('memberModal').addEventListener('show.bs.modal', function() {
+        document.querySelectorAll('#memberTableBody button[data-id]').forEach(function(btn) {
+            if (selectedIds.has(String(btn.dataset.id))) {
+                btn.innerHTML = '<i class="bi bi-check-lg"></i> Added';
+                btn.disabled = true;
+            } else {
+                btn.innerHTML = '<i class="bi bi-plus-lg"></i> Add';
+                btn.disabled = false;
+            }
+        });
+    });
+
+    document.getElementById('memberSearch').addEventListener('input', function() {
+        const q = this.value.toLowerCase();
+        document.querySelectorAll('.member-row').forEach(function(row) {
+            const match = (row.dataset.name || '').toLowerCase().includes(q) ||
+                          (row.dataset.phone || '').toLowerCase().includes(q);
+            row.style.display = match ? '' : 'none';
+        });
+    });
+</script>
+</th:block>
+
+</body>
+</html>
