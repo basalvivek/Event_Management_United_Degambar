@@ -22,7 +22,10 @@
       "Bash(curl -s -b /tmp/cookies.txt \"http://localhost:8082/progress\" -o /dev/null -w \"%{http_code}\")",
       "Bash(git init *)",
       "Bash(git remote *)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git branch *)",
+      "Bash(git push *)"
     ]
   }
 }
