@@ -15,4 +15,6 @@ public interface ActivityRepository extends JpaRepository<Activity, Long> {
 
     @Query("SELECT a FROM Activity a JOIN FETCH a.activityCategory WHERE a.id = :id")
     Optional<Activity> findByIdWithDetails(@Param("id") Long id);
+
+    long countByStatus(String status);
 }

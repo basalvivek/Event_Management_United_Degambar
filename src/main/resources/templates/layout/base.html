@@ -96,10 +96,13 @@
 
     <ul class="sb-nav mt-1 pb-4">
 
+        <li><a th:href="@{/}"
+               th:class="${currentUri != null and currentUri == '/'} ? 'active'">
+            <i class="bi bi-speedometer2"></i> Dashboard <span class="sb-badge">00</span></a></li>
+
+        <li><hr class="sb-divider"></li>
+
         <li><span class="sb-label">Organization</span></li>
-        <li><a th:href="@{/organization}"
-               th:class="${currentUri != null and currentUri.startsWith('/organization')} ? 'active'">
-            <i class="bi bi-building"></i> Organization Settings <span class="sb-badge">01</span></a></li>
         <li><a th:href="@{/supportive}"
                th:class="${currentUri != null and currentUri.startsWith('/supportive')} ? 'active'">
             <i class="bi bi-people"></i> Supportive Org <span class="sb-badge">02</span></a></li>
@@ -160,15 +163,46 @@
         <h6 class="topbar-title" layout:fragment="page-title">Dashboard</h6>
         <div class="d-flex align-items-center gap-3">
             <span class="topbar-sub d-none d-md-inline">United Digambar Jain Community System</span>
-            <span class="text-muted" style="font-size:0.78rem;">
-                <i class="bi bi-person-circle me-1"></i>
-                <span th:text="${adminUser}">admin</span>
-            </span>
-            <form th:action="@{/logout}" method="post" class="mb-0">
-                <button type="submit" class="btn btn-outline-danger btn-sm">
-                    <i class="bi bi-box-arrow-right me-1"></i>Logout
+            <div class="dropdown">
+                <button class="btn btn-sm btn-outline-secondary dropdown-toggle d-flex align-items-center gap-2"
+                        type="button" data-bs-toggle="dropdown" aria-expanded="false"
+                        style="border-radius:20px; padding:5px 14px; font-size:0.8rem; border-color:#dee2e6;">
+                    <i class="bi bi-person-circle" style="font-size:1rem; color:#1a1a2e;"></i>
+                    <span th:text="${adminUser}" style="color:#1a1a2e; font-weight:600;">admin</span>
                 </button>
-            </form>
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0"
+                    style="border-radius:12px; min-width:200px; padding:6px; margin-top:6px;
+                           box-shadow:0 8px 24px rgba(0,0,0,0.12) !important;">
+                    <li>
+                        <a class="dropdown-item rounded-2 d-flex align-items-center gap-2 py-2"
+                           th:href="@{/switch-user}" style="font-size:0.83rem;">
+                            <i class="bi bi-arrow-left-right text-primary"></i> Switch User
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item rounded-2 d-flex align-items-center gap-2 py-2"
+                           th:href="@{/organization}" style="font-size:0.83rem;">
+                            <i class="bi bi-building text-secondary"></i> Organisation Setting
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item rounded-2 d-flex align-items-center gap-2 py-2"
+                           th:href="@{/contact}" style="font-size:0.83rem;">
+                            <i class="bi bi-envelope text-info"></i> Contact Us
+                        </a>
+                    </li>
+                    <li><hr class="dropdown-divider my-1"></li>
+                    <li>
+                        <form th:action="@{/logout}" method="post" class="m-0">
+                            <button type="submit"
+                                    class="dropdown-item rounded-2 d-flex align-items-center gap-2 py-2 text-danger"
+                                    style="font-size:0.83rem;">
+                                <i class="bi bi-box-arrow-right"></i> Logout
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
         </div>
     </div>
 

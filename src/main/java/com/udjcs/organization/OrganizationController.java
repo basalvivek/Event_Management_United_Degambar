@@ -9,6 +9,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
+import java.util.List;
 
 @Controller
 @RequestMapping("/organization")
@@ -21,9 +22,12 @@ public class OrganizationController {
     }
 
     @GetMapping
-    public String list(Model model) {
-        model.addAttribute("items", service.findAll());
-        return "organization/list";
+    public String list() {
+        List<Organization> all = service.findAll();
+        if (all.isEmpty()) {
+            return "redirect:/organization/new";
+        }
+        return "redirect:/organization/" + all.get(0).getId() + "/edit";
     }
 
     @GetMapping("/new")

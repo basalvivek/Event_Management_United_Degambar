@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head><title>Contact Us</title></head>
+<body>
+
+<th:block layout:fragment="page-title">Contact Us</th:block>
+
+<div layout:fragment="content">
+
+    <div class="row justify-content-center">
+        <div class="col-lg-7 col-xl-6">
+
+            <!-- Header card -->
+            <div class="card border-0 mb-4 text-center"
+                 style="border-radius:16px;overflow:hidden;
+                        background:linear-gradient(135deg,#1a1a2e 0%,#16213e 60%,#0f3460 100%);">
+                <div class="card-body py-4 px-4">
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
+                         style="width:60px;height:60px;background:rgba(233,69,96,0.15);
+                                border:1px solid rgba(233,69,96,0.3);">
+                        <i class="bi bi-envelope-fill" style="font-size:1.5rem;color:#e94560;"></i>
+                    </div>
+                    <h5 class="fw-bold text-white mb-1" th:text="${orgName}">Organisation</h5>
+                    <p class="mb-2" style="color:rgba(255,255,255,0.5);font-size:0.82rem;">
+                        Fill in the form below and we'll get back to you as soon as possible.
+                    </p>
+                    <span th:if="${orgEmail}" class="badge px-3 py-2"
+                          style="background:rgba(233,69,96,0.15);border:1px solid rgba(233,69,96,0.3);
+                                 color:#ff8fa3;font-size:0.72rem;border-radius:20px;">
+                        <i class="bi bi-envelope me-1"></i>
+                        <span th:text="${orgEmail}"></span>
+                    </span>
+                    <span th:unless="${orgEmail}" class="badge px-3 py-2"
+                          style="background:rgba(255,193,7,0.15);border:1px solid rgba(255,193,7,0.3);
+                                 color:#ffc107;font-size:0.72rem;border-radius:20px;">
+                        <i class="bi bi-exclamation-triangle me-1"></i>
+                        No email set in Organisation Settings
+                    </span>
+                </div>
+            </div>
+
+            <!-- Contact form -->
+            <div class="card border-0 shadow-sm" style="border-radius:16px;">
+                <div class="card-body p-4">
+
+                    <form th:action="@{/contact}" method="post">
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-sm-6">
+                                <label class="form-label fw-medium" style="font-size:0.82rem;">
+                                    Your Name <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0">
+                                        <i class="bi bi-person text-muted"></i>
+                                    </span>
+                                    <input type="text" name="senderName" class="form-control border-start-0"
+                                           placeholder="Full name" required>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="form-label fw-medium" style="font-size:0.82rem;">
+                                    Your Email <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0">
+                                        <i class="bi bi-at text-muted"></i>
+                                    </span>
+                                    <input type="email" name="senderEmail" class="form-control border-start-0"
+                                           placeholder="your@email.com" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-medium" style="font-size:0.82rem;">
+                                Subject <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0">
+                                    <i class="bi bi-chat-left-text text-muted"></i>
+                                </span>
+                                <input type="text" name="subject" class="form-control border-start-0"
+                                       placeholder="What is this about?" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-medium" style="font-size:0.82rem;">
+                                Message <span class="text-danger">*</span>
+                            </label>
+                            <textarea name="message" class="form-control" rows="6"
+                                      placeholder="Write your message here..." required
+                                      style="resize:vertical;"></textarea>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary px-4"
+                                    style="background:linear-gradient(135deg,#e94560,#c73552);
+                                           border:none;border-radius:8px;">
+                                <i class="bi bi-send me-2"></i>Send Message
+                            </button>
+                            <a th:href="@{/}" class="btn btn-outline-secondary px-4"
+                               style="border-radius:8px;">Cancel</a>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+</body>
+</html>
