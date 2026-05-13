@@ -65,17 +65,15 @@
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label fw-medium">Venue</label>
-                        <input type="text" class="form-control" th:field="*{venue}"
-                               th:classappend="${#fields.hasErrors('venue')} ? ' is-invalid'">
-                        <div class="invalid-feedback" th:errors="*{venue}"></div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label fw-medium">Responsible Person</label>
-                        <input type="text" class="form-control" th:field="*{responsiblePerson}"
-                               th:classappend="${#fields.hasErrors('responsiblePerson')} ? ' is-invalid'">
-                        <div class="invalid-feedback" th:errors="*{responsiblePerson}"></div>
+                        <label class="form-label fw-medium">Responsible Person
+                            <span class="text-muted fw-normal" style="font-size:0.78rem;">(optional)</span>
+                        </label>
+                        <select class="form-select" th:field="*{responsiblePerson}">
+                            <option value="">-- Select Member --</option>
+                            <option th:each="m : ${members}"
+                                    th:value="${m.firstName + ' ' + m.lastName}"
+                                    th:text="${m.firstName + ' ' + m.lastName}"></option>
+                        </select>
                     </div>
 
                     <div class="col-12">

@@ -9,7 +9,7 @@
           th:text="${item.id == null ? 'Add' : 'Edit'} + ' Assignment'">Assignment</th:block>
 
 <div layout:fragment="content">
-    <div class="card shadow-sm border-0" style="max-width:680px;">
+    <div class="card shadow-sm border-0" style="max-width:760px;">
         <div class="card-header bg-white border-bottom fw-semibold"
              th:text="${item.id == null ? 'Add New Assignment' : 'Edit Assignment'}"></div>
         <div class="card-body">
@@ -18,6 +18,7 @@
 
                 <div class="row g-3">
 
+                    <!-- Activity -->
                     <div class="col-12">
                         <label class="form-label fw-medium">Activity <span class="text-danger">*</span></label>
                         <select class="form-select" th:field="*{activityId}"
@@ -30,7 +31,70 @@
                         <div class="invalid-feedback" th:errors="*{activityId}"></div>
                     </div>
 
-                    <div class="col-12">
+                    <!-- Assigned Date -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-medium">Assigned Date <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control" th:field="*{assignedDate}"
+                               th:classappend="${#fields.hasErrors('assignedDate')} ? ' is-invalid'">
+                        <div class="invalid-feedback" th:errors="*{assignedDate}"></div>
+                    </div>
+
+                    <!-- Status -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-medium">Status <span class="text-danger">*</span></label>
+                        <select class="form-select" th:field="*{status}"
+                                th:classappend="${#fields.hasErrors('status')} ? ' is-invalid'">
+                            <option value="">-- Select Status --</option>
+                            <option value="Assigned">Assigned</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Completed">Completed</option>
+                            <option value="Dropped">Dropped</option>
+                        </select>
+                        <div class="invalid-feedback" th:errors="*{status}"></div>
+                    </div>
+
+                    <!-- ── CREATE: dynamic member + role rows ── -->
+                    <div th:if="${item.id == null}" class="col-12">
+
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <label class="form-label fw-medium mb-0">
+                                Members &amp; Roles <span class="text-danger">*</span>
+                            </label>
+                            <button type="button" class="btn btn-sm btn-outline-primary"
+                                    onclick="addMemberRow()">
+                                <i class="bi bi-plus-lg me-1"></i>Add Member
+                            </button>
+                        </div>
+
+                        <div class="border rounded" style="overflow:hidden;">
+                            <table class="table table-sm mb-0" id="memberTable">
+                                <thead style="background:#f8f9fa;">
+                                    <tr>
+                                        <th style="width:36px;" class="text-center text-muted ps-3">#</th>
+                                        <th>Member</th>
+                                        <th style="width:170px;">Role</th>
+                                        <th style="width:44px;"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="memberRows"></tbody>
+                            </table>
+                        </div>
+
+                        <div class="text-danger mt-1" style="font-size:0.82rem;"
+                             th:if="${#fields.hasErrors('memberId')}"
+                             th:errors="*{memberId}"></div>
+
+                        <!-- Hidden source of pre-rendered member options (Thymeleaf renders once) -->
+                        <select id="memberSrc" style="display:none;">
+                            <option value="">-- Select Member --</option>
+                            <option th:each="m : ${members}"
+                                    th:value="${m.id}"
+                                    th:text="${m.firstName + ' ' + m.lastName + ' — ' + m.phone}"></option>
+                        </select>
+                    </div>
+
+                    <!-- ── EDIT: single member + single role ── -->
+                    <div th:unless="${item.id == null}" class="col-12">
                         <label class="form-label fw-medium">Member <span class="text-danger">*</span></label>
                         <select class="form-select" th:field="*{memberId}"
                                 th:classappend="${#fields.hasErrors('memberId')} ? ' is-invalid'">
@@ -42,14 +106,7 @@
                         <div class="invalid-feedback" th:errors="*{memberId}"></div>
                     </div>
 
-                    <div class="col-md-6">
-                        <label class="form-label fw-medium">Assigned Date <span class="text-danger">*</span></label>
-                        <input type="date" class="form-control" th:field="*{assignedDate}"
-                               th:classappend="${#fields.hasErrors('assignedDate')} ? ' is-invalid'">
-                        <div class="invalid-feedback" th:errors="*{assignedDate}"></div>
-                    </div>
-
-                    <div class="col-md-6">
+                    <div th:unless="${item.id == null}" class="col-md-6">
                         <label class="form-label fw-medium">Role <span class="text-danger">*</span></label>
                         <select class="form-select" th:field="*{role}"
                                 th:classappend="${#fields.hasErrors('role')} ? ' is-invalid'">
@@ -64,24 +121,10 @@
                         <div class="invalid-feedback" th:errors="*{role}"></div>
                     </div>
 
-                    <div class="col-md-6">
-                        <label class="form-label fw-medium">Status <span class="text-danger">*</span></label>
-                        <select class="form-select" th:field="*{status}"
-                                th:classappend="${#fields.hasErrors('status')} ? ' is-invalid'">
-                            <option value="">-- Select Status --</option>
-                            <option value="Assigned">Assigned</option>
-                            <option value="In Progress">In Progress</option>
-                            <option value="Completed">Completed</option>
-                            <option value="Dropped">Dropped</option>
-                        </select>
-                        <div class="invalid-feedback" th:errors="*{status}"></div>
-                    </div>
-
+                    <!-- Notes -->
                     <div class="col-12">
                         <label class="form-label fw-medium">Notes</label>
-                        <textarea class="form-control" th:field="*{notes}" rows="2"
-                                  th:classappend="${#fields.hasErrors('notes')} ? ' is-invalid'"></textarea>
-                        <div class="invalid-feedback" th:errors="*{notes}"></div>
+                        <textarea class="form-control" th:field="*{notes}" rows="2"></textarea>
                     </div>
 
                 </div>
@@ -97,5 +140,67 @@
         </div>
     </div>
 </div>
+
+<th:block layout:fragment="page-scripts">
+<script>
+(function () {
+    var rowCount = 0;
+    var roles = ['Volunteer','Lead','Co-Lead','Coordinator','Support','Other'];
+
+    function buildRoleOptions() {
+        return roles.map(function(r) {
+            return '<option value="' + r + '">' + r + '</option>';
+        }).join('');
+    }
+
+    window.addMemberRow = function () {
+        var src = document.getElementById('memberSrc');
+        if (!src) return;
+        rowCount++;
+
+        var tr = document.createElement('tr');
+        tr.innerHTML =
+            '<td class="text-center text-muted ps-3 align-middle" style="font-size:0.8rem;">' + rowCount + '</td>' +
+            '<td class="pe-2 py-2">' +
+              '<select name="memberIds" class="form-select form-select-sm">' +
+                src.innerHTML +
+              '</select>' +
+            '</td>' +
+            '<td class="py-2">' +
+              '<select name="memberRoles" class="form-select form-select-sm">' +
+                buildRoleOptions() +
+              '</select>' +
+            '</td>' +
+            '<td class="text-center align-middle py-2">' +
+              '<button type="button" class="btn btn-sm btn-outline-danger px-2 py-1" ' +
+                'onclick="removeRow(this)">' +
+                '<i class="bi bi-trash"></i>' +
+              '</button>' +
+            '</td>';
+
+        document.getElementById('memberRows').appendChild(tr);
+    };
+
+    window.removeRow = function (btn) {
+        btn.closest('tr').remove();
+        renumber();
+    };
+
+    function renumber() {
+        var rows = document.querySelectorAll('#memberRows tr');
+        rows.forEach(function (tr, i) {
+            tr.querySelector('td:first-child').textContent = i + 1;
+        });
+        rowCount = rows.length;
+    }
+
+    // Start with one empty row
+    if (document.getElementById('memberRows')) {
+        addMemberRow();
+    }
+})();
+</script>
+</th:block>
+
 </body>
 </html>

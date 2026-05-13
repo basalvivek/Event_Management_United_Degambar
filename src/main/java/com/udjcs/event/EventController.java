@@ -1,6 +1,8 @@
 package com.udjcs.event;
 
+import com.udjcs.member.MemberService;
 import com.udjcs.supportive.SupportiveOrganizationService;
+import com.udjcs.venue.VenueService;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -14,10 +16,15 @@ public class EventController {
 
     private final EventService service;
     private final SupportiveOrganizationService supportiveService;
+    private final VenueService venueService;
+    private final MemberService memberService;
 
-    public EventController(EventService service, SupportiveOrganizationService supportiveService) {
+    public EventController(EventService service, SupportiveOrganizationService supportiveService,
+                           VenueService venueService, MemberService memberService) {
         this.service = service;
         this.supportiveService = supportiveService;
+        this.venueService = venueService;
+        this.memberService = memberService;
     }
 
     @GetMapping
@@ -30,6 +37,8 @@ public class EventController {
     public String showCreateForm(Model model) {
         model.addAttribute("item", new Event());
         model.addAttribute("organizers", supportiveService.findAll());
+        model.addAttribute("venues", venueService.findAll());
+        model.addAttribute("members", memberService.findAll());
         return "event/form";
     }
 
@@ -40,6 +49,8 @@ public class EventController {
                          RedirectAttributes attrs) {
         if (result.hasErrors()) {
             model.addAttribute("organizers", supportiveService.findAll());
+            model.addAttribute("venues", venueService.findAll());
+        model.addAttribute("members", memberService.findAll());
             return "event/form";
         }
         service.save(event);
@@ -47,10 +58,17 @@ public class EventController {
         return "redirect:/events";
     }
 
+    @GetMapping("/{id}")
+    public String redirectToEdit(@PathVariable Long id) {
+        return "redirect:/events/" + id + "/edit";
+    }
+
     @GetMapping("/{id}/edit")
     public String showEditForm(@PathVariable Long id, Model model) {
         model.addAttribute("item", service.findById(id));
         model.addAttribute("organizers", supportiveService.findAll());
+        model.addAttribute("venues", venueService.findAll());
+        model.addAttribute("members", memberService.findAll());
         return "event/form";
     }
 
@@ -62,6 +80,8 @@ public class EventController {
                          RedirectAttributes attrs) {
         if (result.hasErrors()) {
             model.addAttribute("organizers", supportiveService.findAll());
+            model.addAttribute("venues", venueService.findAll());
+        model.addAttribute("members", memberService.findAll());
             return "event/form";
         }
         event.setId(id);

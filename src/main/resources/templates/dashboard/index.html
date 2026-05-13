@@ -42,11 +42,11 @@
                 <div class="card-body p-0 d-flex align-items-stretch">
                     <div class="d-flex align-items-center justify-content-center px-4 flex-shrink-0"
                          style="width:76px;background:linear-gradient(145deg,#10b981,#047857);">
-                        <i class="bi bi-currency-rupee text-white" style="font-size:1.7rem;"></i>
+                        <i class="bi bi-currency-pound text-white" style="font-size:1.7rem;"></i>
                     </div>
                     <div class="p-3 d-flex flex-column justify-content-center">
                         <div style="font-size:1.4rem;font-weight:800;color:#1a1a2e;line-height:1.2;"
-                             th:text="${'₹ ' + #numbers.formatDecimal(totalFunds, 1, 'COMMA', 2, 'POINT')}">₹ 0.00</div>
+                             th:text="${'£ ' + #numbers.formatDecimal(totalFunds, 1, 'COMMA', 2, 'POINT')}">£ 0.00</div>
                         <div class="text-muted fw-semibold mt-1" style="font-size:0.8rem;">Total Funds Received</div>
                         <div class="mt-2">
                             <span class="badge rounded-pill px-2 py-1"

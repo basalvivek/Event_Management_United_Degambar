@@ -35,12 +35,17 @@ public class SupportiveOrganizationController {
     @PostMapping
     public String create(@ModelAttribute("item") @Valid SupportiveOrganization org,
                          BindingResult result,
-                         @RequestParam("logoFile") MultipartFile logoFile,
+                         @RequestParam(value = "logoFile", required = false) MultipartFile logoFile,
                          RedirectAttributes attrs) throws IOException {
         if (result.hasErrors()) return "supportive/form";
         service.save(org, logoFile);
         attrs.addFlashAttribute("success", "Supportive organization saved successfully.");
         return "redirect:/supportive";
+    }
+
+    @GetMapping("/{id}")
+    public String redirectToEdit(@PathVariable Long id) {
+        return "redirect:/supportive/" + id + "/edit";
     }
 
     @GetMapping("/{id}/edit")
@@ -53,7 +58,7 @@ public class SupportiveOrganizationController {
     public String update(@PathVariable Long id,
                          @ModelAttribute("item") @Valid SupportiveOrganization org,
                          BindingResult result,
-                         @RequestParam("logoFile") MultipartFile logoFile,
+                         @RequestParam(value = "logoFile", required = false) MultipartFile logoFile,
                          RedirectAttributes attrs) throws IOException {
         if (result.hasErrors()) return "supportive/form";
         org.setId(id);

@@ -39,6 +39,11 @@ public class MemberController {
         return "redirect:/members";
     }
 
+    @GetMapping("/{id}")
+    public String redirectToEdit(@PathVariable Long id) {
+        return "redirect:/members/" + id + "/edit";
+    }
+
     @GetMapping("/{id}/edit")
     public String showEditForm(@PathVariable Long id, Model model) {
         model.addAttribute("item", service.findById(id));

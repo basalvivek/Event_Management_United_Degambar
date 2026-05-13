@@ -1,6 +1,7 @@
 package com.udjcs.activity;
 
 import com.udjcs.activity.category.ActivityCategoryService;
+import com.udjcs.member.MemberService;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -14,10 +15,13 @@ public class ActivityController {
 
     private final ActivityService service;
     private final ActivityCategoryService categoryService;
+    private final MemberService memberService;
 
-    public ActivityController(ActivityService service, ActivityCategoryService categoryService) {
+    public ActivityController(ActivityService service, ActivityCategoryService categoryService,
+                               MemberService memberService) {
         this.service = service;
         this.categoryService = categoryService;
+        this.memberService = memberService;
     }
 
     @GetMapping
@@ -30,6 +34,7 @@ public class ActivityController {
     public String showCreateForm(Model model) {
         model.addAttribute("item", new Activity());
         model.addAttribute("categories", categoryService.findAll());
+        model.addAttribute("members", memberService.findAll());
         return "activity/form";
     }
 
@@ -43,11 +48,17 @@ public class ActivityController {
         }
         if (result.hasErrors()) {
             model.addAttribute("categories", categoryService.findAll());
+        model.addAttribute("members", memberService.findAll());
             return "activity/form";
         }
         service.save(activity);
         attrs.addFlashAttribute("success", "Activity saved successfully.");
         return "redirect:/activities";
+    }
+
+    @GetMapping("/{id}")
+    public String redirectToEdit(@PathVariable Long id) {
+        return "redirect:/activities/" + id + "/edit";
     }
 
     @GetMapping("/{id}/edit")
@@ -56,6 +67,7 @@ public class ActivityController {
         item.setCategoryId(item.getActivityCategory().getId());
         model.addAttribute("item", item);
         model.addAttribute("categories", categoryService.findAll());
+        model.addAttribute("members", memberService.findAll());
         return "activity/form";
     }
 
@@ -70,6 +82,7 @@ public class ActivityController {
         }
         if (result.hasErrors()) {
             model.addAttribute("categories", categoryService.findAll());
+        model.addAttribute("members", memberService.findAll());
             return "activity/form";
         }
         activity.setId(id);

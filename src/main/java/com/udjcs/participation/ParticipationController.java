@@ -58,6 +58,11 @@ public class ParticipationController {
         return "redirect:/participations";
     }
 
+    @GetMapping("/{id}")
+    public String redirectToEdit(@PathVariable Long id) {
+        return "redirect:/participations/" + id + "/edit";
+    }
+
     @GetMapping("/{id}/edit")
     public String showEditForm(@PathVariable Long id, Model model) {
         Participation item = service.findById(id);

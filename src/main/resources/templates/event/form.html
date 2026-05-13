@@ -69,8 +69,13 @@
 
                     <div class="col-12">
                         <label class="form-label fw-medium">Venue <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" th:field="*{venue}"
-                               th:classappend="${#fields.hasErrors('venue')} ? ' is-invalid'">
+                        <select class="form-select" th:field="*{venue}"
+                                th:classappend="${#fields.hasErrors('venue')} ? ' is-invalid'">
+                            <option value="">-- Select Venue --</option>
+                            <option th:each="v : ${venues}"
+                                    th:value="${v.venueName}"
+                                    th:text="${v.venueName} + ' — ' + ${v.city}"></option>
+                        </select>
                         <div class="invalid-feedback" th:errors="*{venue}"></div>
                     </div>
 
@@ -90,8 +95,13 @@
 
                     <div class="col-md-6">
                         <label class="form-label fw-medium">Contact Member 1 — Name <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" th:field="*{contactMember1Name}"
-                               th:classappend="${#fields.hasErrors('contactMember1Name')} ? ' is-invalid'">
+                        <select class="form-select" th:field="*{contactMember1Name}"
+                                th:classappend="${#fields.hasErrors('contactMember1Name')} ? ' is-invalid'">
+                            <option value="">-- Select Member --</option>
+                            <option th:each="m : ${members}"
+                                    th:value="${m.firstName + ' ' + m.lastName}"
+                                    th:text="${m.firstName + ' ' + m.lastName}"></option>
+                        </select>
                         <div class="invalid-feedback" th:errors="*{contactMember1Name}"></div>
                     </div>
 
@@ -104,8 +114,13 @@
 
                     <div class="col-md-6">
                         <label class="form-label fw-medium">Contact Member 2 — Name <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" th:field="*{contactMember2Name}"
-                               th:classappend="${#fields.hasErrors('contactMember2Name')} ? ' is-invalid'">
+                        <select class="form-select" th:field="*{contactMember2Name}"
+                                th:classappend="${#fields.hasErrors('contactMember2Name')} ? ' is-invalid'">
+                            <option value="">-- Select Member --</option>
+                            <option th:each="m : ${members}"
+                                    th:value="${m.firstName + ' ' + m.lastName}"
+                                    th:text="${m.firstName + ' ' + m.lastName}"></option>
+                        </select>
                         <div class="invalid-feedback" th:errors="*{contactMember2Name}"></div>
                     </div>
 

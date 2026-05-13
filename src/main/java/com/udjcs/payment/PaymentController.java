@@ -47,6 +47,11 @@ public class PaymentController {
         return "redirect:/payments";
     }
 
+    @GetMapping("/{id}")
+    public String redirectToEdit(@PathVariable Long id) {
+        return "redirect:/payments/" + id + "/edit";
+    }
+
     @GetMapping("/{id}/edit")
     public String showEditForm(@PathVariable Long id, Model model) {
         Payment item = service.findById(id);

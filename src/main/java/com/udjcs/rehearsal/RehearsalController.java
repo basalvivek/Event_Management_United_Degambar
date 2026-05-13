@@ -50,6 +50,11 @@ public class RehearsalController {
         return "redirect:/rehearsals";
     }
 
+    @GetMapping("/{id}")
+    public String redirectToEdit(@PathVariable Long id) {
+        return "redirect:/rehearsals/" + id + "/edit";
+    }
+
     @GetMapping("/{id}/edit")
     public String showEditForm(@PathVariable Long id, Model model) {
         Rehearsal item = service.findById(id);

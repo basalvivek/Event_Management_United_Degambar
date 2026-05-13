@@ -9,6 +9,8 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.List;
+
 @Controller
 @RequestMapping("/assignments")
 public class AssignmentController {
@@ -39,18 +41,47 @@ public class AssignmentController {
     }
 
     @PostMapping
-    public String create(@ModelAttribute("item") @Valid Assignment assignment,
+    public String create(@ModelAttribute("item") Assignment assignment,
                          BindingResult result,
+                         @RequestParam(value = "memberIds",   required = false) List<Long>   memberIds,
+                         @RequestParam(value = "memberRoles", required = false) List<String> memberRoles,
                          Model model,
                          RedirectAttributes attrs) {
-        rejectIfMissingFks(assignment, result);
+
+        if (assignment.getActivityId() == null)
+            result.rejectValue("activityId",   "NotNull",   "Please select an activity");
+        if (assignment.getAssignedDate() == null)
+            result.rejectValue("assignedDate",  "NotNull",   "Please enter an assigned date");
+        if (assignment.getStatus() == null || assignment.getStatus().isBlank())
+            result.rejectValue("status",        "NotBlank",  "Please select a status");
+        if (memberIds == null || memberIds.isEmpty())
+            result.rejectValue("memberId",      "NotNull",   "Please select at least one member");
+
         if (result.hasErrors()) {
             addFormData(model);
             return "assignment/form";
         }
-        service.save(assignment);
-        attrs.addFlashAttribute("success", "Assignment saved successfully.");
+
+        for (int i = 0; i < memberIds.size(); i++) {
+            Assignment a = new Assignment();
+            a.setActivityId(assignment.getActivityId());
+            a.setMemberId(memberIds.get(i));
+            a.setAssignedDate(assignment.getAssignedDate());
+            a.setRole(memberRoles != null && i < memberRoles.size() ? memberRoles.get(i) : "Volunteer");
+            a.setStatus(assignment.getStatus());
+            a.setNotes(assignment.getNotes());
+            service.save(a);
+        }
+
+        int count = memberIds.size();
+        attrs.addFlashAttribute("success",
+            count + " member" + (count > 1 ? "s" : "") + " assigned successfully.");
         return "redirect:/assignments";
+    }
+
+    @GetMapping("/{id}")
+    public String redirectToEdit(@PathVariable Long id) {
+        return "redirect:/assignments/" + id + "/edit";
     }
 
     @GetMapping("/{id}/edit")
@@ -69,7 +100,10 @@ public class AssignmentController {
                          BindingResult result,
                          Model model,
                          RedirectAttributes attrs) {
-        rejectIfMissingFks(assignment, result);
+        if (assignment.getActivityId() == null)
+            result.rejectValue("activityId", "NotNull", "Please select an activity");
+        if (assignment.getMemberId() == null)
+            result.rejectValue("memberId",   "NotNull", "Please select a member");
         if (result.hasErrors()) {
             addFormData(model);
             return "assignment/form";
@@ -89,15 +123,6 @@ public class AssignmentController {
 
     private void addFormData(Model model) {
         model.addAttribute("activities", activityService.findAll());
-        model.addAttribute("members", memberService.findAll());
-    }
-
-    private void rejectIfMissingFks(Assignment assignment, BindingResult result) {
-        if (assignment.getActivityId() == null) {
-            result.rejectValue("activityId", "NotNull", "Please select an activity");
-        }
-        if (assignment.getMemberId() == null) {
-            result.rejectValue("memberId", "NotNull", "Please select a member");
-        }
+        model.addAttribute("members",    memberService.findAll());
     }
 }

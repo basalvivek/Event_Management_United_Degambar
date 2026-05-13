@@ -39,6 +39,11 @@ public class ActivityCategoryController {
         return "redirect:/activity-categories";
     }
 
+    @GetMapping("/{id}")
+    public String redirectToEdit(@PathVariable Long id) {
+        return "redirect:/activity-categories/" + id + "/edit";
+    }
+
     @GetMapping("/{id}/edit")
     public String showEditForm(@PathVariable Long id, Model model) {
         model.addAttribute("item", service.findById(id));

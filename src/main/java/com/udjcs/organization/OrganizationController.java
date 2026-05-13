@@ -39,12 +39,17 @@ public class OrganizationController {
     @PostMapping
     public String create(@ModelAttribute("item") @Valid Organization organization,
                          BindingResult result,
-                         @RequestParam("logoFile") MultipartFile logoFile,
+                         @RequestParam(value = "logoFile", required = false) MultipartFile logoFile,
                          RedirectAttributes attrs) throws IOException {
         if (result.hasErrors()) return "organization/form";
         service.save(organization, logoFile);
         attrs.addFlashAttribute("success", "Organization saved successfully.");
         return "redirect:/organization";
+    }
+
+    @GetMapping("/{id}")
+    public String redirectToEdit(@PathVariable Long id) {
+        return "redirect:/organization/" + id + "/edit";
     }
 
     @GetMapping("/{id}/edit")
@@ -57,7 +62,7 @@ public class OrganizationController {
     public String update(@PathVariable Long id,
                          @ModelAttribute("item") @Valid Organization organization,
                          BindingResult result,
-                         @RequestParam("logoFile") MultipartFile logoFile,
+                         @RequestParam(value = "logoFile", required = false) MultipartFile logoFile,
                          RedirectAttributes attrs) throws IOException {
         if (result.hasErrors()) return "organization/form";
         organization.setId(id);

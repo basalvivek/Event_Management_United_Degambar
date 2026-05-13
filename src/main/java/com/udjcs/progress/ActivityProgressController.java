@@ -51,6 +51,11 @@ public class ActivityProgressController {
         return "redirect:/progress";
     }
 
+    @GetMapping("/{id}")
+    public String redirectToEdit(@PathVariable Long id) {
+        return "redirect:/progress/" + id + "/edit";
+    }
+
     @GetMapping("/{id}/edit")
     public String showEditForm(@PathVariable Long id, Model model) {
         ActivityProgress item = service.findById(id);
