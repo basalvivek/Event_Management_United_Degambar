@@ -63,9 +63,25 @@ public class ActivityCategoryController {
     }
 
     @PostMapping("/{id}/delete")
-    public String delete(@PathVariable Long id, RedirectAttributes attrs) {
+    public String delete(@PathVariable Long id,
+                         @RequestParam(required = false) String returnTo,
+                         RedirectAttributes attrs) {
         service.deleteById(id);
-        attrs.addFlashAttribute("success", "Activity category deleted successfully.");
-        return "redirect:/activity-categories";
+        attrs.addFlashAttribute("success", "Category deleted.");
+        return "redirect:" + (returnTo != null && !returnTo.isBlank() ? returnTo : "/activity-categories");
+    }
+
+    @PostMapping("/quick-add")
+    public String quickAdd(@RequestParam(required = false) String categoryName,
+                           @RequestParam(required = false) String returnTo,
+                           RedirectAttributes attrs) {
+        if (categoryName != null && !categoryName.isBlank()) {
+            ActivityCategory cat = new ActivityCategory();
+            cat.setCategoryName(categoryName.trim());
+            cat.setStatus("Active");
+            service.save(cat);
+            attrs.addFlashAttribute("success", "Category \"" + categoryName.trim() + "\" added.");
+        }
+        return "redirect:" + (returnTo != null && !returnTo.isBlank() ? returnTo : "/activities/new");
     }
 }

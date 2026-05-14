@@ -16,7 +16,16 @@ public class WebConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(new AuthInterceptor())
                 .addPathPatterns("/**")
-                .excludePathPatterns("/login", "/logout", "/switch-user", "/images/**", "/uploads/**", "/css/**", "/js/**", "/error");
+                .excludePathPatterns(
+                        "/login", "/logout", "/switch-user",
+                        "/member-login", "/member-logout", "/register",
+                        "/portal/**",
+                        "/organization/*/banner", "/organization/display-pictures/*",
+                        "/members/*/photo",
+                        "/images/**", "/uploads/**", "/css/**", "/js/**", "/error");
+
+        registry.addInterceptor(new MemberAuthInterceptor())
+                .addPathPatterns("/portal/**");
     }
 
     @Override

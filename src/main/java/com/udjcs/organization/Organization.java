@@ -62,6 +62,12 @@ public class Organization extends BaseEntity {
     @Column(name = "logo_path", length = 255)
     private String logoPath;
 
+    @Column(name = "banner_image", columnDefinition = "BYTEA")
+    private byte[] bannerImage;
+
+    @Column(name = "banner_mime_type", length = 50)
+    private String bannerMimeType;
+
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 
@@ -100,4 +106,10 @@ public class Organization extends BaseEntity {
 
     public String getLogoPath() { return logoPath; }
     public void setLogoPath(String logoPath) { this.logoPath = logoPath; }
+
+    public byte[] getBannerImage() { return bannerImage; }
+    public void setBannerImage(byte[] bannerImage) { this.bannerImage = bannerImage; }
+
+    public String getBannerMimeType() { return bannerMimeType; }
+    public void setBannerMimeType(String bannerMimeType) { this.bannerMimeType = bannerMimeType; }
 }

@@ -90,6 +90,26 @@
                         <div class="invalid-feedback" th:errors="*{notes}"></div>
                     </div>
 
+                    <div class="col-12">
+                        <div class="p-3 rounded-3 d-flex align-items-center justify-content-between"
+                             style="background:#f0fdf4;border:1px solid #bbf7d0;">
+                            <div>
+                                <div class="fw-semibold" style="font-size:0.88rem;color:#166534;">
+                                    <i class="bi bi-eye me-2 text-success"></i>Show on Member Portal
+                                </div>
+                                <div class="text-muted" style="font-size:0.76rem;">
+                                    When enabled, this activity appears on the member portal homepage.
+                                    Only shows if end date is today or in the future.
+                                </div>
+                            </div>
+                            <div class="form-check form-switch ms-3 mb-0">
+                                <input class="form-check-input" type="checkbox" role="switch"
+                                       th:field="*{showOnPortal}"
+                                       style="width:2.8em;height:1.5em;cursor:pointer;">
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
 
                 <div class="d-flex gap-2 mt-4">
@@ -100,6 +120,49 @@
                 </div>
 
             </form>
+
+            <!-- ── Manage Categories ── -->
+            <div class="mt-4 pt-4" style="border-top:1px dashed #dee2e6;">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <i class="bi bi-tags-fill text-primary"></i>
+                    <span class="fw-semibold" style="font-size:0.9rem;">Manage Categories</span>
+                </div>
+
+                <!-- Existing categories as tags -->
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    <span th:each="cat : ${categories}"
+                          class="d-inline-flex align-items-center gap-1 px-3 py-1 rounded-pill"
+                          style="background:#ede9fe;color:#5b21b6;font-size:0.8rem;font-weight:500;">
+                        <i class="bi bi-tag" style="font-size:0.72rem;"></i>
+                        <span th:text="${cat.categoryName}"></span>
+                        <form th:action="@{/activity-categories/{id}/delete(id=${cat.id})}"
+                              method="post" class="d-inline m-0"
+                              data-confirm='Delete category?'>
+                            <input type="hidden" name="returnTo"
+                                   th:value="${item.id == null ? '/activities/new' : '/activities/' + item.id + '/edit'}">
+                            <button type="submit"
+                                    style="background:none;border:none;padding:0 0 0 4px;cursor:pointer;
+                                           color:#7c3aed;line-height:1;vertical-align:middle;">
+                                <i class="bi bi-x-circle-fill" style="font-size:0.78rem;"></i>
+                            </button>
+                        </form>
+                    </span>
+                    <span th:if="${#lists.isEmpty(categories)}"
+                          class="text-muted" style="font-size:0.82rem;">No categories yet. Add one below.</span>
+                </div>
+
+                <!-- Add new category inline -->
+                <form th:action="@{/activity-categories/quick-add}" method="post"
+                      class="d-flex align-items-center gap-2">
+                    <input type="hidden" name="returnTo"
+                           th:value="${item.id == null ? '/activities/new' : '/activities/' + item.id + '/edit'}">
+                    <input type="text" name="categoryName" class="form-control form-control-sm"
+                           placeholder="New category name..." style="max-width:240px;" required>
+                    <button type="submit" class="btn btn-sm btn-outline-primary px-3">
+                        <i class="bi bi-plus-lg me-1"></i>Add
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
 </div>

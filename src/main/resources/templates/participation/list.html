@@ -50,7 +50,7 @@
                                 <i class="bi bi-pencil"></i>
                             </a>
                             <form th:action="@{/participations/{id}/delete(id=${item.id})}" method="post" class="d-inline"
-                                  onsubmit="return confirm('Delete this record?')">
+                                  data-confirm='Delete this record?'>
                                 <button type="submit" class="btn btn-sm btn-outline-danger">
                                     <i class="bi bi-trash"></i>
                                 </button>

@@ -40,6 +40,8 @@ public class OrganizationService {
     public void save(Organization org, MultipartFile logoFile) throws IOException {
         if (org.getId() != null) {
             Organization existing = findById(org.getId());
+            org.setBannerImage(existing.getBannerImage());
+            org.setBannerMimeType(existing.getBannerMimeType());
             if (logoFile == null || logoFile.isEmpty()) {
                 org.setLogoPath(existing.getLogoPath());
             } else {
@@ -51,6 +53,20 @@ public class OrganizationService {
                 org.setLogoPath(storeFile(logoFile));
             }
         }
+        repository.save(org);
+    }
+
+    public void saveBanner(Long orgId, MultipartFile bannerFile) throws IOException {
+        Organization org = findById(orgId);
+        org.setBannerImage(bannerFile.getBytes());
+        org.setBannerMimeType(bannerFile.getContentType());
+        repository.save(org);
+    }
+
+    public void deleteBanner(Long orgId) {
+        Organization org = findById(orgId);
+        org.setBannerImage(null);
+        org.setBannerMimeType(null);
         repository.save(org);
     }
 

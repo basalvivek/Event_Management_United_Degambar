@@ -15,4 +15,6 @@ public interface AssignmentRepository extends JpaRepository<Assignment, Long> {
 
     @Query("SELECT a FROM Assignment a JOIN FETCH a.activity act JOIN FETCH act.activityCategory JOIN FETCH a.member WHERE a.id = :id")
     Optional<Assignment> findByIdWithDetails(@Param("id") Long id);
+
+    boolean existsByActivity_IdAndMember_Id(Long activityId, Long memberId);
 }

@@ -53,38 +53,40 @@
                         <div class="invalid-feedback" th:errors="*{status}"></div>
                     </div>
 
-                    <!-- ── CREATE: dynamic member + role rows ── -->
+                    <!-- ── CREATE: dynamic multi-member rows ── -->
                     <div th:if="${item.id == null}" class="col-12">
 
-                        <div class="d-flex align-items-center justify-content-between mb-2">
-                            <label class="form-label fw-medium mb-0">
-                                Members &amp; Roles <span class="text-danger">*</span>
-                            </label>
-                            <button type="button" class="btn btn-sm btn-outline-primary"
-                                    onclick="addMemberRow()">
-                                <i class="bi bi-plus-lg me-1"></i>Add Member
-                            </button>
+                        <div class="p-3 rounded-3" style="background:#f8faff;border:1px solid #e0e7ff;">
+
+                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                <div>
+                                    <span class="fw-semibold" style="font-size:0.9rem;color:#1e1b4b;">
+                                        <i class="bi bi-people-fill text-primary me-2"></i>Members &amp; Roles
+                                    </span>
+                                    <span class="text-danger ms-1">*</span>
+                                    <div class="text-muted" style="font-size:0.75rem;">Add one or more members and assign a role to each.</div>
+                                </div>
+                                <button type="button" class="btn btn-primary btn-sm px-3"
+                                        onclick="addMemberRow()">
+                                    <i class="bi bi-person-plus-fill me-1"></i>Add Member
+                                </button>
+                            </div>
+
+                            <div id="memberRows" class="d-flex flex-column gap-2"></div>
+
+                            <div class="text-danger mt-2" style="font-size:0.82rem;"
+                                 th:if="${#fields.hasErrors('memberId')}"
+                                 th:errors="*{memberId}"></div>
+
+                            <div th:if="${duplicateError}"
+                                 class="mt-2 d-flex align-items-start gap-2 p-2 rounded-2"
+                                 style="background:#fef2f2;border:1px solid #fecaca;font-size:0.82rem;color:#dc2626;">
+                                <i class="bi bi-person-x-fill flex-shrink-0 mt-1"></i>
+                                <span th:text="${duplicateError}"></span>
+                            </div>
                         </div>
 
-                        <div class="border rounded" style="overflow:hidden;">
-                            <table class="table table-sm mb-0" id="memberTable">
-                                <thead style="background:#f8f9fa;">
-                                    <tr>
-                                        <th style="width:36px;" class="text-center text-muted ps-3">#</th>
-                                        <th>Member</th>
-                                        <th style="width:170px;">Role</th>
-                                        <th style="width:44px;"></th>
-                                    </tr>
-                                </thead>
-                                <tbody id="memberRows"></tbody>
-                            </table>
-                        </div>
-
-                        <div class="text-danger mt-1" style="font-size:0.82rem;"
-                             th:if="${#fields.hasErrors('memberId')}"
-                             th:errors="*{memberId}"></div>
-
-                        <!-- Hidden source of pre-rendered member options (Thymeleaf renders once) -->
+                        <!-- Hidden source of member options for JS cloning -->
                         <select id="memberSrc" style="display:none;">
                             <option value="">-- Select Member --</option>
                             <option th:each="m : ${members}"
@@ -144,7 +146,6 @@
 <th:block layout:fragment="page-scripts">
 <script>
 (function () {
-    var rowCount = 0;
     var roles = ['Volunteer','Lead','Co-Lead','Coordinator','Support','Other'];
 
     function buildRoleOptions() {
@@ -155,46 +156,44 @@
 
     window.addMemberRow = function () {
         var src = document.getElementById('memberSrc');
-        if (!src) return;
-        rowCount++;
+        var container = document.getElementById('memberRows');
+        if (!src || !container) return;
 
-        var tr = document.createElement('tr');
-        tr.innerHTML =
-            '<td class="text-center text-muted ps-3 align-middle" style="font-size:0.8rem;">' + rowCount + '</td>' +
-            '<td class="pe-2 py-2">' +
-              '<select name="memberIds" class="form-select form-select-sm">' +
-                src.innerHTML +
-              '</select>' +
-            '</td>' +
-            '<td class="py-2">' +
-              '<select name="memberRoles" class="form-select form-select-sm">' +
-                buildRoleOptions() +
-              '</select>' +
-            '</td>' +
-            '<td class="text-center align-middle py-2">' +
-              '<button type="button" class="btn btn-sm btn-outline-danger px-2 py-1" ' +
-                'onclick="removeRow(this)">' +
-                '<i class="bi bi-trash"></i>' +
-              '</button>' +
-            '</td>';
+        var rowNum = container.children.length + 1;
 
-        document.getElementById('memberRows').appendChild(tr);
+        var div = document.createElement('div');
+        div.className = 'd-flex align-items-center gap-2 p-2 rounded-2';
+        div.style.background = '#fff';
+        div.style.border = '1px solid #e5e7eb';
+        div.innerHTML =
+            '<span class="badge rounded-pill bg-primary bg-opacity-75 flex-shrink-0" style="min-width:26px;text-align:center;">' + rowNum + '</span>' +
+            '<select name="memberIds" class="form-select form-select-sm flex-grow-1">' +
+              src.innerHTML +
+            '</select>' +
+            '<select name="memberRoles" class="form-select form-select-sm" style="max-width:160px;">' +
+              buildRoleOptions() +
+            '</select>' +
+            '<button type="button" class="btn btn-sm btn-outline-danger px-2 flex-shrink-0" ' +
+              'onclick="removeRow(this)" title="Remove">' +
+              '<i class="bi bi-x-lg"></i>' +
+            '</button>';
+
+        container.appendChild(div);
     };
 
     window.removeRow = function (btn) {
-        btn.closest('tr').remove();
+        var row = btn.closest('div[style]');
+        row.remove();
         renumber();
     };
 
     function renumber() {
-        var rows = document.querySelectorAll('#memberRows tr');
-        rows.forEach(function (tr, i) {
-            tr.querySelector('td:first-child').textContent = i + 1;
+        var rows = document.querySelectorAll('#memberRows > div');
+        rows.forEach(function (div, i) {
+            div.querySelector('.badge').textContent = i + 1;
         });
-        rowCount = rows.length;
     }
 
-    // Start with one empty row
     if (document.getElementById('memberRows')) {
         addMemberRow();
     }

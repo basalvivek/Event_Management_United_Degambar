@@ -47,7 +47,7 @@
                                 <i class="bi bi-pencil"></i>
                             </a>
                             <form th:action="@{/payments/{id}/delete(id=${item.id})}" method="post" class="d-inline"
-                                  onsubmit="return confirm('Delete this payment?')">
+                                  data-confirm='Delete this payment?'>
                                 <button type="submit" class="btn btn-sm btn-outline-danger">
                                     <i class="bi bi-trash"></i>
                                 </button>

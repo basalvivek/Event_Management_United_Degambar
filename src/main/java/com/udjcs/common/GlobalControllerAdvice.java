@@ -39,6 +39,7 @@ public class GlobalControllerAdvice {
         model.addAttribute("currentUri", request.getRequestURI());
         HttpSession session = request.getSession(false);
         model.addAttribute("adminUser", session != null ? session.getAttribute("adminUser") : null);
+        model.addAttribute("memberUser", session != null ? session.getAttribute("memberUser") : null);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

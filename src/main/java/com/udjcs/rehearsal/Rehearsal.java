@@ -34,8 +34,9 @@ public class Rehearsal extends BaseEntity {
     @Column(length = 200)
     private String venue;
 
+    @NotBlank
     @Size(max = 100)
-    @Column(name = "conducted_by", length = 100)
+    @Column(name = "conducted_by", nullable = false, length = 100)
     private String conductedBy;
 
     @Column

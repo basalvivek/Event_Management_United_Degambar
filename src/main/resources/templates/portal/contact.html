@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/portal-base}">
+<head><title>Contact Us</title></head>
+<body>
+<div layout:fragment="content">
+    <div class="container py-5" style="max-width:560px;">
+        <div class="card border-0 shadow-sm" style="border-radius:14px;">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-envelope-heart" style="font-size:3rem;color:#10b981;opacity:0.7;"></i>
+                <h5 class="fw-bold mt-3 mb-2">Contact Us</h5>
+                <p class="text-muted" style="font-size:0.87rem;" th:if="${org != null and org.phone != null}">
+                    <i class="bi bi-telephone me-1"></i><span th:text="${org.phone}"></span>
+                </p>
+                <p class="text-muted" style="font-size:0.87rem;" th:if="${org != null and org.email != null}">
+                    <i class="bi bi-envelope me-1"></i><span th:text="${org.email}"></span>
+                </p>
+                <p class="text-muted" style="font-size:0.87rem;" th:if="${org != null and org.address != null}">
+                    <i class="bi bi-geo-alt me-1"></i><span th:text="${org.address}"></span>
+                </p>
+                <a th:href="@{/portal}" class="btn btn-outline-success btn-sm mt-3 px-4">
+                    <i class="bi bi-arrow-left me-1"></i>Back to Home
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

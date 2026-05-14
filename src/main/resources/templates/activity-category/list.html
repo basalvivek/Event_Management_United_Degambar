@@ -40,7 +40,7 @@
                                 <i class="bi bi-pencil"></i>
                             </a>
                             <form th:action="@{/activity-categories/{id}/delete(id=${item.id})}" method="post" class="d-inline"
-                                  onsubmit="return confirm('Delete this category?')">
+                                  data-confirm='Delete this category?'>
                                 <button type="submit" class="btn btn-sm btn-outline-danger">
                                     <i class="bi bi-trash"></i>
                                 </button>

@@ -3,6 +3,7 @@ package com.udjcs.common;
 import com.udjcs.activity.ActivityRepository;
 import com.udjcs.event.EventRepository;
 import com.udjcs.member.MemberRepository;
+import com.udjcs.member.MemberService;
 import com.udjcs.payment.PaymentRepository;
 import com.udjcs.rehearsal.RehearsalRepository;
 import com.udjcs.supportive.SupportiveOrganizationRepository;
@@ -12,11 +13,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 @Controller
 public class HomeController {
 
     private final MemberRepository memberRepository;
+    private final MemberService memberService;
     private final EventRepository eventRepository;
     private final PaymentRepository paymentRepository;
     private final ActivityRepository activityRepository;
@@ -24,12 +27,14 @@ public class HomeController {
     private final SupportiveOrganizationRepository supportiveOrganizationRepository;
 
     public HomeController(MemberRepository memberRepository,
+                          MemberService memberService,
                           EventRepository eventRepository,
                           PaymentRepository paymentRepository,
                           ActivityRepository activityRepository,
                           RehearsalRepository rehearsalRepository,
                           SupportiveOrganizationRepository supportiveOrganizationRepository) {
         this.memberRepository = memberRepository;
+        this.memberService = memberService;
         this.eventRepository = eventRepository;
         this.paymentRepository = paymentRepository;
         this.activityRepository = activityRepository;
@@ -43,6 +48,7 @@ public class HomeController {
 
         model.addAttribute("totalMembers", memberRepository.count());
         model.addAttribute("activeMembers", memberRepository.countByStatus("Active"));
+        model.addAttribute("pendingApprovals", memberService.countPending());
         model.addAttribute("totalEvents", eventRepository.count());
         model.addAttribute("upcomingEventCount", eventRepository.countByEventDateGreaterThanEqual(today));
         model.addAttribute("totalActivities", activityRepository.count());
@@ -53,7 +59,8 @@ public class HomeController {
         model.addAttribute("totalFunds", rawSum != null ? rawSum : BigDecimal.ZERO);
 
         model.addAttribute("upcomingEvents",
-                eventRepository.findTop5ByEventDateGreaterThanEqualOrderByEventDateAsc(today));
+                eventRepository.findTop5ByEventDateGreaterThanEqualAndStatusInOrderByEventDateAsc(
+                        today, List.of("Planned", "Active")));
         model.addAttribute("upcomingRehearsals",
                 rehearsalRepository.findUpcomingWithActivity(today).stream().limit(5).toList());
 

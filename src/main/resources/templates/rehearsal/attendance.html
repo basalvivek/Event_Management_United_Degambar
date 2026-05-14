@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head><title>Mark Attendance</title></head>
+<body>
+
+<th:block layout:fragment="page-title">Mark Attendance</th:block>
+
+<div layout:fragment="content">
+<div style="max-width:680px;">
+
+    <!-- Rehearsal info header -->
+    <div class="card border-0 shadow-sm mb-4" style="border-radius:14px;">
+        <div class="card-body px-4 py-3">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <div class="text-muted" style="font-size:0.72rem;text-transform:uppercase;letter-spacing:1px;">Activity</div>
+                    <div class="fw-semibold" th:text="${rehearsal.activity.activityName}"></div>
+                </div>
+                <div class="col-md-4">
+                    <div class="text-muted" style="font-size:0.72rem;text-transform:uppercase;letter-spacing:1px;">Date</div>
+                    <div class="fw-semibold"
+                         th:text="${#temporals.format(rehearsal.rehearsalDate,'dd MMM yyyy')}"></div>
+                </div>
+                <div class="col-md-4">
+                    <div class="text-muted" style="font-size:0.72rem;text-transform:uppercase;letter-spacing:1px;">Conducted By</div>
+                    <div class="fw-semibold" th:text="${rehearsal.conductedBy}"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- No members state -->
+    <div th:if="${#lists.isEmpty(members)}" class="card border-0 shadow-sm" style="border-radius:14px;">
+        <div class="card-body text-center text-muted py-5">
+            <i class="bi bi-people d-block mb-2" style="font-size:2rem;opacity:0.3;"></i>
+            No members assigned to this rehearsal yet.
+            <div class="mt-3">
+                <a th:href="@{/rehearsals/{id}/edit(id=${rehearsal.id})}" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-person-plus me-1"></i>Add Members
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attendance form -->
+    <div th:unless="${#lists.isEmpty(members)}"
+         class="card border-0 shadow-sm" style="border-radius:14px;">
+        <div class="card-header bg-white border-bottom d-flex align-items-center justify-content-between py-3 px-4"
+             style="border-radius:14px 14px 0 0;">
+            <div class="fw-semibold" style="font-size:0.9rem;">
+                <i class="bi bi-person-check-fill text-success me-2"></i>Mark Attendance
+            </div>
+            <span class="badge rounded-pill bg-secondary" id="attendedCount"
+                  th:text="${#lists.size(members)} + ' Members'"></span>
+        </div>
+        <div class="card-body p-0">
+            <form th:action="@{/rehearsals/{id}/attendance(id=${rehearsal.id})}" method="post">
+
+                <table class="table table-hover mb-0" style="font-size:0.88rem;">
+                    <thead style="background:#f8f9fa;">
+                        <tr>
+                            <th class="ps-4" style="width:52px;">
+                                <input type="checkbox" id="selectAll" class="form-check-input"
+                                       style="width:1.1em;height:1.1em;cursor:pointer;">
+                            </th>
+                            <th>Member</th>
+                            <th>Role</th>
+                            <th class="text-center">Attended</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="m : ${members}">
+                            <td class="ps-4 align-middle">
+                                <input type="checkbox"
+                                       name="attendedMemberIds"
+                                       th:value="${m.memberId}"
+                                       th:checked="${m.attended}"
+                                       class="form-check-input member-check"
+                                       style="width:1.1em;height:1.1em;cursor:pointer;">
+                            </td>
+                            <td class="align-middle">
+                                <i class="bi bi-person-circle text-muted me-2"></i>
+                                <span th:text="${memberNames[m.memberId]}">—</span>
+                            </td>
+                            <td class="align-middle">
+                                <span class="badge rounded-pill"
+                                      th:style="${m.role == 'Lead'} ? 'background:rgba(234,179,8,0.15);color:#a16207;' : 'background:rgba(107,114,128,0.1);color:#6b7280;'"
+                                      th:text="${m.role}"></span>
+                            </td>
+                            <td class="text-center align-middle">
+                                <span th:if="${m.attended}"
+                                      class="badge bg-success rounded-pill" style="font-size:0.72rem;">Present</span>
+                                <span th:unless="${m.attended}"
+                                      class="badge bg-secondary rounded-pill" style="font-size:0.72rem;">Absent</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="d-flex gap-2 px-4 py-3 border-top">
+                    <button type="submit" class="btn btn-success px-4">
+                        <i class="bi bi-check-lg me-1"></i>Save Attendance
+                    </button>
+                    <a th:href="@{/rehearsals}" class="btn btn-outline-secondary px-4">Cancel</a>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+</div>
+</div>
+
+<th:block layout:fragment="page-scripts">
+<script>
+document.getElementById('selectAll').addEventListener('change', function() {
+    document.querySelectorAll('.member-check').forEach(function(cb) {
+        cb.checked = document.getElementById('selectAll').checked;
+    });
+});
+</script>
+</th:block>
+
+</body>
+</html>

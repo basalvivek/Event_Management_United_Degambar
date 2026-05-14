@@ -50,6 +50,9 @@ public class Activity extends BaseEntity {
     @Column(length = 1000)
     private String notes;
 
+    @Column(name = "show_on_portal", nullable = false)
+    private boolean showOnPortal = false;
+
     @Transient
     private Long categoryId;
 
@@ -79,6 +82,9 @@ public class Activity extends BaseEntity {
 
     public String getNotes() { return notes; }
     public void setNotes(String notes) { this.notes = notes; }
+
+    public boolean isShowOnPortal() { return showOnPortal; }
+    public void setShowOnPortal(boolean showOnPortal) { this.showOnPortal = showOnPortal; }
 
     public Long getCategoryId() { return categoryId; }
     public void setCategoryId(Long categoryId) { this.categoryId = categoryId; }

@@ -80,6 +80,18 @@ public class Member extends BaseEntity {
     @Column(nullable = false, length = 20)
     private String status;
 
+    @Column(name = "approval_status", nullable = false, length = 20)
+    private String approvalStatus = "Pending";
+
+    @Column(length = 255)
+    private String password;
+
+    @Column(name = "profile_picture", columnDefinition = "BYTEA")
+    private byte[] profilePicture;
+
+    @Column(name = "photo_mime_type", length = 50)
+    private String photoMimeType;
+
     public String getFirstName() { return firstName; }
     public void setFirstName(String firstName) { this.firstName = firstName; }
 
@@ -121,4 +133,16 @@ public class Member extends BaseEntity {
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+
+    public String getApprovalStatus() { return approvalStatus; }
+    public void setApprovalStatus(String approvalStatus) { this.approvalStatus = approvalStatus; }
+
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
+
+    public byte[] getProfilePicture() { return profilePicture; }
+    public void setProfilePicture(byte[] profilePicture) { this.profilePicture = profilePicture; }
+
+    public String getPhotoMimeType() { return photoMimeType; }
+    public void setPhotoMimeType(String photoMimeType) { this.photoMimeType = photoMimeType; }
 }

@@ -29,13 +29,15 @@ public class AssignmentController {
 
     @GetMapping
     public String list(Model model) {
-        model.addAttribute("items", service.findAll());
+        model.addAttribute("groups", service.findGroupedByActivity());
         return "assignment/list";
     }
 
     @GetMapping("/new")
-    public String showCreateForm(Model model) {
-        model.addAttribute("item", new Assignment());
+    public String showCreateForm(@RequestParam(required = false) Long activityId, Model model) {
+        Assignment item = new Assignment();
+        if (activityId != null) item.setActivityId(activityId);
+        model.addAttribute("item", item);
         addFormData(model);
         return "assignment/form";
     }
@@ -62,20 +64,40 @@ public class AssignmentController {
             return "assignment/form";
         }
 
+        // Collect duplicates first — show on form before saving anything
+        List<String> duplicateNames = new java.util.ArrayList<>();
         for (int i = 0; i < memberIds.size(); i++) {
+            Long memberId = memberIds.get(i);
+            if (memberId == null) continue;
+            if (service.isDuplicate(assignment.getActivityId(), memberId)) {
+                String name = memberService.findById(memberId).getFirstName()
+                            + " " + memberService.findById(memberId).getLastName();
+                duplicateNames.add(name);
+            }
+        }
+        if (!duplicateNames.isEmpty()) {
+            model.addAttribute("duplicateError",
+                "Already assigned to this activity: " + String.join(", ", duplicateNames));
+            addFormData(model);
+            return "assignment/form";
+        }
+
+        int saved = 0;
+        for (int i = 0; i < memberIds.size(); i++) {
+            Long memberId = memberIds.get(i);
+            if (memberId == null) continue;
             Assignment a = new Assignment();
             a.setActivityId(assignment.getActivityId());
-            a.setMemberId(memberIds.get(i));
+            a.setMemberId(memberId);
             a.setAssignedDate(assignment.getAssignedDate());
             a.setRole(memberRoles != null && i < memberRoles.size() ? memberRoles.get(i) : "Volunteer");
             a.setStatus(assignment.getStatus());
             a.setNotes(assignment.getNotes());
             service.save(a);
+            saved++;
         }
-
-        int count = memberIds.size();
         attrs.addFlashAttribute("success",
-            count + " member" + (count > 1 ? "s" : "") + " assigned successfully.");
+            saved + " member" + (saved > 1 ? "s" : "") + " assigned successfully.");
         return "redirect:/assignments";
     }
 
@@ -105,6 +127,14 @@ public class AssignmentController {
         if (assignment.getMemberId() == null)
             result.rejectValue("memberId",   "NotNull", "Please select a member");
         if (result.hasErrors()) {
+            addFormData(model);
+            return "assignment/form";
+        }
+        // Check duplicate only if member changed
+        Assignment existing = service.findById(id);
+        if (!existing.getMember().getId().equals(assignment.getMemberId())
+                && service.isDuplicate(assignment.getActivityId(), assignment.getMemberId())) {
+            result.rejectValue("memberId", "Duplicate", "This member is already assigned to this activity.");
             addFormData(model);
             return "assignment/form";
         }
