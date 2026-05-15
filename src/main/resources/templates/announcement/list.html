@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head><title>Announcements</title></head>
+<body>
+
+<th:block layout:fragment="page-title">Announcements</th:block>
+
+<div layout:fragment="content">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-semibold mb-0">Announcements</h5>
+        <a th:href="@{/announcements/new}" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-lg me-1"></i>Add New
+        </a>
+    </div>
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Title</th>
+                        <th>Type</th>
+                        <th>Published</th>
+                        <th>Expires</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="item : ${items}">
+                        <td class="fw-medium" th:text="${item.title}"></td>
+                        <td>
+                            <span th:with="
+                                bg=${item.type == 'Urgent'} ? 'bg-danger' :
+                                   (${item.type == 'Event'} ? 'bg-success' :
+                                   (${item.type == 'Notice'} ? 'bg-warning text-dark' : 'bg-primary'))"
+                                  th:class="'badge ' + ${bg}"
+                                  th:text="${item.type}"></span>
+                        </td>
+                        <td th:text="${#temporals.format(item.publishedDate,'dd MMM yyyy')}"></td>
+                        <td>
+                            <span th:if="${item.expiryDate != null}"
+                                  th:text="${#temporals.format(item.expiryDate,'dd MMM yyyy')}"
+                                  th:class="${item.expiryDate.isBefore(today)} ? 'text-danger small' : 'small'"></span>
+                            <span th:if="${item.expiryDate == null}" class="text-muted small">No expiry</span>
+                        </td>
+                        <td>
+                            <span th:if="${item.active and (item.expiryDate == null or !item.expiryDate.isBefore(today))}"
+                                  class="badge bg-success-subtle text-success border border-success-subtle">Live</span>
+                            <span th:if="${!item.active}"
+                                  class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">Inactive</span>
+                            <span th:if="${item.active and item.expiryDate != null and item.expiryDate.isBefore(today)}"
+                                  class="badge bg-danger-subtle text-danger border border-danger-subtle">Expired</span>
+                        </td>
+                        <td class="text-end">
+                            <a th:href="@{/announcements/{id}/edit(id=${item.id})}" class="btn btn-sm btn-outline-warning">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form th:action="@{/announcements/{id}/delete(id=${item.id})}" method="post" class="d-inline"
+                                  onsubmit="return confirm('Delete this announcement?')">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(items)}">
+                        <td colspan="6" class="text-center text-muted py-4">No announcements found.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>

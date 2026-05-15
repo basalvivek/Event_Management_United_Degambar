@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/portal-base}">
+<head><title>Our Founders</title></head>
+<body>
+
+<div layout:fragment="content">
+<div style="padding:28px 24px;">
+
+    <!-- Hero -->
+    <div class="rounded-4 mb-5 px-4 py-5 text-center position-relative overflow-hidden"
+         style="background:linear-gradient(135deg,#064e3b 0%,#059669 60%,#0d9488 100%);">
+        <div style="position:absolute;top:-40px;left:-40px;width:200px;height:200px;border-radius:50%;
+                    background:radial-gradient(circle,rgba(255,255,255,0.06),transparent 70%);"></div>
+        <div style="position:absolute;bottom:-60px;right:-20px;width:260px;height:260px;border-radius:50%;
+                    background:radial-gradient(circle,rgba(200,168,75,0.1),transparent 70%);"></div>
+        <div style="position:relative;">
+            <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(200,168,75,0.15);
+                        border:1px solid rgba(200,168,75,0.4);border-radius:20px;
+                        padding:5px 16px;margin-bottom:16px;">
+                <i class="bi bi-stars" style="color:#e2c97e;font-size:0.8rem;"></i>
+                <span style="color:#e2c97e;font-size:0.75rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;">Founding Members</span>
+            </div>
+            <div style="color:#fff;font-size:2.1rem;font-weight:900;letter-spacing:-0.5px;margin-bottom:12px;line-height:1.2;">
+                Our Founders
+            </div>
+            <p style="color:rgba(255,255,255,0.72);font-size:0.95rem;max-width:580px;margin:0 auto;line-height:1.75;">
+                Founded with a vision to preserve, celebrate, and strengthen the Jain heritage —
+                brought to life by five dedicated individuals whose combined passion built this community from the ground up.
+            </p>
+        </div>
+    </div>
+
+    <!-- Founder Cards -->
+    <div class="row g-4 justify-content-center">
+
+        <!-- 1. Vivek Basal — Technical -->
+        <div class="col-xl-4 col-lg-4 col-md-6">
+            <div class="h-100 text-center border-0 overflow-hidden"
+                 style="border-radius:24px;background:#fff;
+                        box-shadow:0 4px 24px rgba(79,70,229,0.1),0 1px 4px rgba(0,0,0,0.06);">
+                <div style="background:linear-gradient(160deg,#1e1b4b 0%,#312e81 100%);
+                             padding:36px 24px 20px;position:relative;overflow:hidden;">
+                    <div style="position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;
+                                background:rgba(255,255,255,0.04);"></div>
+                    <div style="display:inline-block;
+                                background:linear-gradient(135deg,#c8a84b 0%,#f5d78e 40%,#c8a84b 70%,#a0722a 100%);
+                                border-radius:50%;padding:4px;
+                                box-shadow:0 0 0 6px rgba(200,168,75,0.2),0 12px 32px rgba(0,0,0,0.35);">
+                        <img th:src="@{/images/founders/Founder_Vivek_Basal_1.jpeg}" alt="Vivek Basal"
+                             style="width:140px;height:140px;border-radius:50%;object-fit:cover;
+                                    object-position:center top;border:3px solid #fff;display:block;">
+                    </div>
+                    <div style="margin-top:14px;color:rgba(255,255,255,0.5);font-size:0.68rem;
+                                font-weight:700;letter-spacing:1.5px;text-transform:uppercase;">
+                        United Digambar Jain Community
+                    </div>
+                </div>
+                <div style="padding:20px 24px 28px;">
+                    <span style="display:inline-flex;align-items:center;gap:5px;
+                                 background:#eef2ff;color:#4f46e5;border-radius:20px;
+                                 padding:4px 12px;font-size:0.71rem;font-weight:700;margin-bottom:12px;">
+                        <i class="bi bi-cpu"></i> Founder — Technical
+                    </span>
+                    <h5 style="font-weight:800;font-size:1.15rem;color:#1e1b4b;margin-bottom:10px;">Vivek Basal</h5>
+                    <p style="color:#6b7280;font-size:0.83rem;line-height:1.75;margin:0;">
+                        As the Technical Founder, Vivek Basal laid the digital foundation of the United Digambar Jain
+                        Community System. His expertise in software architecture and technology strategy has enabled
+                        the community to seamlessly manage members, events, and activities through an integrated
+                        digital platform — bringing modern efficiency to timeless Jain values.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Shreyans Jain — Marketing -->
+        <div class="col-xl-4 col-lg-4 col-md-6">
+            <div class="h-100 text-center border-0 overflow-hidden"
+                 style="border-radius:24px;background:#fff;
+                        box-shadow:0 4px 24px rgba(22,163,74,0.1),0 1px 4px rgba(0,0,0,0.06);">
+                <div style="background:linear-gradient(160deg,#064e3b 0%,#065f46 100%);
+                             padding:36px 24px 20px;position:relative;overflow:hidden;">
+                    <div style="position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;
+                                background:rgba(255,255,255,0.04);"></div>
+                    <div style="display:inline-block;
+                                background:linear-gradient(135deg,#c8a84b 0%,#f5d78e 40%,#c8a84b 70%,#a0722a 100%);
+                                border-radius:50%;padding:4px;
+                                box-shadow:0 0 0 6px rgba(200,168,75,0.2),0 12px 32px rgba(0,0,0,0.35);">
+                        <img th:src="@{/images/founders/Founder_Shreyans_Jain_2.jpeg}" alt="Shreyans Jain"
+                             style="width:140px;height:140px;border-radius:50%;object-fit:cover;
+                                    object-position:center top;border:3px solid #fff;display:block;">
+                    </div>
+                    <div style="margin-top:14px;color:rgba(255,255,255,0.5);font-size:0.68rem;
+                                font-weight:700;letter-spacing:1.5px;text-transform:uppercase;">
+                        United Digambar Jain Community
+                    </div>
+                </div>
+                <div style="padding:20px 24px 28px;">
+                    <span style="display:inline-flex;align-items:center;gap:5px;
+                                 background:#f0fdf4;color:#16a34a;border-radius:20px;
+                                 padding:4px 12px;font-size:0.71rem;font-weight:700;margin-bottom:12px;">
+                        <i class="bi bi-megaphone"></i> Founder — Marketing
+                    </span>
+                    <h5 style="font-weight:800;font-size:1.15rem;color:#1e1b4b;margin-bottom:10px;">Shreyans Jain</h5>
+                    <p style="color:#6b7280;font-size:0.83rem;line-height:1.75;margin:0;">
+                        Shreyans Jain has been instrumental in spreading awareness of the community's mission and
+                        values. Through thoughtful outreach, community engagement strategies, and brand building,
+                        he has helped the organisation grow its presence and connect with Jain families across
+                        the region, making inclusion and participation a natural outcome.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Jignesh Shah — Coordination -->
+        <div class="col-xl-4 col-lg-4 col-md-6">
+            <div class="h-100 text-center border-0 overflow-hidden"
+                 style="border-radius:24px;background:#fff;
+                        box-shadow:0 4px 24px rgba(234,88,12,0.1),0 1px 4px rgba(0,0,0,0.06);">
+                <div style="background:linear-gradient(160deg,#431407 0%,#9a3412 100%);
+                             padding:36px 24px 20px;position:relative;overflow:hidden;">
+                    <div style="position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;
+                                background:rgba(255,255,255,0.04);"></div>
+                    <div style="display:inline-block;
+                                background:linear-gradient(135deg,#c8a84b 0%,#f5d78e 40%,#c8a84b 70%,#a0722a 100%);
+                                border-radius:50%;padding:4px;
+                                box-shadow:0 0 0 6px rgba(200,168,75,0.2),0 12px 32px rgba(0,0,0,0.35);">
+                        <img th:src="@{/images/founders/Founder_Jignesh_Shah_3.jpeg}" alt="Jignesh Shah"
+                             style="width:140px;height:140px;border-radius:50%;object-fit:cover;
+                                    object-position:center top;border:3px solid #fff;display:block;">
+                    </div>
+                    <div style="margin-top:14px;color:rgba(255,255,255,0.5);font-size:0.68rem;
+                                font-weight:700;letter-spacing:1.5px;text-transform:uppercase;">
+                        United Digambar Jain Community
+                    </div>
+                </div>
+                <div style="padding:20px 24px 28px;">
+                    <span style="display:inline-flex;align-items:center;gap:5px;
+                                 background:#fff7ed;color:#ea580c;border-radius:20px;
+                                 padding:4px 12px;font-size:0.71rem;font-weight:700;margin-bottom:12px;">
+                        <i class="bi bi-diagram-3"></i> Founder — Coordination
+                    </span>
+                    <h5 style="font-weight:800;font-size:1.15rem;color:#1e1b4b;margin-bottom:10px;">Jignesh Shah</h5>
+                    <p style="color:#6b7280;font-size:0.83rem;line-height:1.75;margin:0;">
+                        Jignesh Shah ensures smooth communication and collaboration across all wings of the
+                        organisation. His meticulous approach to coordinating events, committees, and
+                        inter-organisational relationships has been the operational backbone of the community,
+                        ensuring every initiative is delivered with unity of purpose and clarity of direction.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Rakesh Jain — Logistics -->
+        <div class="col-xl-4 col-lg-4 col-md-6">
+            <div class="h-100 text-center border-0 overflow-hidden"
+                 style="border-radius:24px;background:#fff;
+                        box-shadow:0 4px 24px rgba(147,51,234,0.1),0 1px 4px rgba(0,0,0,0.06);">
+                <div style="background:linear-gradient(160deg,#2e1065 0%,#4c1d95 100%);
+                             padding:36px 24px 20px;position:relative;overflow:hidden;">
+                    <div style="position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;
+                                background:rgba(255,255,255,0.04);"></div>
+                    <div style="display:inline-block;
+                                background:linear-gradient(135deg,#c8a84b 0%,#f5d78e 40%,#c8a84b 70%,#a0722a 100%);
+                                border-radius:50%;padding:4px;
+                                box-shadow:0 0 0 6px rgba(200,168,75,0.2),0 12px 32px rgba(0,0,0,0.35);">
+                        <img th:src="@{/images/founders/Founder_Rakesh_Jain_4.jpeg}" alt="Rakesh Jain"
+                             style="width:140px;height:140px;border-radius:50%;object-fit:cover;
+                                    object-position:center top;border:3px solid #fff;display:block;">
+                    </div>
+                    <div style="margin-top:14px;color:rgba(255,255,255,0.5);font-size:0.68rem;
+                                font-weight:700;letter-spacing:1.5px;text-transform:uppercase;">
+                        United Digambar Jain Community
+                    </div>
+                </div>
+                <div style="padding:20px 24px 28px;">
+                    <span style="display:inline-flex;align-items:center;gap:5px;
+                                 background:#fdf4ff;color:#9333ea;border-radius:20px;
+                                 padding:4px 12px;font-size:0.71rem;font-weight:700;margin-bottom:12px;">
+                        <i class="bi bi-truck"></i> Founder — Logistics
+                    </span>
+                    <h5 style="font-weight:800;font-size:1.15rem;color:#1e1b4b;margin-bottom:10px;">Rakesh Jain</h5>
+                    <p style="color:#6b7280;font-size:0.83rem;line-height:1.75;margin:0;">
+                        Rakesh Jain manages the end-to-end execution of community events and programmes.
+                        From venue arrangements to resource allocation, his hands-on approach ensures that
+                        every gathering — whether a religious ceremony, cultural programme, or community
+                        meeting — runs with precision, warmth, and the care befitting Jain traditions.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. Ashish Jain — Finance -->
+        <div class="col-xl-4 col-lg-4 col-md-6">
+            <div class="h-100 text-center border-0 overflow-hidden"
+                 style="border-radius:24px;background:#fff;
+                        box-shadow:0 4px 24px rgba(202,138,4,0.1),0 1px 4px rgba(0,0,0,0.06);">
+                <div style="background:linear-gradient(160deg,#422006 0%,#713f12 100%);
+                             padding:36px 24px 20px;position:relative;overflow:hidden;">
+                    <div style="position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;
+                                background:rgba(255,255,255,0.04);"></div>
+                    <div style="display:inline-block;
+                                background:linear-gradient(135deg,#c8a84b 0%,#f5d78e 40%,#c8a84b 70%,#a0722a 100%);
+                                border-radius:50%;padding:4px;
+                                box-shadow:0 0 0 6px rgba(200,168,75,0.2),0 12px 32px rgba(0,0,0,0.35);">
+                        <img th:src="@{/images/founders/Founder_Ashish_Jain_5.jpeg}" alt="Ashish Jain"
+                             style="width:140px;height:140px;border-radius:50%;object-fit:cover;
+                                    object-position:center top;border:3px solid #fff;display:block;">
+                    </div>
+                    <div style="margin-top:14px;color:rgba(255,255,255,0.5);font-size:0.68rem;
+                                font-weight:700;letter-spacing:1.5px;text-transform:uppercase;">
+                        United Digambar Jain Community
+                    </div>
+                </div>
+                <div style="padding:20px 24px 28px;">
+                    <span style="display:inline-flex;align-items:center;gap:5px;
+                                 background:#fefce8;color:#ca8a04;border-radius:20px;
+                                 padding:4px 12px;font-size:0.71rem;font-weight:700;margin-bottom:12px;">
+                        <i class="bi bi-cash-coin"></i> Founder — Finance
+                    </span>
+                    <h5 style="font-weight:800;font-size:1.15rem;color:#1e1b4b;margin-bottom:10px;">Ashish Jain</h5>
+                    <p style="color:#6b7280;font-size:0.83rem;line-height:1.75;margin:0;">
+                        Ashish Jain oversees the financial stewardship of the community as Finance Founder.
+                        His prudent management of funds, transparent accounting practices, and strategic
+                        financial planning ensure that the community's charitable and cultural initiatives
+                        are sustainably funded and responsibly governed for generations to come.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quote card -->
+        <div class="col-xl-4 col-lg-4 col-md-6 d-flex">
+            <div class="h-100 d-flex flex-column justify-content-center text-center border-0 overflow-hidden"
+                 style="border-radius:24px;padding:36px 28px;
+                        background:linear-gradient(160deg,#064e3b 0%,#059669 60%,#0d9488 100%);
+                        box-shadow:0 4px 24px rgba(5,150,105,0.25);color:#fff;">
+                <div style="font-size:3.5rem;opacity:0.25;line-height:1;margin-bottom:16px;">"</div>
+                <p style="font-size:1rem;font-style:italic;line-height:1.85;opacity:0.88;margin-bottom:24px;">
+                    Together, we build more than an organisation — we build a legacy rooted in faith,
+                    service, and the enduring spirit of the Jain community.
+                </p>
+                <div style="display:flex;align-items:center;justify-content:center;gap:10px;">
+                    <div style="height:1px;width:32px;background:rgba(200,168,75,0.5);"></div>
+                    <span style="color:#e2c97e;font-size:0.72rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;">The Founding Team</span>
+                    <div style="height:1px;width:32px;background:rgba(200,168,75,0.5);"></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+</div>
+</body>
+</html>

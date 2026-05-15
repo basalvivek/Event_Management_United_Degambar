@@ -37,6 +37,10 @@ public class Member extends BaseEntity {
     @Column(name = "date_of_birth")
     private LocalDate dateOfBirth;
 
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+    @Column(name = "anniversary_date")
+    private LocalDate anniversaryDate;
+
     @NotBlank
     @Size(max = 10)
     @Column(nullable = false, length = 10)
@@ -109,6 +113,9 @@ public class Member extends BaseEntity {
 
     public LocalDate getDateOfBirth() { return dateOfBirth; }
     public void setDateOfBirth(LocalDate dateOfBirth) { this.dateOfBirth = dateOfBirth; }
+
+    public LocalDate getAnniversaryDate() { return anniversaryDate; }
+    public void setAnniversaryDate(LocalDate anniversaryDate) { this.anniversaryDate = anniversaryDate; }
 
     public String getGender() { return gender; }
     public void setGender(String gender) { this.gender = gender; }

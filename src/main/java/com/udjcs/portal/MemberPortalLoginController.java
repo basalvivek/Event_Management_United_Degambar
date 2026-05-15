@@ -37,7 +37,7 @@ public class MemberPortalLoginController {
             model.addAttribute("error", "Please enter your email address.");
             return "member-login";
         }
-        Optional<Member> opt = memberRepository.findByEmailIgnoreCase(email.trim());
+        Optional<Member> opt = memberRepository.findFirstByEmailIgnoreCase(email.trim());
         if (opt.isEmpty()) {
             model.addAttribute("error", "No account found with that email address.");
             return "member-login";

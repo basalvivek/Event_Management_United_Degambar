@@ -1,11 +1,13 @@
 package com.udjcs.portal;
 
 import com.udjcs.activity.ActivityRepository;
+import com.udjcs.announcement.AnnouncementService;
 import com.udjcs.event.EventRepository;
 import com.udjcs.event.Event;
 import com.udjcs.eventprogram.EventProgramService;
 import com.udjcs.feedback.EventFeedbackService;
 import com.udjcs.member.Member;
+import com.udjcs.member.MemberRepository;
 import com.udjcs.ticket.EventTicketService;
 import com.udjcs.member.MemberService;
 import com.udjcs.organization.Organization;
@@ -24,9 +26,9 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/portal")
@@ -37,26 +39,32 @@ public class MemberPortalController {
     private final EventRepository eventRepository;
     private final ActivityRepository activityRepository;
     private final MemberService memberService;
+    private final MemberRepository memberRepository;
     private final EventProgramService eventProgramService;
     private final EventFeedbackService feedbackService;
     private final EventTicketService ticketService;
+    private final AnnouncementService announcementService;
 
     public MemberPortalController(OrganizationService organizationService,
                                    OrganizationDisplayPictureService displayPictureService,
                                    EventRepository eventRepository,
                                    ActivityRepository activityRepository,
                                    MemberService memberService,
+                                   MemberRepository memberRepository,
                                    EventProgramService eventProgramService,
                                    EventFeedbackService feedbackService,
-                                   EventTicketService ticketService) {
+                                   EventTicketService ticketService,
+                                   AnnouncementService announcementService) {
         this.organizationService = organizationService;
         this.displayPictureService = displayPictureService;
         this.eventRepository = eventRepository;
         this.activityRepository = activityRepository;
         this.memberService = memberService;
+        this.memberRepository = memberRepository;
         this.eventProgramService = eventProgramService;
         this.feedbackService = feedbackService;
         this.ticketService = ticketService;
+        this.announcementService = announcementService;
     }
 
     @ModelAttribute
@@ -117,7 +125,41 @@ public class MemberPortalController {
         LocalDate today = LocalDate.now();
         model.addAttribute("activeActivities",
                 activityRepository.findVisibleOnPortal(today));
+
+        model.addAttribute("announcements", announcementService.findActiveForPortal());
+
+        List<Member> activeMembers = memberRepository.findByApprovalStatusAndStatus("Approved", "Active");
+        model.addAttribute("upcomingBirthdays", upcomingOccurrences(activeMembers, true, today, 30));
+        model.addAttribute("upcomingAnniversaries", upcomingOccurrences(activeMembers, false, today, 30));
+
         return "portal/home";
+    }
+
+    private LinkedHashMap<Member, Integer> upcomingOccurrences(List<Member> members, boolean useDob,
+                                                                LocalDate today, int windowDays) {
+        return members.stream()
+            .filter(m -> useDob ? m.getDateOfBirth() != null : m.getAnniversaryDate() != null)
+            .map(m -> {
+                LocalDate date = useDob ? m.getDateOfBirth() : m.getAnniversaryDate();
+                int days = daysUntilNext(date.getMonthValue(), date.getDayOfMonth(), today);
+                return new AbstractMap.SimpleEntry<>(m, days);
+            })
+            .filter(e -> e.getValue() <= windowDays)
+            .sorted(Map.Entry.comparingByValue())
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
+                    (a, b) -> a, LinkedHashMap::new));
+    }
+
+    private int daysUntilNext(int month, int day, LocalDate today) {
+        try {
+            LocalDate next = LocalDate.of(today.getYear(), month, day);
+            if (next.isBefore(today)) next = LocalDate.of(today.getYear() + 1, month, day);
+            return (int) ChronoUnit.DAYS.between(today, next);
+        } catch (Exception e) {
+            LocalDate next = LocalDate.of(today.getYear(), month, 28);
+            if (next.isBefore(today)) next = LocalDate.of(today.getYear() + 1, month, 28);
+            return (int) ChronoUnit.DAYS.between(today, next);
+        }
     }
 
     @PostMapping("/logout")
@@ -125,6 +167,11 @@ public class MemberPortalController {
         session.removeAttribute("memberLoggedIn");
         session.removeAttribute("memberUser");
         return "redirect:/member-login";
+    }
+
+    @GetMapping("/founders")
+    public String founders() {
+        return "portal/founders";
     }
 
     @GetMapping("/contact")

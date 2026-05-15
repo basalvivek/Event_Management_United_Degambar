@@ -62,7 +62,7 @@ public class PublicRegistrationController {
             repopulate(model, firstName, lastName, email, phone, gender, address, city, state);
             return "register";
         }
-        if (memberRepository.findByEmailIgnoreCase(email.trim()).isPresent()) {
+        if (memberRepository.findFirstByEmailIgnoreCase(email.trim()).isPresent()) {
             model.addAttribute("error", "An account with this email already exists.");
             repopulate(model, firstName, lastName, email, phone, gender, address, city, state);
             return "register";

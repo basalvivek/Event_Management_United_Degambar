@@ -145,6 +145,12 @@
         <li><hr class="sb-divider"></li>
 
         <li><span class="sb-label">Organization</span></li>
+        <li><a th:href="@{/announcements}"
+               th:class="${currentUri != null and currentUri.startsWith('/announcements')} ? 'active'">
+            <i class="bi bi-megaphone"></i> Announcements <span class="sb-badge">AN</span></a></li>
+        <li><a th:href="@{/founders}"
+               th:class="${currentUri != null and currentUri.startsWith('/founders')} ? 'active'">
+            <i class="bi bi-people-fill"></i> Our Founders <span class="sb-badge">F</span></a></li>
         <li><a th:href="@{/supportive}"
                th:class="${currentUri != null and currentUri.startsWith('/supportive')} ? 'active'">
             <i class="bi bi-people"></i> Our Supporters <span class="sb-badge">02</span></a></li>
@@ -161,9 +167,6 @@
         <li><a th:href="@{/event-programs}"
                th:class="${currentUri != null and currentUri.startsWith('/event-programs')} ? 'active'">
             <i class="bi bi-layout-text-sidebar-reverse"></i> Event Planning <span class="sb-badge">EP</span></a></li>
-        <li><a th:href="@{/participations}"
-               th:class="${currentUri != null and currentUri.startsWith('/participations')} ? 'active'">
-            <i class="bi bi-person-check"></i> Participations <span class="sb-badge">04</span></a></li>
         <li><a th:href="@{/event-feedback}"
                th:class="${currentUri != null and currentUri.startsWith('/event-feedback')} ? 'active'">
             <i class="bi bi-chat-square-heart"></i> Event Feedback <span class="sb-badge">FB</span></a></li>

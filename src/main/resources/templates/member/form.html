@@ -112,6 +112,13 @@
                     </div>
 
                     <div class="col-md-6">
+                        <label class="form-label fw-medium">Wedding Anniversary</label>
+                        <input type="date" class="form-control" th:field="*{anniversaryDate}"
+                               th:classappend="${#fields.hasErrors('anniversaryDate')} ? ' is-invalid'">
+                        <div class="invalid-feedback" th:errors="*{anniversaryDate}"></div>
+                    </div>
+
+                    <div class="col-md-6">
                         <label class="form-label fw-medium">Gender <span class="text-danger">*</span></label>
                         <select class="form-select" th:field="*{gender}"
                                 th:classappend="${#fields.hasErrors('gender')} ? ' is-invalid'">

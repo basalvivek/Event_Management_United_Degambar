@@ -106,31 +106,77 @@
 
         <!-- ══ 2. Carousel ══ -->
         <div th:if="${not #lists.isEmpty(displayPictures)}" class="mb-5">
-            <div id="orgCarousel" class="carousel slide rounded-3 overflow-hidden shadow-sm"
-                 data-bs-ride="carousel" data-bs-interval="3000">
-                <div class="carousel-inner">
-                    <div th:each="pic, stat : ${displayPictures}"
-                         th:classappend="${stat.first} ? ' active'"
-                         class="carousel-item">
-                        <img th:src="@{/organization/display-pictures/{id}(id=${pic.id})}"
-                             class="d-block w-100"
-                             alt="Display"
-                             style="height:340px;object-fit:cover;">
+            <!-- Outer frame -->
+            <div style="border-radius:20px;overflow:hidden;
+                        border:2px solid #dee2e6;
+                        box-shadow:0 4px 24px rgba(0,0,0,0.09), 0 1px 4px rgba(0,0,0,0.05);
+                        background:#f8f9fa;">
+                <div id="orgCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="3500">
+
+                    <!-- Image counter badge -->
+                    <div style="position:absolute;top:12px;right:14px;z-index:20;
+                                background:rgba(0,0,0,0.45);backdrop-filter:blur(6px);
+                                color:#fff;font-size:0.75rem;font-weight:600;
+                                padding:4px 11px;border-radius:20px;letter-spacing:0.5px;
+                                border:1px solid rgba(255,255,255,0.15);">
+                        <span id="carousel-current">1</span>&thinsp;/&thinsp;<span id="carousel-total" th:text="${#lists.size(displayPictures)}">1</span>
                     </div>
-                </div>
-                <button class="carousel-control-prev" type="button" data-bs-target="#orgCarousel" data-bs-slide="prev">
-                    <span class="carousel-control-prev-icon"></span>
-                </button>
-                <button class="carousel-control-next" type="button" data-bs-target="#orgCarousel" data-bs-slide="next">
-                    <span class="carousel-control-next-icon"></span>
-                </button>
-                <div class="carousel-indicators">
-                    <button th:each="pic, stat : ${displayPictures}"
-                            type="button"
-                            data-bs-target="#orgCarousel"
-                            th:attr="data-bs-slide-to=${stat.index}"
-                            th:classappend="${stat.first} ? ' active'">
+
+                    <!-- Images -->
+                    <div class="carousel-inner">
+                        <div th:each="pic, stat : ${displayPictures}"
+                             th:classappend="${stat.first} ? ' active'"
+                             class="carousel-item">
+                            <div style="position:relative;height:380px;overflow:hidden;">
+                                <!-- Blurred ambient background (same image, blurred + dimmed) -->
+                                <img th:src="@{/organization/display-pictures/{id}(id=${pic.id})}"
+                                     aria-hidden="true" alt=""
+                                     style="position:absolute;inset:0;width:100%;height:100%;
+                                            object-fit:cover;transform:scale(1.12);
+                                            filter:blur(22px) brightness(0.72) saturate(1.1);
+                                            pointer-events:none;">
+                                <!-- Foreground image — crisp, centered, contained -->
+                                <img th:src="@{/organization/display-pictures/{id}(id=${pic.id})}"
+                                     alt="Community Photo"
+                                     style="position:relative;z-index:1;display:block;
+                                            max-height:380px;max-width:100%;
+                                            object-fit:contain;margin:0 auto;
+                                            filter:drop-shadow(0 4px 18px rgba(0,0,0,0.25));">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Prev / Next arrows -->
+                    <button type="button" data-bs-target="#orgCarousel" data-bs-slide="prev"
+                            style="position:absolute;top:50%;left:14px;transform:translateY(-50%);
+                                   width:38px;height:38px;border-radius:50%;
+                                   background:#fff;border:1px solid #dee2e6;
+                                   box-shadow:0 2px 8px rgba(0,0,0,0.12);
+                                   display:flex;align-items:center;justify-content:center;
+                                   color:#495057;z-index:10;cursor:pointer;">
+                        <i class="bi bi-chevron-left" style="font-size:0.95rem;"></i>
                     </button>
+                    <button type="button" data-bs-target="#orgCarousel" data-bs-slide="next"
+                            style="position:absolute;top:50%;right:14px;transform:translateY(-50%);
+                                   width:38px;height:38px;border-radius:50%;
+                                   background:#fff;border:1px solid #dee2e6;
+                                   box-shadow:0 2px 8px rgba(0,0,0,0.12);
+                                   display:flex;align-items:center;justify-content:center;
+                                   color:#495057;z-index:10;cursor:pointer;">
+                        <i class="bi bi-chevron-right" style="font-size:0.95rem;"></i>
+                    </button>
+
+                    <!-- Indicator dots (Bootstrap manages .active) -->
+                    <div style="position:absolute;bottom:12px;left:50%;transform:translateX(-50%);
+                                display:flex;gap:6px;z-index:10;">
+                        <button th:each="pic, stat : ${displayPictures}"
+                                type="button" class="car-dot"
+                                data-bs-target="#orgCarousel"
+                                th:attr="data-bs-slide-to=${stat.index}"
+                                th:classappend="${stat.first} ? ' active'">
+                        </button>
+                    </div>
+
                 </div>
             </div>
         </div>
@@ -631,17 +677,83 @@
 
             <!-- ══ 5. Announcements ══ -->
             <div class="col-12">
-                <div class="card border-0 shadow-sm" style="border-radius:14px;">
-                    <div class="card-header border-0 py-3 px-4"
-                         style="background:linear-gradient(90deg,rgba(59,130,246,0.08),transparent);border-radius:14px 14px 0 0;">
-                        <span class="fw-bold" style="font-size:0.92rem;color:#1a1a2e;">
-                            <i class="bi bi-megaphone me-2" style="color:#3b82f6;"></i>Announcements
-                        </span>
+                <div style="border-radius:16px;background:#fff;border:1px solid #cfe2ff;
+                            box-shadow:0 2px 12px rgba(13,110,253,0.07);">
+                    <!-- Header — Bootstrap primary-subtle -->
+                    <div style="padding:16px 20px;background:#cfe2ff;border-radius:16px 16px 0 0;
+                                border-bottom:1px solid #9ec5fe;
+                                display:flex;align-items:center;justify-content:space-between;">
+                        <div style="display:flex;align-items:center;gap:12px;">
+                            <div style="width:36px;height:36px;border-radius:10px;background:#fff;
+                                        border:1px solid #9ec5fe;
+                                        display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                <i class="bi bi-megaphone-fill" style="color:#0d6efd;font-size:1rem;"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight:700;font-size:0.9rem;color:#031633;">Announcements</div>
+                                <div style="font-size:0.71rem;color:#084298;opacity:0.8;margin-top:1px;">From the administration</div>
+                            </div>
+                        </div>
+                        <span th:unless="${#lists.isEmpty(announcements)}"
+                              style="background:#fff;color:#0d6efd;border:1px solid #9ec5fe;
+                                     border-radius:20px;padding:3px 10px;font-size:0.75rem;font-weight:700;"
+                              th:text="${#lists.size(announcements)}">0</span>
                     </div>
-                    <div class="card-body px-4 py-3">
-                        <div class="empty-state">
-                            <i class="bi bi-megaphone"></i>
-                            <p>Nothing is planned yet... Be patient, success takes time...</p>
+                    <!-- Body -->
+                    <div style="padding:8px 0;">
+                        <div th:if="${#lists.isEmpty(announcements)}"
+                             style="text-align:center;padding:28px 20px;">
+                            <i class="bi bi-megaphone" style="font-size:1.8rem;color:#9ec5fe;display:block;margin-bottom:8px;"></i>
+                            <p style="font-size:0.82rem;font-style:italic;margin:0;color:#adb5bd;">No announcements at this time.</p>
+                        </div>
+                        <div th:each="ann, stat : ${announcements}">
+                            <div th:style="${!stat.last} ? 'padding:14px 20px;border-bottom:1px solid #f1f3f7;' : 'padding:14px 20px;'">
+                                <div class="d-flex align-items-start gap-3">
+                                    <!-- Type icon -->
+                                    <div th:with="
+                                        bg=${ann.type == 'Urgent'} ? '#fff5f5' :
+                                           (${ann.type == 'Event'} ? '#f0fdf4' :
+                                           (${ann.type == 'Notice'} ? '#fffdf0' : '#eff6ff')),
+                                        ic=${ann.type == 'Urgent'} ? '#dc3545' :
+                                           (${ann.type == 'Event'} ? '#16a34a' :
+                                           (${ann.type == 'Notice'} ? '#ca8a04' : '#2563eb')),
+                                        bd=${ann.type == 'Urgent'} ? '#fecdd3' :
+                                           (${ann.type == 'Event'} ? '#bbf7d0' :
+                                           (${ann.type == 'Notice'} ? '#fde68a' : '#bfdbfe'))"
+                                         style="flex-shrink:0;width:36px;height:36px;border-radius:10px;
+                                                display:flex;align-items:center;justify-content:center;margin-top:1px;"
+                                         th:style="'flex-shrink:0;width:36px;height:36px;border-radius:10px;border:1px solid ' + ${bd} + ';background:' + ${bg} + ';display:flex;align-items:center;justify-content:center;margin-top:1px;'">
+                                        <i th:class="${ann.type == 'Urgent'} ? 'bi bi-exclamation-triangle-fill' :
+                                                    (${ann.type == 'Event'} ? 'bi bi-calendar-event-fill' :
+                                                    (${ann.type == 'Notice'} ? 'bi bi-info-circle-fill' : 'bi bi-bell-fill'))"
+                                           th:style="'font-size:0.9rem;color:' + ${ic}"></i>
+                                    </div>
+                                    <!-- Content -->
+                                    <div style="flex:1;min-width:0;">
+                                        <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+                                            <span style="font-weight:700;font-size:0.88rem;color:#1e293b;"
+                                                  th:text="${ann.title}"></span>
+                                            <span th:with="
+                                                bg=${ann.type == 'Urgent'} ? 'background:#fecdd3;color:#9f1239;border:1px solid #fda4af;' :
+                                                   (${ann.type == 'Event'} ? 'background:#bbf7d0;color:#166534;border:1px solid #86efac;' :
+                                                   (${ann.type == 'Notice'} ? 'background:#fde68a;color:#713f12;border:1px solid #fcd34d;' : 'background:#bfdbfe;color:#1e40af;border:1px solid #93c5fd;'))"
+                                                  style="font-size:0.68rem;font-weight:700;padding:2px 8px;border-radius:20px;"
+                                                  th:style="${bg}"
+                                                  th:text="${ann.type}"></span>
+                                        </div>
+                                        <p style="font-size:0.82rem;color:#475569;line-height:1.65;margin:0 0 6px;"
+                                           th:text="${ann.message}"></p>
+                                        <div style="font-size:0.71rem;color:#94a3b8;">
+                                            <i class="bi bi-clock me-1"></i>
+                                            <span th:text="${#temporals.format(ann.publishedDate,'dd MMM yyyy')}"></span>
+                                            <span th:if="${ann.expiryDate != null}"
+                                                  style="margin-left:10px;">
+                                                <i class="bi bi-calendar-x me-1"></i>Expires <span th:text="${#temporals.format(ann.expiryDate,'dd MMM yyyy')}"></span>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -650,10 +762,233 @@
         </div>
     </div>
 
+    <!-- ══ Birthdays & Anniversaries ══ -->
+    <div style="padding: 0 24px 28px;">
+        <div class="row g-4">
+
+            <!-- ── Upcoming Birthdays ── -->
+            <div class="col-lg-6">
+                <div style="border-radius:16px;background:#fff;border:1px solid #f5c2cb;
+                            box-shadow:0 2px 12px rgba(220,53,69,0.07);">
+                    <!-- Header — Bootstrap danger-subtle -->
+                    <div style="padding:16px 20px;background:#f8d7da;border-radius:16px 16px 0 0;
+                                border-bottom:1px solid #f5c2cb;
+                                display:flex;align-items:center;justify-content:space-between;">
+                        <div style="display:flex;align-items:center;gap:12px;">
+                            <div style="width:36px;height:36px;border-radius:10px;background:#fff;
+                                        border:1px solid #f5c2cb;
+                                        display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                <i class="bi bi-balloon-heart-fill" style="color:#dc3545;font-size:1rem;"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight:700;font-size:0.9rem;color:#58151c;">Upcoming Birthdays</div>
+                                <div style="font-size:0.71rem;color:#842029;opacity:0.7;margin-top:1px;">Next 30 days</div>
+                            </div>
+                        </div>
+                        <span th:unless="${upcomingBirthdays.isEmpty()}"
+                              style="background:#fff;color:#dc3545;border:1px solid #f5c2cb;
+                                     border-radius:20px;padding:3px 10px;font-size:0.75rem;font-weight:700;"
+                              th:text="${upcomingBirthdays.size()}">0</span>
+                    </div>
+                    <!-- Body -->
+                    <div style="padding:4px 0 8px;">
+                        <div th:if="${upcomingBirthdays.isEmpty()}"
+                             style="text-align:center;padding:28px 20px;">
+                            <i class="bi bi-balloon" style="font-size:1.8rem;color:#f5c2cb;display:block;margin-bottom:8px;"></i>
+                            <p style="font-size:0.81rem;font-style:italic;margin:0;color:#adb5bd;">No birthdays in the next 30 days.</p>
+                        </div>
+                        <div th:each="entry : ${upcomingBirthdays}"
+                             th:style="${entry.value == 0} ? 'display:flex;align-items:center;gap:12px;padding:10px 20px;background:#fff5f7;' : 'display:flex;align-items:center;gap:12px;padding:10px 20px;'">
+                            <!-- Avatar -->
+                            <div style="position:relative;flex-shrink:0;">
+                                <img th:if="${entry.key.profilePicture != null}"
+                                     th:src="@{/members/{id}/photo(id=${entry.key.id})}"
+                                     style="width:44px;height:44px;border-radius:50%;object-fit:cover;
+                                            border:2px solid #f5c2cb;" alt="">
+                                <div th:unless="${entry.key.profilePicture != null}"
+                                     style="width:44px;height:44px;border-radius:50%;
+                                            background:#f8d7da;border:2px solid #f5c2cb;
+                                            display:flex;align-items:center;justify-content:center;
+                                            color:#dc3545;font-weight:800;font-size:0.95rem;"
+                                     th:text="${#strings.substring(entry.key.firstName,0,1)}">M</div>
+                                <span th:if="${entry.value == 0}"
+                                      style="position:absolute;bottom:-3px;right:-3px;font-size:0.78rem;line-height:1;">🎂</span>
+                            </div>
+                            <!-- Name + date -->
+                            <div style="flex:1;min-width:0;">
+                                <div style="font-weight:600;font-size:0.87rem;color:#1e293b;
+                                            white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"
+                                     th:text="${entry.key.firstName} + ' ' + ${entry.key.lastName}"></div>
+                                <div style="font-size:0.72rem;color:#94a3b8;margin-top:2px;"
+                                     th:text="${#temporals.format(entry.key.dateOfBirth,'dd MMMM')}"></div>
+                            </div>
+                            <!-- Countdown -->
+                            <div th:if="${entry.value == 0}"
+                                 style="flex-shrink:0;text-align:center;min-width:48px;
+                                        background:#f8d7da;border:1px solid #f5c2cb;
+                                        border-radius:10px;padding:5px 8px;">
+                                <div style="font-size:0.62rem;font-weight:700;color:#842029;
+                                            letter-spacing:0.4px;text-transform:uppercase;">Today</div>
+                                <div style="font-size:1rem;line-height:1.2;">🎉</div>
+                            </div>
+                            <div th:if="${entry.value > 0}"
+                                 style="flex-shrink:0;text-align:center;min-width:48px;
+                                        background:#f8d7da;border:1px solid #f5c2cb;
+                                        border-radius:10px;padding:5px 8px;">
+                                <div style="font-size:1.1rem;font-weight:800;line-height:1;color:#842029;"
+                                     th:text="${entry.value}">5</div>
+                                <div style="font-size:0.6rem;font-weight:600;color:#dc3545;
+                                            letter-spacing:0.4px;text-transform:uppercase;">days</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Upcoming Anniversaries ── -->
+            <div class="col-lg-6">
+                <div style="border-radius:16px;background:#fff;border:1px solid #ffe69c;
+                            box-shadow:0 2px 12px rgba(255,193,7,0.1);">
+                    <!-- Header — Bootstrap warning-subtle -->
+                    <div style="padding:16px 20px;background:#fff3cd;border-radius:16px 16px 0 0;
+                                border-bottom:1px solid #ffe69c;
+                                display:flex;align-items:center;justify-content:space-between;">
+                        <div style="display:flex;align-items:center;gap:12px;">
+                            <div style="width:36px;height:36px;border-radius:10px;background:#fff;
+                                        border:1px solid #ffe69c;
+                                        display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                <i class="bi bi-hearts" style="color:#997404;font-size:1rem;"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight:700;font-size:0.9rem;color:#664d03;">Upcoming Anniversaries</div>
+                                <div style="font-size:0.71rem;color:#997404;opacity:0.8;margin-top:1px;">Next 30 days</div>
+                            </div>
+                        </div>
+                        <span th:unless="${upcomingAnniversaries.isEmpty()}"
+                              style="background:#fff;color:#997404;border:1px solid #ffe69c;
+                                     border-radius:20px;padding:3px 10px;font-size:0.75rem;font-weight:700;"
+                              th:text="${upcomingAnniversaries.size()}">0</span>
+                    </div>
+                    <!-- Body -->
+                    <div style="padding:4px 0 8px;">
+                        <div th:if="${upcomingAnniversaries.isEmpty()}"
+                             style="text-align:center;padding:28px 20px;">
+                            <i class="bi bi-hearts" style="font-size:1.8rem;color:#ffe69c;display:block;margin-bottom:8px;"></i>
+                            <p style="font-size:0.81rem;font-style:italic;margin:0;color:#adb5bd;">No anniversaries in the next 30 days.</p>
+                        </div>
+                        <div th:each="entry : ${upcomingAnniversaries}"
+                             th:style="${entry.value == 0} ? 'display:flex;align-items:center;gap:12px;padding:10px 20px;background:#fffdf0;' : 'display:flex;align-items:center;gap:12px;padding:10px 20px;'">
+                            <!-- Avatar -->
+                            <div style="position:relative;flex-shrink:0;">
+                                <img th:if="${entry.key.profilePicture != null}"
+                                     th:src="@{/members/{id}/photo(id=${entry.key.id})}"
+                                     style="width:44px;height:44px;border-radius:50%;object-fit:cover;
+                                            border:2px solid #ffe69c;" alt="">
+                                <div th:unless="${entry.key.profilePicture != null}"
+                                     style="width:44px;height:44px;border-radius:50%;
+                                            background:#fff3cd;border:2px solid #ffe69c;
+                                            display:flex;align-items:center;justify-content:center;
+                                            color:#997404;font-weight:800;font-size:0.95rem;"
+                                     th:text="${#strings.substring(entry.key.firstName,0,1)}">M</div>
+                                <span th:if="${entry.value == 0}"
+                                      style="position:absolute;bottom:-3px;right:-3px;font-size:0.78rem;line-height:1;">💍</span>
+                            </div>
+                            <!-- Name + date -->
+                            <div style="flex:1;min-width:0;">
+                                <div style="font-weight:600;font-size:0.87rem;color:#1e293b;
+                                            white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"
+                                     th:text="${entry.key.firstName} + ' ' + ${entry.key.lastName}"></div>
+                                <div style="font-size:0.72rem;color:#94a3b8;margin-top:2px;"
+                                     th:text="${#temporals.format(entry.key.anniversaryDate,'dd MMMM')}"></div>
+                            </div>
+                            <!-- Countdown -->
+                            <div th:if="${entry.value == 0}"
+                                 style="flex-shrink:0;text-align:center;min-width:48px;
+                                        background:#fff3cd;border:1px solid #ffe69c;
+                                        border-radius:10px;padding:5px 8px;">
+                                <div style="font-size:0.62rem;font-weight:700;color:#664d03;
+                                            letter-spacing:0.4px;text-transform:uppercase;">Today</div>
+                                <div style="font-size:1rem;line-height:1.2;">🎉</div>
+                            </div>
+                            <div th:if="${entry.value > 0}"
+                                 style="flex-shrink:0;text-align:center;min-width:48px;
+                                        background:#fff3cd;border:1px solid #ffe69c;
+                                        border-radius:10px;padding:5px 8px;">
+                                <div style="font-size:1.1rem;font-weight:800;line-height:1;color:#664d03;"
+                                     th:text="${entry.value}">5</div>
+                                <div style="font-size:0.6rem;font-weight:600;color:#997404;
+                                            letter-spacing:0.4px;text-transform:uppercase;">days</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ── Meet Our Founders CTA — Bootstrap success-subtle ── -->
+        <div class="mt-4 d-flex align-items-center justify-content-between flex-wrap gap-3"
+             style="border-radius:16px;background:#d1e7dd;border:1px solid #a3cfbb;
+                    box-shadow:0 2px 12px rgba(25,135,84,0.1);padding:18px 22px;">
+            <div class="d-flex align-items-center gap-3">
+                <!-- Icon tile -->
+                <div style="width:42px;height:42px;border-radius:12px;background:#fff;
+                            border:1px solid #a3cfbb;flex-shrink:0;
+                            display:flex;align-items:center;justify-content:center;">
+                    <i class="bi bi-people-fill" style="color:#146c43;font-size:1.1rem;"></i>
+                </div>
+                <!-- Stacked founder avatars -->
+                <div style="display:flex;align-items:center;">
+                    <img th:src="@{/images/founders/Founder_Vivek_Basal_1.jpeg}"
+                         style="width:34px;height:34px;border-radius:50%;object-fit:cover;object-position:top;
+                                border:2px solid #d1e7dd;margin-right:-8px;position:relative;z-index:5;
+                                box-shadow:0 1px 4px rgba(0,0,0,0.1);">
+                    <img th:src="@{/images/founders/Founder_Shreyans_Jain_2.jpeg}"
+                         style="width:34px;height:34px;border-radius:50%;object-fit:cover;object-position:top;
+                                border:2px solid #d1e7dd;margin-right:-8px;position:relative;z-index:4;
+                                box-shadow:0 1px 4px rgba(0,0,0,0.1);">
+                    <img th:src="@{/images/founders/Founder_Jignesh_Shah_3.jpeg}"
+                         style="width:34px;height:34px;border-radius:50%;object-fit:cover;object-position:top;
+                                border:2px solid #d1e7dd;margin-right:-8px;position:relative;z-index:3;
+                                box-shadow:0 1px 4px rgba(0,0,0,0.1);">
+                    <div style="width:34px;height:34px;border-radius:50%;background:#a3cfbb;
+                                border:2px solid #d1e7dd;position:relative;z-index:2;
+                                display:flex;align-items:center;justify-content:center;
+                                color:#0a3622;font-size:0.68rem;font-weight:700;">+2</div>
+                </div>
+                <!-- Text -->
+                <div>
+                    <div style="font-weight:700;font-size:0.92rem;color:#0a3622;">Meet Our Founders</div>
+                    <div style="font-size:0.75rem;color:#146c43;margin-top:1px;">
+                        Five visionaries who built this community.
+                    </div>
+                </div>
+            </div>
+            <a th:href="@{/portal/founders}"
+               style="display:inline-flex;align-items:center;gap:7px;text-decoration:none;
+                      background:#fff;border:1px solid #a3cfbb;color:#146c43;
+                      padding:9px 18px;border-radius:10px;font-size:0.84rem;font-weight:700;
+                      white-space:nowrap;">
+                <i class="bi bi-arrow-right-circle"></i> View Founders
+            </a>
+        </div>
+    </div>
+
 </div>
 
 <th:block layout:fragment="page-scripts">
 <style>
+/* Carousel dots */
+.car-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    border: none; padding: 0; background: rgba(0,0,0,0.3);
+    transition: width 0.25s, border-radius 0.25s, background 0.25s;
+    cursor: pointer;
+}
+.car-dot.active {
+    width: 22px; border-radius: 4px; background: rgba(0,0,0,0.65);
+}
+
 /* Radio pill toggle */
 .fb-radio:checked + .fb-option-label {
     background: #10b981 !important;
@@ -703,6 +1038,16 @@
     });
 
     initStars();
+})();
+
+/* Carousel counter */
+(function () {
+    var el = document.getElementById('orgCarousel');
+    if (!el) return;
+    el.addEventListener('slid.bs.carousel', function (e) {
+        var cur = document.getElementById('carousel-current');
+        if (cur) cur.textContent = e.to + 1;
+    });
 })();
 </script>
 </th:block>
