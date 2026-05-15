@@ -285,6 +285,26 @@
             <h2 class="welcome-title">Welcome Back</h2>
             <p class="welcome-sub">Enter your credentials to access the admin portal.</p>
 
+            <!-- Restricted access notice -->
+            <div style="margin-bottom:22px;padding:13px 15px;
+                        background:#f8fafc;border:1px solid #e2e8f0;
+                        border-radius:10px;border-left:3px solid #6366f1;">
+                <div style="display:flex;align-items:flex-start;gap:10px;">
+                    <i class="bi bi-shield-lock-fill"
+                       style="color:#6366f1;font-size:1rem;flex-shrink:0;margin-top:2px;"></i>
+                    <div style="font-size:0.74rem;color:#475569;line-height:1.65;">
+                        <span style="font-weight:700;color:#1e293b;display:block;margin-bottom:3px;">
+                            Restricted Control Panel
+                        </span>
+                        This portal is reserved exclusively for authorised personnel of the
+                        <strong>United Digambar Jain Community Trust</strong>. Access credentials
+                        are issued and managed solely by the Trust Administration. If you are not
+                        an authorised administrator, please use the Member Portal link below.
+                        Unauthorised access attempts are strictly prohibited.
+                    </div>
+                </div>
+            </div>
+
             <!-- Error -->
             <div th:if="${error}" class="err-alert">
                 <i class="bi bi-exclamation-triangle-fill"></i>
@@ -322,7 +342,7 @@
 
             </form>
 
-            <div style="text-align:center;margin-top:22px;font-size:0.79rem;color:#94a3b8;">
+            <div style="text-align:center;margin-top:18px;font-size:0.79rem;color:#94a3b8;">
                 Not an admin?
                 <a th:href="@{/member-login}"
                    style="color:#6366f1;font-weight:600;text-decoration:none;">Member Login</a>
