@@ -124,4 +124,16 @@ public class MemberController {
         attrs.addFlashAttribute("success", "Profile photo removed.");
         return "redirect:/members/" + id + "/edit";
     }
+
+    @GetMapping("/{id}/qr")
+    @ResponseBody
+    public ResponseEntity<byte[]> serveQr(@PathVariable Long id) {
+        Member member = service.findById(id);
+        if (member.getQrCode() == null) return ResponseEntity.notFound().build();
+        return ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_PNG)
+                .header("Content-Disposition",
+                        "attachment; filename=\"member-" + id + "-qr.png\"")
+                .body(member.getQrCode());
+    }
 }

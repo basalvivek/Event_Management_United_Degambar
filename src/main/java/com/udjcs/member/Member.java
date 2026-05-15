@@ -92,6 +92,9 @@ public class Member extends BaseEntity {
     @Column(name = "photo_mime_type", length = 50)
     private String photoMimeType;
 
+    @Column(name = "qr_code", columnDefinition = "BYTEA")
+    private byte[] qrCode;
+
     public String getFirstName() { return firstName; }
     public void setFirstName(String firstName) { this.firstName = firstName; }
 
@@ -145,4 +148,7 @@ public class Member extends BaseEntity {
 
     public String getPhotoMimeType() { return photoMimeType; }
     public void setPhotoMimeType(String photoMimeType) { this.photoMimeType = photoMimeType; }
+
+    public byte[] getQrCode() { return qrCode; }
+    public void setQrCode(byte[] qrCode) { this.qrCode = qrCode; }
 }

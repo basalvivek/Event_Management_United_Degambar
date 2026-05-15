@@ -126,6 +126,12 @@
                                   th:text="${item.status}"></span>
                         </td>
                         <td class="text-end">
+                            <a th:if="${item.qrCode != null}"
+                               th:href="@{/members/{id}/qr(id=${item.id})}"
+                               class="btn btn-sm btn-outline-success"
+                               title="Download QR Code">
+                                <i class="bi bi-qr-code"></i>
+                            </a>
                             <a th:href="@{/members/{id}/edit(id=${item.id})}" class="btn btn-sm btn-outline-warning">
                                 <i class="bi bi-pencil"></i>
                             </a>
