@@ -186,47 +186,400 @@
 
         <div class="row g-4">
 
-            <!-- ══ 3. Upcoming Events ══ -->
+            <!-- ══ 3. Events ══ -->
             <div class="col-lg-6">
                 <div class="card border-0 shadow-sm h-100" style="border-radius:14px;">
                     <div class="card-header border-0 py-3 px-4"
                          style="background:linear-gradient(90deg,rgba(245,158,11,0.08),transparent);border-radius:14px 14px 0 0;">
                         <span class="fw-bold" style="font-size:0.92rem;color:#1a1a2e;">
-                            <i class="bi bi-calendar-event me-2" style="color:#f59e0b;"></i>Upcoming Events
+                            <i class="bi bi-calendar-event me-2" style="color:#f59e0b;"></i>Events
                         </span>
                     </div>
                     <div class="card-body px-4 py-3">
 
-                        <div th:if="${#lists.isEmpty(upcomingEvents)}" class="empty-state">
+                        <div th:if="${#lists.isEmpty(activeEvents) and #lists.isEmpty(plannedEvents) and #lists.isEmpty(completedEvents)}"
+                             class="empty-state">
                             <i class="bi bi-calendar-x"></i>
                             <p>Nothing is planned yet... Be patient, success takes time...</p>
                         </div>
 
-                        <div th:each="ev : ${upcomingEvents}"
-                             class="d-flex gap-3 align-items-start mb-3 pb-3"
-                             style="border-bottom:1px solid #f3f4f6;">
-                            <!-- Date badge -->
-                            <div class="text-center flex-shrink-0"
-                                 style="width:48px;background:#fff7ed;border-radius:10px;padding:6px 4px;">
-                                <div style="font-size:1.1rem;font-weight:800;color:#d97706;line-height:1;"
-                                     th:text="${#temporals.format(ev.eventDate,'dd')}">01</div>
-                                <div style="font-size:0.6rem;font-weight:700;color:#f59e0b;text-transform:uppercase;"
-                                     th:text="${#temporals.format(ev.eventDate,'MMM')}">JAN</div>
+                        <!-- ── ACTIVE: name + date only ── -->
+                        <div th:if="${not #lists.isEmpty(activeEvents)}">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <span class="badge rounded-pill px-2 py-1"
+                                      style="background:rgba(16,185,129,0.12);color:#059669;font-size:0.67rem;font-weight:700;">
+                                    <i class="bi bi-circle-fill me-1" style="font-size:0.45rem;vertical-align:middle;"></i>Active
+                                </span>
                             </div>
-                            <div class="flex-grow-1">
-                                <div class="fw-semibold" style="font-size:0.87rem;color:#1a1a2e;"
+                            <div th:each="ev : ${activeEvents}"
+                                 class="d-flex gap-3 align-items-center mb-2 rounded-3 px-3 py-2"
+                                 style="background:#f0fdf4;border:1px solid #d1fae5;">
+                                <div class="text-center flex-shrink-0"
+                                     style="width:44px;background:#dcfce7;border-radius:10px;padding:5px 4px;">
+                                    <div style="font-size:1rem;font-weight:800;color:#059669;line-height:1;"
+                                         th:text="${#temporals.format(ev.eventDate,'dd')}"></div>
+                                    <div style="font-size:0.58rem;font-weight:700;color:#16a34a;text-transform:uppercase;"
+                                         th:text="${#temporals.format(ev.eventDate,'MMM')}"></div>
+                                </div>
+                                <div class="flex-grow-1 fw-semibold" style="font-size:0.87rem;color:#14532d;"
                                      th:text="${ev.eventName}"></div>
-                                <div class="text-muted" style="font-size:0.75rem;">
-                                    <i class="bi bi-geo-alt me-1"></i><span th:text="${ev.venue}"></span>
+                                <!-- Register / Already Registered -->
+                                <div class="flex-shrink-0">
+                                    <span th:if="${registeredEventIds.contains(ev.id)}"
+                                          class="badge rounded-pill"
+                                          style="background:#d1fae5;color:#059669;font-size:0.68rem;padding:5px 10px;">
+                                        <i class="bi bi-check2 me-1"></i>Registered
+                                    </span>
+                                    <a th:unless="${registeredEventIds.contains(ev.id)}"
+                                       th:href="@{/portal/register-event/{id}(id=${ev.id})}"
+                                       class="btn btn-sm fw-semibold"
+                                       style="font-size:0.72rem;padding:4px 12px;border-radius:20px;
+                                              background:linear-gradient(135deg,#10b981,#059669);
+                                              color:#fff;border:none;text-decoration:none;">
+                                        <i class="bi bi-ticket-perforated me-1"></i>Register
+                                    </a>
                                 </div>
-                                <div class="mt-1">
-                                    <span class="badge rounded-pill"
-                                          style="background:rgba(245,158,11,0.12);color:#d97706;font-size:0.68rem;"
-                                          th:text="${ev.eventType}"></span>
-                                    <span class="badge rounded-pill ms-1"
-                                          th:style="${ev.status == 'Active'} ? 'background:rgba(16,185,129,0.12);color:#059669;font-size:0.68rem;' : 'background:rgba(107,114,128,0.1);color:#6b7280;font-size:0.68rem;'"
-                                          th:text="${ev.status}"></span>
+                            </div>
+                        </div>
+
+                        <!-- ── PLANNED: name + date + program schedule ── -->
+                        <div th:if="${not #lists.isEmpty(plannedEvents)}" class="mt-3">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <span class="badge rounded-pill px-2 py-1"
+                                      style="background:rgba(245,158,11,0.15);color:#b45309;font-size:0.67rem;font-weight:700;">
+                                    <i class="bi bi-clock me-1"></i>Planned
+                                </span>
+                            </div>
+                            <div th:each="ev : ${plannedEvents}" class="mb-3 rounded-3 p-3"
+                                 style="background:#fffbeb;border:1px solid #fde68a;">
+                                <!-- Header row -->
+                                <div class="d-flex gap-3 align-items-start mb-2">
+                                    <div class="text-center flex-shrink-0"
+                                         style="width:44px;background:#fef3c7;border-radius:10px;padding:5px 4px;">
+                                        <div style="font-size:1rem;font-weight:800;color:#d97706;line-height:1;"
+                                             th:text="${#temporals.format(ev.eventDate,'dd')}"></div>
+                                        <div style="font-size:0.58rem;font-weight:700;color:#f59e0b;text-transform:uppercase;"
+                                             th:text="${#temporals.format(ev.eventDate,'MMM')}"></div>
+                                    </div>
+                                    <div>
+                                        <div class="fw-semibold" style="font-size:0.87rem;color:#78350f;"
+                                             th:text="${ev.eventName}"></div>
+                                        <div style="font-size:0.73rem;color:#92400e;">
+                                            <i class="bi bi-geo-alt me-1"></i><span th:text="${ev.venue}"></span>
+                                        </div>
+                                    </div>
                                 </div>
+                                <!-- Programs -->
+                                <div th:each="prog : ${plannedProgramsList}"
+                                     th:if="${prog.event.id == ev.id}"
+                                     class="d-flex align-items-stretch gap-0 mb-1 rounded-2 overflow-hidden"
+                                     style="border:1px solid #fcd34d;">
+                                    <div class="d-flex flex-column align-items-center justify-content-center flex-shrink-0 px-2"
+                                         style="min-width:58px;background:linear-gradient(160deg,#f59e0b,#d97706);color:#fff;padding:7px 0;">
+                                        <span style="font-size:0.74rem;font-weight:700;line-height:1.2;"
+                                              th:text="${#temporals.format(prog.startTime,'HH:mm')}"></span>
+                                        <span style="font-size:0.52rem;opacity:0.75;">to</span>
+                                        <span style="font-size:0.67rem;font-weight:600;line-height:1.2;"
+                                              th:text="${#temporals.format(prog.endTime,'HH:mm')}"></span>
+                                    </div>
+                                    <div class="px-3 py-2 flex-grow-1" style="background:#fefce8;">
+                                        <div class="fw-semibold" style="font-size:0.8rem;color:#78350f;"
+                                             th:text="${prog.programName}"></div>
+                                        <div th:if="${prog.responsibleMember != null}"
+                                             style="font-size:0.7rem;color:#92400e;margin-top:2px;">
+                                            <i class="bi bi-person-fill me-1" style="color:#d97706;"></i>
+                                            <span th:text="${prog.responsibleMember.firstName} + ' ' + ${prog.responsibleMember.lastName}"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div th:unless="${plannedEventIdsWithPrograms.contains(ev.id)}"
+                                     style="font-size:0.72rem;color:#b45309;padding-left:4px;">
+                                    <i class="bi bi-info-circle me-1"></i>No program schedule yet.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ── COMPLETED: name + date + program schedule + feedback ── -->
+                        <div th:if="${not #lists.isEmpty(completedEvents)}" class="mt-3">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <span class="badge rounded-pill px-2 py-1"
+                                      style="background:rgba(100,116,139,0.12);color:#475569;font-size:0.67rem;font-weight:700;">
+                                    <i class="bi bi-check2-circle me-1"></i>Completed
+                                </span>
+                            </div>
+                            <div th:each="ev : ${completedEvents}" class="mb-3 rounded-3 p-3"
+                                 style="background:#f8fafc;border:1px solid #e2e8f0;">
+                                <!-- Header row -->
+                                <div class="d-flex gap-3 align-items-start mb-2">
+                                    <div class="text-center flex-shrink-0"
+                                         style="width:44px;background:#e2e8f0;border-radius:10px;padding:5px 4px;">
+                                        <div style="font-size:1rem;font-weight:800;color:#475569;line-height:1;"
+                                             th:text="${#temporals.format(ev.eventDate,'dd')}"></div>
+                                        <div style="font-size:0.58rem;font-weight:700;color:#64748b;text-transform:uppercase;"
+                                             th:text="${#temporals.format(ev.eventDate,'MMM')}"></div>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div class="fw-semibold" style="font-size:0.87rem;color:#1e293b;"
+                                             th:text="${ev.eventName}"></div>
+                                        <div style="font-size:0.73rem;color:#64748b;">
+                                            <i class="bi bi-calendar3 me-1"></i>
+                                            <span th:text="${#temporals.format(ev.eventDate,'dd-MMM-yyyy')}"></span>
+                                        </div>
+                                    </div>
+                                    <!-- Feedback button -->
+                                    <div class="flex-shrink-0">
+                                        <span th:if="${feedbackGiven.contains(ev.id)}"
+                                              class="badge rounded-pill"
+                                              style="background:rgba(16,185,129,0.12);color:#059669;font-size:0.68rem;padding:5px 10px;">
+                                            <i class="bi bi-check2 me-1"></i>Feedback Sent
+                                        </span>
+                                        <button th:unless="${feedbackGiven.contains(ev.id)}"
+                                                type="button"
+                                                class="btn btn-sm"
+                                                style="font-size:0.72rem;padding:4px 10px;border-radius:20px;
+                                                       background:linear-gradient(135deg,#10b981,#059669);
+                                                       color:#fff;border:none;font-weight:600;"
+                                                th:attr="data-bs-toggle='modal',data-bs-target='#fbModal_' + ${ev.id}">
+                                            <i class="bi bi-chat-left-text me-1"></i>Feedback
+                                        </button>
+                                    </div>
+                                </div>
+                                <!-- Programs -->
+                                <div th:each="prog : ${completedProgramsList}"
+                                     th:if="${prog.event.id == ev.id}"
+                                     class="d-flex align-items-stretch gap-0 mb-1 rounded-2 overflow-hidden"
+                                     style="border:1px solid #cbd5e1;">
+                                    <div class="d-flex flex-column align-items-center justify-content-center flex-shrink-0 px-2"
+                                         style="min-width:58px;background:linear-gradient(160deg,#64748b,#475569);color:#fff;padding:7px 0;">
+                                        <span style="font-size:0.74rem;font-weight:700;line-height:1.2;"
+                                              th:text="${#temporals.format(prog.startTime,'HH:mm')}"></span>
+                                        <span style="font-size:0.52rem;opacity:0.75;">to</span>
+                                        <span style="font-size:0.67rem;font-weight:600;line-height:1.2;"
+                                              th:text="${#temporals.format(prog.endTime,'HH:mm')}"></span>
+                                    </div>
+                                    <div class="px-3 py-2 flex-grow-1" style="background:#f1f5f9;">
+                                        <div class="fw-semibold" style="font-size:0.8rem;color:#334155;"
+                                             th:text="${prog.programName}"></div>
+                                        <div th:if="${prog.responsibleMember != null}"
+                                             style="font-size:0.7rem;color:#64748b;margin-top:2px;">
+                                            <i class="bi bi-person-fill me-1" style="color:#475569;"></i>
+                                            <span th:text="${prog.responsibleMember.firstName} + ' ' + ${prog.responsibleMember.lastName}"></span>
+                                        </div>
+                                        <div th:if="${prog.programDescription != null and !prog.programDescription.isEmpty()}"
+                                             class="mt-1" style="font-size:0.7rem;color:#64748b;line-height:1.4;"
+                                             th:text="${prog.programDescription}"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Feedback modal for this event -->
+                                <div th:unless="${feedbackGiven.contains(ev.id)}"
+                                     class="modal fade" th:id="'fbModal_' + ${ev.id}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+                                        <div class="modal-content border-0" style="border-radius:16px;box-shadow:0 24px 64px rgba(0,0,0,0.18);">
+
+                                            <!-- Modal header -->
+                                            <div class="modal-header border-0 px-4 pt-4 pb-2">
+                                                <div>
+                                                    <h5 class="fw-bold mb-1" style="color:#1a1a2e;font-size:1rem;">
+                                                        <i class="bi bi-chat-heart me-2" style="color:#10b981;"></i>Share Your Feedback
+                                                    </h5>
+                                                </div>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+
+                                            <div class="modal-body px-4 pt-0 pb-3">
+                                                <form th:action="@{/portal/feedback}" method="post">
+                                                    <input type="hidden" name="eventId" th:value="${ev.id}">
+
+                                                    <!-- Event & Member info -->
+                                                    <div class="d-flex gap-3 mb-3 p-3 rounded-3"
+                                                         style="background:#f8fafc;border:1px solid #e2e8f0;">
+                                                        <div class="flex-grow-1">
+                                                            <div style="font-size:0.7rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.8px;">Event</div>
+                                                            <div class="fw-semibold" style="font-size:0.88rem;color:#1e293b;" th:text="${ev.eventName}"></div>
+                                                        </div>
+                                                        <div class="flex-grow-1">
+                                                            <div style="font-size:0.7rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.8px;">Member</div>
+                                                            <div class="fw-semibold" style="font-size:0.88rem;color:#1e293b;"
+                                                                 th:text="${memberUser.firstName} + ' ' + ${memberUser.lastName}"></div>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Thank you note -->
+                                                    <div class="mb-4 px-3 py-2 rounded-3 text-center"
+                                                         style="background:linear-gradient(135deg,rgba(16,185,129,0.06),rgba(5,150,105,0.04));border:1px solid rgba(16,185,129,0.2);">
+                                                        <p class="mb-0" style="font-size:0.82rem;color:#065f46;font-style:italic;line-height:1.6;">
+                                                            Thank you for being a part of our
+                                                            <strong th:text="${ev.eventName}"></strong> celebration.
+                                                            Your feedback is valuable to us and will help us improve future events.
+                                                        </p>
+                                                    </div>
+
+                                                    <!-- Section: Event Experience -->
+                                                    <div class="mb-1 pb-1" style="border-bottom:2px solid #f0fdf4;">
+                                                        <span class="fw-bold" style="font-size:0.82rem;color:#059669;text-transform:uppercase;letter-spacing:0.8px;">
+                                                            <i class="bi bi-star me-1"></i>Event Experience
+                                                        </span>
+                                                    </div>
+
+                                                    <!-- Q1: Overall experience -->
+                                                    <div class="mb-3 mt-3">
+                                                        <label class="form-label fw-medium mb-2" style="font-size:0.84rem;color:#1e293b;">
+                                                            How would you rate your overall experience at the event?
+                                                        </label>
+                                                        <div class="d-flex flex-wrap gap-2">
+                                                            <div th:each="opt : ${ {'Excellent','Very Good','Good','Average'} }">
+                                                                <input type="radio" name="overallExperience"
+                                                                       th:value="${opt}"
+                                                                       th:id="'oe_' + ${ev.id} + '_' + ${opt.replace(' ','_')}"
+                                                                       class="d-none fb-radio">
+                                                                <label th:for="'oe_' + ${ev.id} + '_' + ${opt.replace(' ','_')}"
+                                                                       th:text="${opt}"
+                                                                       class="fb-option-label"
+                                                                       style="cursor:pointer;padding:5px 14px;border-radius:20px;font-size:0.8rem;border:1.5px solid #e2e8f0;background:#fff;color:#475569;transition:all 0.15s;display:inline-block;"></label>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Q2: Satisfaction -->
+                                                    <div class="mb-3">
+                                                        <label class="form-label fw-medium mb-2" style="font-size:0.84rem;color:#1e293b;">
+                                                            How satisfied were you with the event arrangements and management?
+                                                        </label>
+                                                        <div class="d-flex flex-wrap gap-2">
+                                                            <div th:each="opt : ${ {'Very Satisfied','Satisfied','Neutral','Dissatisfied'} }">
+                                                                <input type="radio" name="satisfactionLevel"
+                                                                       th:value="${opt}"
+                                                                       th:id="'sl_' + ${ev.id} + '_' + ${opt.replace(' ','_')}"
+                                                                       class="d-none fb-radio">
+                                                                <label th:for="'sl_' + ${ev.id} + '_' + ${opt.replace(' ','_')}"
+                                                                       th:text="${opt}"
+                                                                       class="fb-option-label"
+                                                                       style="cursor:pointer;padding:5px 14px;border-radius:20px;font-size:0.8rem;border:1.5px solid #e2e8f0;background:#fff;color:#475569;transition:all 0.15s;display:inline-block;"></label>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Q3: Star ratings -->
+                                                    <div class="mb-3">
+                                                        <label class="form-label fw-medium mb-2" style="font-size:0.84rem;color:#1e293b;">
+                                                            How would you rate the following:
+                                                        </label>
+                                                        <div class="d-flex flex-column gap-2 p-3 rounded-3" style="background:#fafafa;border:1px solid #f1f5f9;">
+                                                            <div th:each="cat : ${ {
+                                                                    'venueRating:Venue Arrangement',
+                                                                    'programCoordinationRating:Program Coordination',
+                                                                    'hospitalityRating:Hospitality &amp; Support',
+                                                                    'foodRating:Food &amp; Refreshments',
+                                                                    'spiritualRating:Spiritual/Cultural Activities'
+                                                                } }"
+                                                                 th:with="fieldName=${cat.split(':')[0]}, label=${cat.split(':')[1]}"
+                                                                 class="d-flex align-items-center justify-content-between gap-3">
+                                                                <span style="font-size:0.8rem;color:#475569;min-width:160px;" th:utext="${label}"></span>
+                                                                <div class="star-rater d-flex gap-1"
+                                                                     th:attr="data-field=${fieldName + '_' + ev.id}">
+                                                                    <input type="hidden" th:name="${fieldName}" value="">
+                                                                    <span th:each="n : ${#numbers.sequence(1,5)}"
+                                                                          th:attr="data-val=${n}"
+                                                                          style="font-size:1.5rem;cursor:pointer;color:#d1d5db;line-height:1;user-select:none;">&#9733;</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Q4: Enjoyed most -->
+                                                    <div class="mb-3">
+                                                        <label class="form-label fw-medium" style="font-size:0.84rem;color:#1e293b;">
+                                                            Which part of the event did you enjoy the most?
+                                                        </label>
+                                                        <textarea name="enjoyedMost" class="form-control" rows="2"
+                                                                  placeholder="Share your favourite moment..."
+                                                                  style="font-size:0.83rem;border-radius:10px;resize:none;"></textarea>
+                                                    </div>
+
+                                                    <!-- Q5: Timings managed -->
+                                                    <div class="mb-3">
+                                                        <label class="form-label fw-medium mb-2" style="font-size:0.84rem;color:#1e293b;">
+                                                            Were the event timings and schedule managed properly?
+                                                        </label>
+                                                        <div class="d-flex flex-wrap gap-2">
+                                                            <div th:each="opt : ${ {'Yes','No','Partially'} }">
+                                                                <input type="radio" name="timingsManaged"
+                                                                       th:value="${opt}"
+                                                                       th:id="'tm_' + ${ev.id} + '_' + ${opt}"
+                                                                       class="d-none fb-radio">
+                                                                <label th:for="'tm_' + ${ev.id} + '_' + ${opt}"
+                                                                       th:text="${opt}"
+                                                                       class="fb-option-label"
+                                                                       style="cursor:pointer;padding:5px 14px;border-radius:20px;font-size:0.8rem;border:1.5px solid #e2e8f0;background:#fff;color:#475569;transition:all 0.15s;display:inline-block;"></label>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Q6: Suggestions -->
+                                                    <div class="mb-3">
+                                                        <label class="form-label fw-medium" style="font-size:0.84rem;color:#1e293b;">
+                                                            Do you have any suggestions for improving future
+                                                            <span th:text="${ev.eventName}"></span> celebrations?
+                                                        </label>
+                                                        <textarea name="suggestions" class="form-control" rows="2"
+                                                                  placeholder="Your suggestions are welcome..."
+                                                                  style="font-size:0.83rem;border-radius:10px;resize:none;"></textarea>
+                                                    </div>
+
+                                                    <!-- Q7: Participate future -->
+                                                    <div class="mb-3">
+                                                        <label class="form-label fw-medium mb-2" style="font-size:0.84rem;color:#1e293b;">
+                                                            Would you like to participate in future community events?
+                                                        </label>
+                                                        <div class="d-flex flex-wrap gap-2">
+                                                            <div th:each="opt : ${ {'Yes','No','Maybe'} }">
+                                                                <input type="radio" name="participateFuture"
+                                                                       th:value="${opt}"
+                                                                       th:id="'pf_' + ${ev.id} + '_' + ${opt}"
+                                                                       class="d-none fb-radio">
+                                                                <label th:for="'pf_' + ${ev.id} + '_' + ${opt}"
+                                                                       th:text="${opt}"
+                                                                       class="fb-option-label"
+                                                                       style="cursor:pointer;padding:5px 14px;border-radius:20px;font-size:0.8rem;border:1.5px solid #e2e8f0;background:#fff;color:#475569;transition:all 0.15s;display:inline-block;"></label>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Q8: Additional comments -->
+                                                    <div class="mb-3">
+                                                        <label class="form-label fw-medium" style="font-size:0.84rem;color:#1e293b;">
+                                                            Additional Comments or Blessings:
+                                                        </label>
+                                                        <textarea name="additionalComments" class="form-control" rows="3"
+                                                                  placeholder="Any blessings or additional thoughts you'd like to share..."
+                                                                  style="font-size:0.83rem;border-radius:10px;resize:none;"></textarea>
+                                                    </div>
+
+                                                    <!-- Thank you footer -->
+                                                    <div class="mb-4 text-center" style="font-size:0.78rem;color:#6b7280;font-style:italic;">
+                                                        Thank you for your valuable feedback and for celebrating
+                                                        <span class="fw-semibold" style="color:#059669;" th:text="${ev.eventName}"></span> with us.
+                                                    </div>
+
+                                                    <!-- Buttons -->
+                                                    <div class="d-flex gap-2">
+                                                        <button type="submit" class="btn flex-grow-1 fw-semibold"
+                                                                style="background:linear-gradient(135deg,#10b981,#059669);color:#fff;
+                                                                       border:none;border-radius:10px;font-size:0.87rem;padding:10px;">
+                                                            <i class="bi bi-send me-2"></i>Submit Feedback
+                                                        </button>
+                                                        <button type="button" class="btn btn-outline-secondary px-4"
+                                                                style="border-radius:10px;font-size:0.87rem;"
+                                                                data-bs-dismiss="modal">Cancel</button>
+                                                    </div>
+
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
                             </div>
                         </div>
 
@@ -298,5 +651,61 @@
     </div>
 
 </div>
+
+<th:block layout:fragment="page-scripts">
+<style>
+/* Radio pill toggle */
+.fb-radio:checked + .fb-option-label {
+    background: #10b981 !important;
+    color: #fff !important;
+    border-color: #059669 !important;
+    font-weight: 600;
+}
+.fb-option-label:hover {
+    border-color: #10b981 !important;
+    color: #059669 !important;
+}
+</style>
+<script>
+(function () {
+    /* Star rater */
+    function initStars() {
+        document.querySelectorAll('.star-rater').forEach(function (rater) {
+            var stars  = rater.querySelectorAll('span[data-val]');
+            var hidden = rater.querySelector('input[type=hidden]');
+
+            function paint(val) {
+                stars.forEach(function (s) {
+                    s.style.color = parseInt(s.dataset.val) <= val ? '#f59e0b' : '#d1d5db';
+                });
+            }
+
+            stars.forEach(function (s) {
+                s.addEventListener('click', function () {
+                    hidden.value = this.dataset.val;
+                    paint(parseInt(this.dataset.val));
+                });
+                s.addEventListener('mouseenter', function () {
+                    paint(parseInt(this.dataset.val));
+                });
+                s.addEventListener('mouseleave', function () {
+                    paint(parseInt(hidden.value) || 0);
+                });
+            });
+        });
+    }
+
+    /* Re-init stars each time a feedback modal opens (lazy init) */
+    document.addEventListener('shown.bs.modal', function (e) {
+        if (e.target && e.target.id && e.target.id.startsWith('fbModal_')) {
+            initStars();
+        }
+    });
+
+    initStars();
+})();
+</script>
+</th:block>
+
 </body>
 </html>

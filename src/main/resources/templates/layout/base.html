@@ -4,7 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title layout:title-pattern="$CONTENT_TITLE - UDJCS">UDJCS</title>
+    <title layout:title-pattern="$CONTENT_TITLE - $LAYOUT_TITLE" th:text="${siteOrgName}">UDJCS</title>
+    <link rel="icon" type="image/jpeg"
+          th:href="${siteOrg != null and siteOrg.logoPath != null} ? ${siteOrg.logoPath} : @{/images/logo.jpeg}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <style>
@@ -126,9 +128,10 @@
 <nav id="sidebar">
 
     <div class="sb-brand">
-        <img th:src="@{/images/logo.jpeg}" alt="UDJCS">
+        <img th:src="${siteOrg != null and siteOrg.logoPath != null} ? ${siteOrg.logoPath} : @{/images/logo.jpeg}"
+             th:alt="${siteOrgName}">
         <div class="sb-brand-text">
-            United Digambar<br>Jain Community
+            <span th:text="${siteOrgName}">UDJCS</span>
             <small>Trust Management</small>
         </div>
     </div>
@@ -144,20 +147,29 @@
         <li><span class="sb-label">Organization</span></li>
         <li><a th:href="@{/supportive}"
                th:class="${currentUri != null and currentUri.startsWith('/supportive')} ? 'active'">
-            <i class="bi bi-people"></i> Supportive Org <span class="sb-badge">02</span></a></li>
+            <i class="bi bi-people"></i> Our Supporters <span class="sb-badge">02</span></a></li>
+        <li><a th:href="@{/payments}"
+               th:class="${currentUri != null and currentUri.startsWith('/payments')} ? 'active'">
+            <i class="bi bi-cash-stack"></i> Organisation Donation <span class="sb-badge">05</span></a></li>
 
         <li><hr class="sb-divider"></li>
 
         <li><span class="sb-label">Events</span></li>
         <li><a th:href="@{/events}"
                th:class="${currentUri != null and currentUri.startsWith('/events')} ? 'active'">
-            <i class="bi bi-calendar-event"></i> Event Organization <span class="sb-badge">03</span></a></li>
+            <i class="bi bi-calendar-event"></i> Event Booking <span class="sb-badge">03</span></a></li>
+        <li><a th:href="@{/event-programs}"
+               th:class="${currentUri != null and currentUri.startsWith('/event-programs')} ? 'active'">
+            <i class="bi bi-layout-text-sidebar-reverse"></i> Event Planning <span class="sb-badge">EP</span></a></li>
         <li><a th:href="@{/participations}"
                th:class="${currentUri != null and currentUri.startsWith('/participations')} ? 'active'">
             <i class="bi bi-person-check"></i> Participations <span class="sb-badge">04</span></a></li>
-        <li><a th:href="@{/payments}"
-               th:class="${currentUri != null and currentUri.startsWith('/payments')} ? 'active'">
-            <i class="bi bi-cash-stack"></i> Payments <span class="sb-badge">05</span></a></li>
+        <li><a th:href="@{/event-feedback}"
+               th:class="${currentUri != null and currentUri.startsWith('/event-feedback')} ? 'active'">
+            <i class="bi bi-chat-square-heart"></i> Event Feedback <span class="sb-badge">FB</span></a></li>
+        <li><a th:href="@{/ticket-payments}"
+               th:class="${currentUri != null and currentUri.startsWith('/ticket-payments')} ? 'active'">
+            <i class="bi bi-ticket-perforated"></i> Ticket Payments <span class="sb-badge">TK</span></a></li>
 
         <li><hr class="sb-divider"></li>
 
@@ -198,7 +210,7 @@
     <div id="topbar">
         <h6 class="topbar-title" layout:fragment="page-title">Dashboard</h6>
         <div class="d-flex align-items-center gap-3">
-            <span class="topbar-sub d-none d-md-inline">United Digambar Jain Community System</span>
+            <span class="topbar-sub d-none d-md-inline" th:text="${siteOrgName}">UDJCS</span>
             <div class="dropdown">
                 <button class="user-btn dropdown-toggle" type="button"
                         data-bs-toggle="dropdown" aria-expanded="false">

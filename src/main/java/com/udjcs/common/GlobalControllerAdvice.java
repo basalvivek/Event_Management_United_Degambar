@@ -1,5 +1,8 @@
 package com.udjcs.common;
 
+import com.udjcs.eventprogram.EventProgramService;
+import com.udjcs.organization.Organization;
+import com.udjcs.organization.OrganizationService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.propertyeditors.StringTrimmerEditor;
@@ -15,9 +18,19 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.beans.PropertyEditorSupport;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.util.List;
 
 @ControllerAdvice
 public class GlobalControllerAdvice {
+
+    private final EventProgramService eventProgramService;
+    private final OrganizationService organizationService;
+
+    public GlobalControllerAdvice(EventProgramService eventProgramService,
+                                  OrganizationService organizationService) {
+        this.eventProgramService = eventProgramService;
+        this.organizationService = organizationService;
+    }
 
     @InitBinder
     public void initBinder(WebDataBinder binder) {
@@ -40,6 +53,14 @@ public class GlobalControllerAdvice {
         HttpSession session = request.getSession(false);
         model.addAttribute("adminUser", session != null ? session.getAttribute("adminUser") : null);
         model.addAttribute("memberUser", session != null ? session.getAttribute("memberUser") : null);
+        boolean loggedIn = session != null && Boolean.TRUE.equals(session.getAttribute("loggedIn"));
+        model.addAttribute("activePrograms",
+                loggedIn ? eventProgramService.findByActiveEvents() : List.of());
+
+        java.util.List<Organization> orgs = organizationService.findAll();
+        Organization siteOrg = orgs.isEmpty() ? null : orgs.get(0);
+        model.addAttribute("siteOrg", siteOrg);
+        model.addAttribute("siteOrgName", siteOrg != null ? siteOrg.getName() : "UDJCS");
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

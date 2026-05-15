@@ -2,14 +2,14 @@
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout/base}">
-<head><title>Participation Payment</title></head>
+<head><title>Organisation Donation</title></head>
 <body>
 
-<th:block layout:fragment="page-title">Participation Payment</th:block>
+<th:block layout:fragment="page-title">Organisation Donation</th:block>
 
 <div layout:fragment="content">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="fw-semibold mb-0">Participation Payment</h5>
+        <h5 class="fw-semibold mb-0">Organisation Donation</h5>
         <a th:href="@{/payments/new}" class="btn btn-primary btn-sm">
             <i class="bi bi-plus-lg me-1"></i>Add New
         </a>
@@ -20,7 +20,7 @@
                 <thead class="table-dark">
                     <tr>
                         <th>#</th>
-                        <th>Organization</th>
+                        <th>Donor</th>
                         <th>Amount (£)</th>
                         <th>Payment Date</th>
                         <th>Mode</th>
@@ -32,7 +32,21 @@
                 <tbody>
                     <tr th:each="item, stat : ${items}">
                         <td class="text-muted" th:text="${stat.count}"></td>
-                        <td class="fw-medium" th:text="${item.supportiveOrganization != null} ? ${item.supportiveOrganization.name} : '-'"></td>
+                        <td>
+                            <div th:if="${item.supportiveOrganization != null}" style="font-size:0.85rem;">
+                                <span class="badge rounded-pill me-1"
+                                      style="background:#eef2ff;color:#4f46e5;font-size:0.65rem;">Org</span>
+                                <span class="fw-medium" th:text="${item.supportiveOrganization.name}"></span>
+                            </div>
+                            <div th:if="${item.member != null}" style="font-size:0.85rem;">
+                                <span class="badge rounded-pill me-1"
+                                      style="background:#f0fdf4;color:#059669;font-size:0.65rem;">Member</span>
+                                <span class="fw-medium"
+                                      th:text="${item.member.firstName + ' ' + item.member.lastName}"></span>
+                            </div>
+                            <span th:if="${item.supportiveOrganization == null and item.member == null}"
+                                  class="text-muted">—</span>
+                        </td>
                         <td th:text="${item.amount != null} ? '£ ' + ${#numbers.formatDecimal(item.amount, 1, 2)} : '-'"></td>
                         <td th:text="${item.paymentDate != null} ? ${#temporals.format(item.paymentDate, 'dd-MMM-yyyy')} : '-'"></td>
                         <td><span class="badge bg-primary bg-opacity-75" th:text="${item.paymentMode}"></span></td>

@@ -2,16 +2,16 @@
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout/base}">
-<head><title>Add / Edit Payment</title></head>
+<head><title>Add / Edit Organisation Donation</title></head>
 <body>
 
 <th:block layout:fragment="page-title"
-          th:text="${item.id == null ? 'Add' : 'Edit'} + ' Payment'">Payment</th:block>
+          th:text="${item.id == null ? 'Add' : 'Edit'} + ' Organisation Donation'">Organisation Donation</th:block>
 
 <div layout:fragment="content">
     <div class="card shadow-sm border-0" style="max-width:680px;">
         <div class="card-header bg-white border-bottom fw-semibold"
-             th:text="${item.id == null ? 'Add New Payment' : 'Edit Payment'}"></div>
+             th:text="${item.id == null ? 'Add New Organisation Donation' : 'Edit Organisation Donation'}"></div>
         <div class="card-body">
             <form th:action="${item.id == null ? '/payments' : '/payments/' + item.id}"
                   th:object="${item}" method="post">
@@ -19,12 +19,29 @@
                 <div class="row g-3">
 
                     <div class="col-12">
-                        <label class="form-label fw-medium">Organization</label>
+                        <p class="fw-medium mb-2 text-secondary" style="font-size:0.82rem;">
+                            <i class="bi bi-person-heart me-1"></i>Donor Details
+                            <span class="text-muted fw-normal">(select Organisation, Member, or both)</span>
+                        </p>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-medium">Organisation Donor</label>
                         <select class="form-select" th:field="*{organizationId}">
-                            <option value="">-- Select Organization --</option>
+                            <option value="">-- Select Organisation --</option>
                             <option th:each="org : ${organizations}"
                                     th:value="${org.id}"
                                     th:text="${org.name}"></option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-medium">Member Donor</label>
+                        <select class="form-select" th:field="*{memberId}">
+                            <option value="">-- Select Member --</option>
+                            <option th:each="m : ${members}"
+                                    th:value="${m.id}"
+                                    th:text="${m.firstName + ' ' + m.lastName + '  ·  ' + m.phone}"></option>
                         </select>
                     </div>
 

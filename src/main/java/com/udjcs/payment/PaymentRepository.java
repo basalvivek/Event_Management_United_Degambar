@@ -11,12 +11,24 @@ import java.util.Optional;
 @Repository
 public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
-    @Query("SELECT p FROM Payment p LEFT JOIN FETCH p.supportiveOrganization ORDER BY p.id DESC")
+    @Query("SELECT p FROM Payment p LEFT JOIN FETCH p.supportiveOrganization LEFT JOIN FETCH p.member ORDER BY p.id DESC")
     List<Payment> findAllWithDetails();
 
-    @Query("SELECT p FROM Payment p LEFT JOIN FETCH p.supportiveOrganization WHERE p.id = :id")
+    @Query("SELECT p FROM Payment p LEFT JOIN FETCH p.supportiveOrganization LEFT JOIN FETCH p.member WHERE p.id = :id")
     Optional<Payment> findByIdWithDetails(@Param("id") Long id);
 
     @Query("SELECT SUM(p.amount) FROM Payment p")
     BigDecimal sumAllAmounts();
+
+    @Query("SELECT SUM(p.amount) FROM Payment p WHERE p.supportiveOrganization IS NOT NULL")
+    BigDecimal sumOrgDonations();
+
+    @Query("SELECT COUNT(p) FROM Payment p WHERE p.supportiveOrganization IS NOT NULL")
+    long countOrgDonations();
+
+    @Query("SELECT SUM(p.amount) FROM Payment p WHERE p.member IS NOT NULL")
+    BigDecimal sumMemberDonations();
+
+    @Query("SELECT COUNT(p) FROM Payment p WHERE p.member IS NOT NULL")
+    long countMemberDonations();
 }

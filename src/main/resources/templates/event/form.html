@@ -132,6 +132,39 @@
                     </div>
 
                     <div class="col-12">
+                        <hr class="my-1">
+                        <p class="fw-medium mb-2 text-secondary" style="font-size:0.82rem;">
+                            <i class="bi bi-ticket-perforated me-1"></i>Entry Ticket Charges
+                            <span class="text-muted fw-normal">(leave blank if free entry)</span>
+                        </p>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label fw-medium">Adult (£)</label>
+                        <input type="number" class="form-control" th:field="*{ticketAdult}"
+                               min="0" step="1" placeholder="0"
+                               th:classappend="${#fields.hasErrors('ticketAdult')} ? ' is-invalid'">
+                        <div class="invalid-feedback" th:errors="*{ticketAdult}"></div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label fw-medium">Younger (£)</label>
+                        <input type="number" class="form-control" th:field="*{ticketYounger}"
+                               min="0" step="1" placeholder="0"
+                               th:classappend="${#fields.hasErrors('ticketYounger')} ? ' is-invalid'">
+                        <div class="invalid-feedback" th:errors="*{ticketYounger}"></div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label fw-medium">Child (£)</label>
+                        <input type="number" class="form-control" th:field="*{ticketChild}"
+                               min="0" step="1" placeholder="0"
+                               th:classappend="${#fields.hasErrors('ticketChild')} ? ' is-invalid'">
+                        <div class="form-text">Child entry can be free (0).</div>
+                        <div class="invalid-feedback" th:errors="*{ticketChild}"></div>
+                    </div>
+
+                    <div class="col-12">
                         <label class="form-label fw-medium">Description</label>
                         <textarea class="form-control" th:field="*{description}" rows="3"
                                   th:classappend="${#fields.hasErrors('description')} ? ' is-invalid'"></textarea>

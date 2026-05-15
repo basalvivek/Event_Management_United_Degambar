@@ -31,4 +31,8 @@ public class EventService {
     public void deleteById(Long id) {
         repository.deleteById(id);
     }
+
+    public List<Event> findByStatus(String status) {
+        return repository.findByStatusOrderByEventNameAsc(status);
+    }
 }

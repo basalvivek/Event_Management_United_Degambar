@@ -33,19 +33,27 @@ public class MemberPortalLoginController {
                         @RequestParam String password,
                         HttpSession session,
                         Model model) {
-        Optional<Member> opt = memberRepository.findByEmail(email);
-        if (opt.isPresent()) {
-            Member member = opt.get();
-            if ("Approved".equals(member.getApprovalStatus())
-                    && member.getPassword() != null
-                    && member.getPassword().equals(password)) {
-                session.setAttribute("memberLoggedIn", Boolean.TRUE);
-                session.setAttribute("memberUser", member);
-                return "redirect:/portal";
-            }
+        if (email == null || email.isBlank()) {
+            model.addAttribute("error", "Please enter your email address.");
+            return "member-login";
         }
-        model.addAttribute("error", "Invalid credentials or account not approved.");
-        return "member-login";
+        Optional<Member> opt = memberRepository.findByEmailIgnoreCase(email.trim());
+        if (opt.isEmpty()) {
+            model.addAttribute("error", "No account found with that email address.");
+            return "member-login";
+        }
+        Member member = opt.get();
+        if (!"Approved".equals(member.getApprovalStatus())) {
+            model.addAttribute("error", "Your account is pending approval. Please contact the administrator.");
+            return "member-login";
+        }
+        if (member.getPassword() == null || !member.getPassword().equals(password)) {
+            model.addAttribute("error", "Incorrect password. Please try again.");
+            return "member-login";
+        }
+        session.setAttribute("memberLoggedIn", Boolean.TRUE);
+        session.setAttribute("memberUser", member);
+        return "redirect:/portal";
     }
 
     @PostMapping("/member-logout")

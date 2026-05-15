@@ -1,6 +1,7 @@
 package com.udjcs.payment;
 
 import com.udjcs.common.BaseEntity;
+import com.udjcs.member.Member;
 import com.udjcs.supportive.SupportiveOrganization;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -16,6 +17,10 @@ public class Payment extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "supportive_organization_id")
     private SupportiveOrganization supportiveOrganization;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id")
+    private Member member;
 
     @Column(precision = 12, scale = 2)
     private BigDecimal amount;
@@ -45,8 +50,14 @@ public class Payment extends BaseEntity {
     @Transient
     private Long organizationId;
 
+    @Transient
+    private Long memberId;
+
     public SupportiveOrganization getSupportiveOrganization() { return supportiveOrganization; }
     public void setSupportiveOrganization(SupportiveOrganization supportiveOrganization) { this.supportiveOrganization = supportiveOrganization; }
+
+    public Member getMember() { return member; }
+    public void setMember(Member member) { this.member = member; }
 
     public BigDecimal getAmount() { return amount; }
     public void setAmount(BigDecimal amount) { this.amount = amount; }
@@ -68,4 +79,7 @@ public class Payment extends BaseEntity {
 
     public Long getOrganizationId() { return organizationId; }
     public void setOrganizationId(Long organizationId) { this.organizationId = organizationId; }
+
+    public Long getMemberId() { return memberId; }
+    public void setMemberId(Long memberId) { this.memberId = memberId; }
 }

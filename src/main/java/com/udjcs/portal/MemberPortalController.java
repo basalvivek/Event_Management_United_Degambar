@@ -2,7 +2,11 @@ package com.udjcs.portal;
 
 import com.udjcs.activity.ActivityRepository;
 import com.udjcs.event.EventRepository;
+import com.udjcs.event.Event;
+import com.udjcs.eventprogram.EventProgramService;
+import com.udjcs.feedback.EventFeedbackService;
 import com.udjcs.member.Member;
+import com.udjcs.ticket.EventTicketService;
 import com.udjcs.member.MemberService;
 import com.udjcs.organization.Organization;
 import com.udjcs.organization.OrganizationDisplayPictureService;
@@ -20,7 +24,9 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Controller
 @RequestMapping("/portal")
@@ -31,17 +37,26 @@ public class MemberPortalController {
     private final EventRepository eventRepository;
     private final ActivityRepository activityRepository;
     private final MemberService memberService;
+    private final EventProgramService eventProgramService;
+    private final EventFeedbackService feedbackService;
+    private final EventTicketService ticketService;
 
     public MemberPortalController(OrganizationService organizationService,
                                    OrganizationDisplayPictureService displayPictureService,
                                    EventRepository eventRepository,
                                    ActivityRepository activityRepository,
-                                   MemberService memberService) {
+                                   MemberService memberService,
+                                   EventProgramService eventProgramService,
+                                   EventFeedbackService feedbackService,
+                                   EventTicketService ticketService) {
         this.organizationService = organizationService;
         this.displayPictureService = displayPictureService;
         this.eventRepository = eventRepository;
         this.activityRepository = activityRepository;
         this.memberService = memberService;
+        this.eventProgramService = eventProgramService;
+        this.feedbackService = feedbackService;
+        this.ticketService = ticketService;
     }
 
     @ModelAttribute
@@ -51,17 +66,55 @@ public class MemberPortalController {
     }
 
     @GetMapping
-    public String home(Model model) {
+    public String home(Model model, HttpSession session) {
         Organization org = (Organization) model.getAttribute("org");
         if (org != null) {
             model.addAttribute("displayPictures", displayPictureService.findByOrganization(org.getId()));
         } else {
             model.addAttribute("displayPictures", List.of());
         }
+
+        // Events by status
+        List<Event> activeEvents = eventRepository.findByStatusOrderByEventDateAsc("Active");
+        model.addAttribute("activeEvents", activeEvents);
+        model.addAttribute("plannedEvents",
+                eventRepository.findByStatusOrderByEventDateAsc("Planned"));
+        List<Event> completedEvents = eventRepository.findByStatusOrderByEventDateDesc("Completed");
+        model.addAttribute("completedEvents", completedEvents);
+
+        // Programs for planned and completed events
+        List<com.udjcs.eventprogram.EventProgram> plannedProgs = eventProgramService.findByEventStatus("Planned");
+        model.addAttribute("plannedProgramsList", plannedProgs);
+        model.addAttribute("completedProgramsList",
+                eventProgramService.findByEventStatus("Completed"));
+
+        // Set of event IDs that have at least one planned program (for per-event "no programs" check)
+        Set<Long> plannedEventIdsWithPrograms = new HashSet<>();
+        for (com.udjcs.eventprogram.EventProgram p : plannedProgs) {
+            plannedEventIdsWithPrograms.add(p.getEvent().getId());
+        }
+        model.addAttribute("plannedEventIdsWithPrograms", plannedEventIdsWithPrograms);
+
+        // Track which completed events this member already gave feedback for
+        Member member = (Member) session.getAttribute("memberUser");
+        Set<Long> feedbackGiven = new HashSet<>();
+        for (Event ev : completedEvents) {
+            if (feedbackService.hasSubmitted(ev.getId(), member.getId())) {
+                feedbackGiven.add(ev.getId());
+            }
+        }
+        model.addAttribute("feedbackGiven", feedbackGiven);
+
+        // Track which active events this member has already registered for (reuse activeEvents list)
+        Set<Long> registeredEventIds = new HashSet<>();
+        for (Event ev : activeEvents) {
+            if (ticketService.isRegistered(ev.getId(), member.getId())) {
+                registeredEventIds.add(ev.getId());
+            }
+        }
+        model.addAttribute("registeredEventIds", registeredEventIds);
+
         LocalDate today = LocalDate.now();
-        model.addAttribute("upcomingEvents",
-                eventRepository.findTop5ByEventDateGreaterThanEqualAndStatusInOrderByEventDateAsc(
-                        today, List.of("Planned", "Active")));
         model.addAttribute("activeActivities",
                 activityRepository.findVisibleOnPortal(today));
         return "portal/home";

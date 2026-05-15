@@ -2,6 +2,7 @@ package com.udjcs.event;
 
 import com.udjcs.common.BaseEntity;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -69,6 +70,18 @@ public class Event extends BaseEntity {
     @Column(nullable = false, length = 20)
     private String status;
 
+    @Min(0)
+    @Column(name = "ticket_adult")
+    private Integer ticketAdult;
+
+    @Min(0)
+    @Column(name = "ticket_younger")
+    private Integer ticketYounger;
+
+    @Min(0)
+    @Column(name = "ticket_child")
+    private Integer ticketChild;
+
     public String getEventName() { return eventName; }
     public void setEventName(String eventName) { this.eventName = eventName; }
 
@@ -104,4 +117,13 @@ public class Event extends BaseEntity {
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+
+    public Integer getTicketAdult() { return ticketAdult; }
+    public void setTicketAdult(Integer ticketAdult) { this.ticketAdult = ticketAdult; }
+
+    public Integer getTicketYounger() { return ticketYounger; }
+    public void setTicketYounger(Integer ticketYounger) { this.ticketYounger = ticketYounger; }
+
+    public Integer getTicketChild() { return ticketChild; }
+    public void setTicketChild(Integer ticketChild) { this.ticketChild = ticketChild; }
 }

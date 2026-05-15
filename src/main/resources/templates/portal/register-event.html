@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/portal-base}">
+<head><title>Register for Event</title></head>
+<body>
+
+<div layout:fragment="content">
+<div class="container-fluid px-4 py-4" style="max-width:680px;">
+
+    <!-- Back link -->
+    <a th:href="@{/portal}" class="d-inline-flex align-items-center gap-1 mb-4 text-decoration-none"
+       style="font-size:0.82rem;color:#64748b;">
+        <i class="bi bi-arrow-left"></i> Back to Home
+    </a>
+
+    <!-- Event header card -->
+    <div class="card border-0 shadow-sm mb-4" style="border-radius:14px;overflow:hidden;">
+        <div style="height:4px;background:linear-gradient(90deg,#10b981,#059669);"></div>
+        <div class="card-body px-4 py-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="d-flex align-items-center justify-content-center rounded-circle flex-shrink-0"
+                     style="width:44px;height:44px;background:linear-gradient(135deg,#10b981,#059669);">
+                    <i class="bi bi-calendar-event-fill text-white" style="font-size:1rem;"></i>
+                </div>
+                <div>
+                    <div class="fw-bold" style="font-size:1rem;color:#1e293b;" th:text="${event.eventName}"></div>
+                    <div class="text-muted" style="font-size:0.78rem;">
+                        <i class="bi bi-calendar3 me-1"></i>
+                        <span th:text="${#temporals.format(event.eventDate,'dd-MMM-yyyy')}"></span>
+                        <span class="ms-3"><i class="bi bi-geo-alt me-1"></i><span th:text="${event.venue}"></span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Registration form -->
+    <div class="card border-0 shadow-sm" style="border-radius:14px;">
+        <div class="card-header bg-white border-bottom fw-semibold px-4 py-3">
+            <i class="bi bi-ticket-perforated me-2" style="color:#10b981;"></i>Event Registration
+        </div>
+        <div class="card-body px-4 py-4">
+            <form th:action="@{/portal/register-event}" method="post" id="regForm">
+                <input type="hidden" name="eventId" th:value="${event.id}">
+
+                <!-- Ticket prices (hidden, used by JS) -->
+                <div id="priceData"
+                     th:attr="data-adult=${event.ticketAdult != null ? event.ticketAdult : 0},
+                              data-younger=${event.ticketYounger != null ? event.ticketYounger : 0},
+                              data-child=${event.ticketChild != null ? event.ticketChild : 0}"></div>
+
+                <div class="row g-3">
+
+                    <!-- Member name (readonly) -->
+                    <div class="col-12">
+                        <label class="form-label fw-medium" style="font-size:0.85rem;">Member Name</label>
+                        <input type="text" class="form-control" readonly
+                               style="background:#f8fafc;"
+                               th:value="${member.firstName + ' ' + member.lastName}">
+                    </div>
+
+                    <!-- Event name (readonly) -->
+                    <div class="col-12">
+                        <label class="form-label fw-medium" style="font-size:0.85rem;">Event</label>
+                        <input type="text" class="form-control" readonly
+                               style="background:#f8fafc;"
+                               th:value="${event.eventName}">
+                    </div>
+
+                    <!-- Ticket counts -->
+                    <div class="col-12 mt-1">
+                        <hr class="my-2">
+                        <p class="fw-medium mb-3" style="font-size:0.82rem;color:#475569;">
+                            <i class="bi bi-people me-1"></i>Number of Attendees
+                        </p>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label fw-medium" style="font-size:0.85rem;">
+                            Adults <span class="text-muted fw-normal">(age 10+)</span>
+                        </label>
+                        <input type="number" id="adultCount" name="adultCount"
+                               class="form-control" min="0" value="0">
+                        <div class="form-text">
+                            £<span th:text="${event.ticketAdult != null ? event.ticketAdult : 0}"></span> per person
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label fw-medium" style="font-size:0.85rem;">
+                            Younger <span class="text-muted fw-normal">(age 5–10)</span>
+                        </label>
+                        <input type="number" id="youngerCount" name="youngerCount"
+                               class="form-control" min="0" value="0">
+                        <div class="form-text">
+                            £<span th:text="${event.ticketYounger != null ? event.ticketYounger : 0}"></span> per person
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label fw-medium" style="font-size:0.85rem;">
+                            Children <span class="text-muted fw-normal">(under 5)</span>
+                        </label>
+                        <input type="number" id="childCount" name="childCount"
+                               class="form-control" min="0" value="0">
+                        <div class="form-text">
+                            £<span th:text="${event.ticketChild != null ? event.ticketChild : 0}"></span> per person
+                        </div>
+                    </div>
+
+                    <!-- Amount breakdown -->
+                    <div class="col-12 mt-2">
+                        <div class="p-3 rounded-3" style="background:#f8fafc;border:1px solid #e2e8f0;">
+                            <div class="fw-semibold mb-2" style="font-size:0.82rem;color:#475569;text-transform:uppercase;letter-spacing:0.6px;">
+                                <i class="bi bi-receipt me-1"></i>Amount Breakdown
+                            </div>
+                            <div class="d-flex justify-content-between mb-1" style="font-size:0.85rem;">
+                                <span class="text-muted">Adults (<span id="dAdult">0</span> × £<span th:text="${event.ticketAdult != null ? event.ticketAdult : 0}"></span>)</span>
+                                <span id="aAdult">£0</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-1" style="font-size:0.85rem;">
+                                <span class="text-muted">Younger (<span id="dYounger">0</span> × £<span th:text="${event.ticketYounger != null ? event.ticketYounger : 0}"></span>)</span>
+                                <span id="aYounger">£0</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2" style="font-size:0.85rem;">
+                                <span class="text-muted">Children (<span id="dChild">0</span> × £<span th:text="${event.ticketChild != null ? event.ticketChild : 0}"></span>)</span>
+                                <span id="aChild">£0</span>
+                            </div>
+                            <hr style="border-color:#e2e8f0;margin:8px 0;">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="fw-bold" style="font-size:0.92rem;color:#1e293b;">Total Amount to Pay</span>
+                                <span id="aTotal" class="fw-bold" style="font-size:1.1rem;color:#10b981;">£0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="d-flex gap-2 mt-4">
+                    <button type="submit" class="btn flex-grow-1 fw-semibold"
+                            style="background:linear-gradient(135deg,#10b981,#059669);color:#fff;
+                                   border:none;border-radius:10px;padding:11px;font-size:0.92rem;">
+                        <i class="bi bi-credit-card me-2"></i>Pay &amp; Register
+                    </button>
+                    <a th:href="@{/portal}" class="btn btn-outline-secondary px-4"
+                       style="border-radius:10px;font-size:0.92rem;">Cancel</a>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+</div>
+</div>
+
+<th:block layout:fragment="page-scripts">
+<script>
+(function () {
+    var prices = document.getElementById('priceData').dataset;
+    var pAdult   = parseInt(prices.adult)   || 0;
+    var pYounger = parseInt(prices.younger) || 0;
+    var pChild   = parseInt(prices.child)   || 0;
+
+    function calc() {
+        var aC = parseInt(document.getElementById('adultCount').value)   || 0;
+        var yC = parseInt(document.getElementById('youngerCount').value) || 0;
+        var cC = parseInt(document.getElementById('childCount').value)   || 0;
+
+        var aA = aC * pAdult;
+        var yA = yC * pYounger;
+        var cA = cC * pChild;
+        var tot = aA + yA + cA;
+
+        document.getElementById('dAdult').textContent   = aC;
+        document.getElementById('dYounger').textContent = yC;
+        document.getElementById('dChild').textContent   = cC;
+        document.getElementById('aAdult').textContent   = '£' + aA;
+        document.getElementById('aYounger').textContent = '£' + yA;
+        document.getElementById('aChild').textContent   = '£' + cA;
+        document.getElementById('aTotal').textContent   = '£' + tot;
+    }
+
+    ['adultCount','youngerCount','childCount'].forEach(function(id) {
+        document.getElementById(id).addEventListener('input', calc);
+    });
+})();
+</script>
+</th:block>
+
+</body>
+</html>

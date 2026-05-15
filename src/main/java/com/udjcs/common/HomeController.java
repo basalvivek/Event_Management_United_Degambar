@@ -7,6 +7,7 @@ import com.udjcs.member.MemberService;
 import com.udjcs.payment.PaymentRepository;
 import com.udjcs.rehearsal.RehearsalRepository;
 import com.udjcs.supportive.SupportiveOrganizationRepository;
+import com.udjcs.ticket.EventTicketRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,6 +26,7 @@ public class HomeController {
     private final ActivityRepository activityRepository;
     private final RehearsalRepository rehearsalRepository;
     private final SupportiveOrganizationRepository supportiveOrganizationRepository;
+    private final EventTicketRepository ticketRepository;
 
     public HomeController(MemberRepository memberRepository,
                           MemberService memberService,
@@ -32,7 +34,8 @@ public class HomeController {
                           PaymentRepository paymentRepository,
                           ActivityRepository activityRepository,
                           RehearsalRepository rehearsalRepository,
-                          SupportiveOrganizationRepository supportiveOrganizationRepository) {
+                          SupportiveOrganizationRepository supportiveOrganizationRepository,
+                          EventTicketRepository ticketRepository) {
         this.memberRepository = memberRepository;
         this.memberService = memberService;
         this.eventRepository = eventRepository;
@@ -40,6 +43,7 @@ public class HomeController {
         this.activityRepository = activityRepository;
         this.rehearsalRepository = rehearsalRepository;
         this.supportiveOrganizationRepository = supportiveOrganizationRepository;
+        this.ticketRepository = ticketRepository;
     }
 
     @GetMapping("/")
@@ -57,6 +61,19 @@ public class HomeController {
 
         BigDecimal rawSum = paymentRepository.sumAllAmounts();
         model.addAttribute("totalFunds", rawSum != null ? rawSum : BigDecimal.ZERO);
+
+        // Payment summary breakdown
+        BigDecimal orgSum = paymentRepository.sumOrgDonations();
+        model.addAttribute("orgDonationTotal", orgSum != null ? orgSum : BigDecimal.ZERO);
+        model.addAttribute("orgDonationCount", paymentRepository.countOrgDonations());
+
+        BigDecimal memberSum = paymentRepository.sumMemberDonations();
+        model.addAttribute("memberDonationTotal", memberSum != null ? memberSum : BigDecimal.ZERO);
+        model.addAttribute("memberDonationCount", paymentRepository.countMemberDonations());
+
+        Long ticketSum = ticketRepository.sumAcceptedTickets();
+        model.addAttribute("ticketTotal", ticketSum != null ? ticketSum : 0L);
+        model.addAttribute("ticketCount", ticketRepository.countAcceptedTickets());
 
         model.addAttribute("upcomingEvents",
                 eventRepository.findTop5ByEventDateGreaterThanEqualAndStatusInOrderByEventDateAsc(
