@@ -1,11 +1,15 @@
 package com.udjcs.venue;
 
 import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/venues")
@@ -67,5 +71,29 @@ public class VenueController {
         service.deleteById(id);
         attrs.addFlashAttribute("success", "Venue deleted successfully.");
         return "redirect:/venues";
+    }
+
+    @PostMapping("/quick-add")
+    @ResponseBody
+    public ResponseEntity<Map<String, String>> quickAdd(
+            @RequestParam String venueName,
+            @RequestParam String address,
+            @RequestParam String city,
+            @RequestParam String state,
+            @RequestParam String venueType,
+            @RequestParam(required = false) Integer capacity) {
+        Venue v = new Venue();
+        v.setVenueName(venueName.trim());
+        v.setAddress(address.trim());
+        v.setCity(city.trim());
+        v.setState(state.trim());
+        v.setVenueType(venueType.trim());
+        v.setCapacity(capacity);
+        v.setStatus("Active");
+        service.save(v);
+        Map<String, String> result = new LinkedHashMap<>();
+        result.put("venueName", v.getVenueName());
+        result.put("label", v.getVenueName() + " — " + v.getCity());
+        return ResponseEntity.ok(result);
     }
 }

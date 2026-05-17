@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head><title>Invitation</title></head>
+<body>
+
+<th:block layout:fragment="page-title"
+          th:text="${item.id == null ? 'Create Invitation' : 'Edit Invitation'}">Invitation</th:block>
+
+<div layout:fragment="content">
+
+<form th:action="${item.id == null ? '/invitations' : '/invitations/' + item.id}"
+      th:object="${item}" method="post" enctype="multipart/form-data"
+      style="max-width:900px;">
+
+    <!-- ── 1. Organisation (read-only) ── -->
+    <div class="card shadow-sm border-0 mb-3">
+        <div class="card-header bg-white border-bottom fw-semibold py-2">
+            <i class="bi bi-building me-2 text-primary"></i>Organisation
+        </div>
+        <div class="card-body">
+            <div class="d-flex align-items-center gap-3">
+                <div th:if="${org != null and org.logoData != null}">
+                    <img th:src="@{/organization/{id}/logo(id=${org.id})}" alt="Logo"
+                         style="width:64px;height:64px;object-fit:contain;border-radius:10px;border:1px solid #e9ecef;background:#f8f9fa;padding:4px;">
+                </div>
+                <div th:unless="${org != null and org.logoData != null}"
+                     style="width:64px;height:64px;border-radius:10px;border:2px dashed #dee2e6;background:#f8f9fa;display:flex;align-items:center;justify-content:center;">
+                    <i class="bi bi-building text-muted fs-4"></i>
+                </div>
+                <div>
+                    <div class="fw-semibold fs-6" th:text="${org != null ? org.name : 'No organisation found'}"></div>
+                    <div class="text-muted small" th:text="${org != null ? org.trustType : ''}"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── 2. Event Banner ── -->
+    <div class="card shadow-sm border-0 mb-3">
+        <div class="card-header bg-white border-bottom fw-semibold py-2">
+            <i class="bi bi-image me-2 text-success"></i>Event Banner
+        </div>
+        <div class="card-body">
+            <!-- Current banner (edit mode) -->
+            <div th:if="${item.id != null and item.bannerImage != null}" class="mb-3">
+                <img th:src="@{/invitations/{id}/banner(id=${item.id})}"
+                     alt="Current Banner"
+                     style="max-width:100%;max-height:200px;object-fit:cover;border-radius:10px;border:1px solid #dee2e6;display:block;">
+                <div class="mt-2">
+                    <form th:action="@{/invitations/{id}/banner/delete(id=${item.id})}" method="post" class="d-inline"
+                          onsubmit="return confirm('Remove banner?')">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                            <i class="bi bi-trash me-1"></i>Remove Banner
+                        </button>
+                    </form>
+                </div>
+            </div>
+            <!-- Upload -->
+            <div class="d-flex align-items-start gap-3 flex-wrap">
+                <div id="bannerPreviewWrap">
+                    <div id="bannerPlaceholder"
+                         style="width:280px;height:110px;border-radius:10px;border:2px dashed #dee2e6;background:#f8f9fa;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;">
+                        <i class="bi bi-cloud-upload text-muted" style="font-size:2rem;opacity:0.35;"></i>
+                        <span class="text-muted" style="font-size:0.75rem;">Preview will appear here</span>
+                    </div>
+                </div>
+                <div class="flex-grow-1">
+                    <label class="form-label fw-medium mb-1">
+                        <span th:text="${item.id != null and item.bannerImage != null} ? 'Replace Banner' : 'Upload Banner'">Upload Banner</span>
+                    </label>
+                    <input type="file" class="form-control" name="bannerFile"
+                           id="bannerFile" accept="image/jpeg,image/png,image/webp"
+                           onchange="previewBanner(this)">
+                    <div class="form-text">JPG, PNG or WEBP · Max 10 MB</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── 3. Event Details ── -->
+    <div class="card shadow-sm border-0 mb-3">
+        <div class="card-header bg-white border-bottom fw-semibold py-2">
+            <i class="bi bi-calendar-event me-2 text-warning"></i>Event Details
+        </div>
+        <div class="card-body">
+
+            <!-- Event title with optional copy-from-existing -->
+            <div class="mb-3">
+                <label class="form-label fw-medium">Copy title from existing event <span class="text-muted small">(optional)</span></label>
+                <select id="eventPicker" class="form-select form-select-sm" style="max-width:420px;"
+                        onchange="fillFromEvent(this)">
+                    <option value="">— Select to auto-fill fields —</option>
+                    <option th:each="ev : ${events}"
+                            th:value="${ev.id}"
+                            th:attr="data-name=${ev.eventName},
+                                     data-date=${ev.eventDate},
+                                     data-venue=${ev.venue},
+                                     data-type=${ev.eventType},
+                                     data-desc=${ev.description}"
+                            th:text="${ev.eventName + ' (' + #temporals.format(ev.eventDate,'dd MMM yyyy') + ')'}"></option>
+                </select>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-8">
+                    <label class="form-label fw-medium">Event Title <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" th:field="*{eventTitle}" id="eventTitleInput"
+                           placeholder="e.g. Paryushana Mahotsav 2025"
+                           th:classappend="${#fields.hasErrors('eventTitle')} ? ' is-invalid'">
+                    <div class="invalid-feedback" th:errors="*{eventTitle}"></div>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-medium">Tag</label>
+                    <input type="text" class="form-control" th:field="*{eventTag}"
+                           placeholder="e.g. Religious · Annual">
+                </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-4">
+                    <label class="form-label fw-medium">Event Date</label>
+                    <input type="date" class="form-control" th:field="*{eventDate}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-medium">Postcode</label>
+                    <input type="text" class="form-control" th:field="*{postcode}" placeholder="e.g. HA9 0WS">
+                </div>
+            </div>
+
+            <div class="mb-0">
+                <label class="form-label fw-medium">Full Address</label>
+                <textarea class="form-control" th:field="*{address}" rows="2"
+                          placeholder="Hall name, Street, City"></textarea>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ── 3b. Ticket Prices ── -->
+    <div class="card shadow-sm border-0 mb-3">
+        <div class="card-header bg-white border-bottom fw-semibold py-2">
+            <i class="bi bi-ticket-perforated me-2 text-warning"></i>Ticket Prices
+            <span class="fw-normal text-muted small ms-1">— leave blank or 0 for a free event</span>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label fw-medium">Adult (18+) £</label>
+                    <input type="number" class="form-control" th:field="*{ticketPriceAdult}"
+                           min="0" step="0.01" placeholder="0.00">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-medium">Youth (8–18) £</label>
+                    <input type="number" class="form-control" th:field="*{ticketPriceYouth}"
+                           min="0" step="0.01" placeholder="0.00">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-medium">Under 8 £</label>
+                    <input type="number" class="form-control" th:field="*{ticketPriceUnder8}"
+                           min="0" step="0.01" placeholder="0.00">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── 4. Activities Schedule ── -->
+    <div class="card shadow-sm border-0 mb-3">
+        <div class="card-header bg-white border-bottom d-flex align-items-center justify-content-between py-2">
+            <span class="fw-semibold"><i class="bi bi-list-ol me-2 text-info"></i>Activities Schedule</span>
+            <button type="button" class="btn btn-sm btn-outline-primary" onclick="addActivityRow()">
+                <i class="bi bi-plus-lg me-1"></i>Add Row
+            </button>
+        </div>
+        <div class="card-body p-0">
+            <table class="table table-sm mb-0" id="activitiesTable">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width:30px;"></th>
+                        <th>Activity</th>
+                        <th style="width:110px;">Start Time</th>
+                        <th style="width:110px;">End Time</th>
+                        <th>Description</th>
+                        <th style="width:44px;"></th>
+                    </tr>
+                </thead>
+                <tbody id="activitiesBody">
+                    <!-- Existing rows (edit mode) -->
+                    <tr th:each="act, stat : ${item.activities}" th:if="${item.activities != null and !#lists.isEmpty(item.activities)}">
+                        <td class="text-muted text-center align-middle small" th:text="${stat.count}"></td>
+                        <td><input type="text" name="activityName" class="form-control form-control-sm"
+                                   th:value="${act.activityName}" placeholder="Activity name"></td>
+                        <td><input type="time" name="startTime" class="form-control form-control-sm"
+                                   th:value="${act.startTime}"></td>
+                        <td><input type="time" name="endTime" class="form-control form-control-sm"
+                                   th:value="${act.endTime}"></td>
+                        <td><input type="text" name="activityDesc" class="form-control form-control-sm"
+                                   th:value="${act.description}" placeholder="Optional description"></td>
+                        <td class="text-center align-middle">
+                            <button type="button" class="btn btn-sm btn-outline-danger py-0 px-1"
+                                    onclick="removeRow(this)">
+                                <i class="bi bi-x-lg" style="font-size:0.7rem;"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    <!-- Default empty row for new invitations -->
+                    <tr th:if="${item.id == null or #lists.isEmpty(item.activities)}" id="defaultRow">
+                        <td class="text-muted text-center align-middle small">1</td>
+                        <td><input type="text" name="activityName" class="form-control form-control-sm" placeholder="Activity name"></td>
+                        <td><input type="time" name="startTime" class="form-control form-control-sm"></td>
+                        <td><input type="time" name="endTime" class="form-control form-control-sm"></td>
+                        <td><input type="text" name="activityDesc" class="form-control form-control-sm" placeholder="Optional description"></td>
+                        <td class="text-center align-middle">
+                            <button type="button" class="btn btn-sm btn-outline-danger py-0 px-1"
+                                    onclick="removeRow(this)">
+                                <i class="bi bi-x-lg" style="font-size:0.7rem;"></i>
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ── 5. About Event ── -->
+    <div class="card shadow-sm border-0 mb-3">
+        <div class="card-header bg-white border-bottom fw-semibold py-2">
+            <i class="bi bi-text-paragraph me-2 text-secondary"></i>About the Event
+        </div>
+        <div class="card-body">
+            <textarea class="form-control" th:field="*{aboutEvent}" rows="4"
+                      placeholder="Describe the event — history, significance, highlights..."></textarea>
+        </div>
+    </div>
+
+    <!-- ── 6. URL Preview (edit mode) ── -->
+    <div th:if="${item.id != null}" class="card border-0 mb-3"
+         style="background:#f0fdf4;border:1px solid #bbf7d0 !important;">
+        <div class="card-body py-3">
+            <div class="fw-semibold text-success mb-1">
+                <i class="bi bi-link-45deg me-1"></i>Public Shareable URL
+            </div>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <code id="publicUrl"
+                      style="background:#dcfce7;padding:6px 12px;border-radius:6px;font-size:0.85rem;color:#166534;"
+                      th:text="${baseUrl + '/e/' + item.slug}"></code>
+                <button type="button" class="btn btn-sm btn-outline-success"
+                        onclick="copyUrl()">
+                    <i class="bi bi-clipboard me-1"></i>Copy
+                </button>
+                <a th:href="@{/e/{s}(s=${item.slug})}" target="_blank"
+                   class="btn btn-sm btn-success">
+                    <i class="bi bi-box-arrow-up-right me-1"></i>Open
+                </a>
+                <a th:href="@{/invitations/{id}/export(id=${item.id})}"
+                   class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-download me-1"></i>Export HTML
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex gap-2 mt-1">
+        <button type="submit" class="btn btn-primary px-4">
+            <i class="bi bi-check-lg me-1"></i>
+            <span th:text="${item.id == null ? 'Create &amp; Generate URL' : 'Save Changes'}">Save</span>
+        </button>
+        <a th:href="@{/invitations}" class="btn btn-outline-secondary px-4">Cancel</a>
+    </div>
+
+</form>
+</div>
+
+<th:block layout:fragment="page-scripts">
+<script>
+function fillFromEvent(sel) {
+    var opt = sel.options[sel.selectedIndex];
+    if (!sel.value) return;
+    var eventId = sel.value;
+    var name  = opt.getAttribute('data-name')  || '';
+    var date  = opt.getAttribute('data-date')  || '';
+    var venue = opt.getAttribute('data-venue') || '';
+    var type  = opt.getAttribute('data-type')  || '';
+    var desc  = opt.getAttribute('data-desc')  || '';
+    document.getElementById('eventTitleInput').value = name;
+    if (date)  document.getElementById('eventDate').value   = date;
+    if (venue) document.getElementById('address').value    = venue;
+    if (type)  document.getElementById('eventTag').value   = type;
+    if (desc)  document.getElementById('aboutEvent').value = desc;
+    // Fetch and populate activity schedule from EventProgram
+    fetch('/invitations/event-programs/' + eventId)
+        .then(function(r) { return r.json(); })
+        .then(function(programs) {
+            var tbody = document.getElementById('activitiesBody');
+            tbody.innerHTML = '';
+            var rows = programs.length > 0 ? programs : [{}];
+            rows.forEach(function(p, i) {
+                var tr = document.createElement('tr');
+                tr.innerHTML =
+                    '<td class="text-muted text-center align-middle small">' + (i+1) + '</td>' +
+                    '<td><input type="text" name="activityName" class="form-control form-control-sm" value="' + esc(p.name||'') + '" placeholder="Activity name"></td>' +
+                    '<td><input type="time" name="startTime" class="form-control form-control-sm" value="' + esc(p.start||'') + '"></td>' +
+                    '<td><input type="time" name="endTime" class="form-control form-control-sm" value="' + esc(p.end||'') + '"></td>' +
+                    '<td><input type="text" name="activityDesc" class="form-control form-control-sm" value="' + esc(p.desc||'') + '" placeholder="Optional description"></td>' +
+                    '<td class="text-center align-middle"><button type="button" class="btn btn-sm btn-outline-danger py-0 px-1" onclick="removeRow(this)"><i class="bi bi-x-lg" style="font-size:0.7rem;"></i></button></td>';
+                tbody.appendChild(tr);
+            });
+        })
+        .catch(function() { /* keep existing rows if fetch fails */ });
+}
+
+function esc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function previewBanner(input) {
+    if (input.files && input.files[0]) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            var wrap = document.getElementById('bannerPreviewWrap');
+            wrap.innerHTML = '<img id="bannerPreview" alt="Preview" src="' + e.target.result + '" ' +
+                'style="max-width:280px;max-height:140px;object-fit:cover;border-radius:10px;border:1px solid #dee2e6;">';
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+function addActivityRow() {
+    var tbody = document.getElementById('activitiesBody');
+    var rowCount = tbody.querySelectorAll('tr').length + 1;
+    var tr = document.createElement('tr');
+    tr.innerHTML =
+        '<td class="text-muted text-center align-middle small">' + rowCount + '</td>' +
+        '<td><input type="text" name="activityName" class="form-control form-control-sm" placeholder="Activity name"></td>' +
+        '<td><input type="time" name="startTime" class="form-control form-control-sm"></td>' +
+        '<td><input type="time" name="endTime" class="form-control form-control-sm"></td>' +
+        '<td><input type="text" name="activityDesc" class="form-control form-control-sm" placeholder="Optional description"></td>' +
+        '<td class="text-center align-middle"><button type="button" class="btn btn-sm btn-outline-danger py-0 px-1" onclick="removeRow(this)"><i class="bi bi-x-lg" style="font-size:0.7rem;"></i></button></td>';
+    tbody.appendChild(tr);
+    renumberRows();
+}
+
+function removeRow(btn) {
+    var tbody = document.getElementById('activitiesBody');
+    if (tbody.querySelectorAll('tr').length <= 1) return;
+    btn.closest('tr').remove();
+    renumberRows();
+}
+
+function renumberRows() {
+    document.querySelectorAll('#activitiesBody tr').forEach(function(tr, i) {
+        var td = tr.querySelector('td:first-child');
+        if (td) td.textContent = i + 1;
+    });
+}
+
+function copyUrl() {
+    var url = document.getElementById('publicUrl').textContent.trim();
+    navigator.clipboard.writeText(url).then(function() {
+        var btn = event.target.closest('button');
+        btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Copied!';
+        setTimeout(function() { btn.innerHTML = '<i class="bi bi-clipboard me-1"></i>Copy'; }, 2000);
+    });
+}
+</script>
+</th:block>
+
+</body>
+</html>

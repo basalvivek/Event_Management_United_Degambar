@@ -2,154 +2,290 @@
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout/base}">
-<head><title>Member Registration</title></head>
+<head>
+<title>Member Registration</title>
+<style>
+    /* Filter strip */
+    .filter-pill { border-radius:20px; padding:5px 16px; font-size:0.78rem; font-weight:600; border:1.5px solid #e5e7eb; background:#fff; color:#475569; cursor:pointer; transition:all 0.15s; white-space:nowrap; }
+    .filter-pill:hover { border-color:#6366f1; color:#6366f1; }
+    .filter-pill.f-all.active       { background:#1e1b4b; border-color:#1e1b4b; color:#fff; }
+    .filter-pill.f-active.active    { background:#059669; border-color:#059669; color:#fff; }
+    .filter-pill.f-pending.active   { background:#d97706; border-color:#d97706; color:#fff; }
+    .filter-pill.f-suspended.active { background:#6366f1; border-color:#6366f1; color:#fff; }
+
+    /* Search */
+    .search-wrap { position:relative; }
+    .search-wrap i { position:absolute; left:12px; top:50%; transform:translateY(-50%); color:#94a3b8; font-size:0.82rem; }
+    .search-box { border-radius:20px; border:1.5px solid #e5e7eb; padding:7px 16px 7px 36px; font-size:0.84rem; width:240px; transition:border-color 0.18s,box-shadow 0.18s; }
+    .search-box:focus { border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,0.1); outline:none; }
+
+    /* Avatar */
+    .member-avatar {
+        width:40px; height:40px; border-radius:12px; flex-shrink:0;
+        overflow:hidden; display:flex; align-items:center; justify-content:center;
+        background:linear-gradient(135deg,#6366f1,#8b5cf6);
+        color:#fff; font-weight:700; font-size:0.82rem;
+        border:2px solid #e0e7ff;
+    }
+    .member-avatar img { width:100%; height:100%; object-fit:cover; }
+
+    /* Table */
+    .member-table th {
+        font-size:0.7rem; font-weight:700; letter-spacing:0.6px; text-transform:uppercase;
+        color:#6366f1; padding:12px 14px; background:#f8f7ff;
+        border-bottom:2px solid #e0e7ff;
+    }
+    .member-table td { padding:12px 14px; vertical-align:middle; border-color:#f1f5f9; }
+    .member-row { transition:background 0.1s; }
+    .member-row:hover { background:#fafafe; }
+
+    .member-name  { font-weight:700; font-size:0.88rem; color:#1e1b4b; }
+    .member-sub   { font-size:0.72rem; color:#94a3b8; display:flex; align-items:center; gap:4px; }
+
+    .info-chip { font-size:0.78rem; color:#475569; display:flex; align-items:center; gap:5px; }
+    .info-chip i { color:#94a3b8; font-size:0.75rem; }
+
+    /* Membership badge */
+    .memtype-badge { display:inline-flex; align-items:center; gap:4px; border-radius:20px; padding:3px 10px; font-size:0.7rem; font-weight:700; }
+    .memtype-General  { background:#eef2ff; color:#4f46e5; }
+    .memtype-Honorary { background:#fef3c7; color:#92400e; }
+    .memtype-Lifetime { background:#dcfce7; color:#166534; }
+    .memtype-Student  { background:#e0f2fe; color:#0c4a6e; }
+
+    /* Status */
+    .status-pill { display:inline-flex; align-items:center; gap:5px; border-radius:20px; padding:3px 12px; font-size:0.72rem; font-weight:700; white-space:nowrap; }
+    .status-Active    { background:#dcfce7; color:#166534; }
+    .status-Pending   { background:#fef3c7; color:#92400e; }
+    .status-Suspended { background:#ede9fe; color:#5b21b6; }
+    .status-Inactive  { background:#f1f5f9; color:#475569; }
+
+    /* QR icon */
+    .qr-btn { border-radius:8px; padding:5px 8px; font-size:0.78rem; border:1.5px solid #bbf7d0; color:#059669; background:#f0fdf4; transition:all 0.15s; }
+    .qr-btn:hover { background:#059669; color:#fff; border-color:#059669; }
+
+    /* Count badge */
+    .count-badge { background:#eef2ff; color:#4f46e5; border-radius:20px; padding:3px 12px; font-size:0.75rem; font-weight:700; }
+
+    /* Date cell */
+    .date-cell { font-size:0.78rem; color:#64748b; white-space:nowrap; }
+</style>
+</head>
 <body>
 
 <th:block layout:fragment="page-title">Member Registration</th:block>
 
 <div layout:fragment="content">
 
-    <!-- ── Active Event Programs ── -->
-    <div th:if="${not #lists.isEmpty(activePrograms)}" class="mb-4">
-        <div class="d-flex align-items-center gap-2 mb-3">
-            <div class="d-flex align-items-center justify-content-center rounded-circle flex-shrink-0"
-                 style="width:32px;height:32px;background:linear-gradient(135deg,#4f46e5,#7c3aed);">
-                <i class="bi bi-calendar-event-fill text-white" style="font-size:0.82rem;"></i>
-            </div>
-            <h6 class="fw-bold mb-0" style="color:#1e293b;">Active Event Programs</h6>
-            <span class="badge rounded-pill"
-                  style="background:#eef2ff;color:#4f46e5;font-size:0.7rem;"
-                  th:text="${#lists.size(activePrograms)} + ' program' + (${#lists.size(activePrograms)} != 1 ? 's' : '')"></span>
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
+        <div>
+            <h5 class="fw-bold mb-0" style="color:#1e1b4b;">Member Registration</h5>
+            <p class="text-muted mb-0" style="font-size:0.78rem;">Manage community member records and approvals</p>
         </div>
-        <div class="row g-3 mb-2">
-            <div th:each="prog : ${activePrograms}" class="col-sm-6 col-xl-4">
-                <div class="card border-0 shadow-sm h-100" style="border-radius:14px;overflow:hidden;">
-                    <div style="height:3px;background:linear-gradient(90deg,#4f46e5 0%,#7c3aed 100%);"></div>
-                    <div class="card-body p-3">
-
-                        <!-- Program name + Active badge -->
-                        <div class="d-flex align-items-start justify-content-between gap-2 mb-2">
-                            <span class="fw-bold" style="font-size:0.88rem;color:#1e293b;line-height:1.35;"
-                                  th:text="${prog.programName}"></span>
-                            <span class="badge flex-shrink-0"
-                                  style="background:#dcfce7;color:#16a34a;font-size:0.67rem;font-weight:600;">Active</span>
-                        </div>
-
-                        <!-- Event name -->
-                        <div class="d-flex align-items-center gap-2 mb-2">
-                            <i class="bi bi-calendar2-event flex-shrink-0" style="font-size:0.78rem;color:#4f46e5;"></i>
-                            <span class="text-truncate" style="font-size:0.78rem;color:#4f46e5;font-weight:600;"
-                                  th:text="${prog.event.eventName}"></span>
-                        </div>
-
-                        <!-- Time slot -->
-                        <div class="d-flex align-items-center gap-2 mb-2">
-                            <i class="bi bi-clock flex-shrink-0" style="font-size:0.78rem;color:#64748b;"></i>
-                            <span style="font-size:0.78rem;color:#475569;"
-                                  th:text="${#temporals.format(prog.startTime, 'HH:mm')} + ' – ' + ${#temporals.format(prog.endTime, 'HH:mm')}"></span>
-                        </div>
-
-                        <!-- Responsible member -->
-                        <div th:if="${prog.responsibleMember != null}" class="d-flex align-items-center gap-2 mb-2">
-                            <i class="bi bi-person-fill flex-shrink-0" style="font-size:0.78rem;color:#64748b;"></i>
-                            <span style="font-size:0.78rem;color:#475569;"
-                                  th:text="${prog.responsibleMember.firstName} + ' ' + ${prog.responsibleMember.lastName}"></span>
-                        </div>
-
-                        <!-- Description -->
-                        <div th:if="${prog.programDescription != null and !prog.programDescription.isEmpty()}"
-                             class="text-muted mt-1 mb-2"
-                             style="font-size:0.75rem;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;"
-                             th:text="${prog.programDescription}"></div>
-
-                        <!-- Remark -->
-                        <div th:if="${prog.remark != null and !prog.remark.isEmpty()}"
-                             class="d-flex align-items-start gap-1 mt-1 px-2 py-1 rounded-2"
-                             style="background:#f8faff;font-size:0.73rem;color:#64748b;">
-                            <i class="bi bi-chat-dots flex-shrink-0 mt-1" style="color:#4f46e5;"></i>
-                            <span th:text="${prog.remark}"></span>
-                        </div>
-
-                    </div>
-                </div>
-            </div>
-        </div>
-        <hr class="mb-4" style="border-color:#e2e8f0;">
-    </div>
-
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="fw-semibold mb-0">Member Registration</h5>
-        <a th:href="@{/members/new}" class="btn btn-primary btn-sm">
-            <i class="bi bi-plus-lg me-1"></i>Add New Member
+        <a th:href="@{/members/new}" class="btn btn-primary">
+            <i class="bi bi-person-plus me-1"></i>Add New Member
         </a>
     </div>
-    <div class="card shadow-sm border-0">
-        <div class="card-body p-0">
-            <table class="table table-hover mb-0">
-                <thead class="table-dark">
+
+    <!-- Filter + Search bar -->
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-3">
+
+        <div class="d-flex gap-2 flex-wrap align-items-center">
+            <span class="filter-pill f-all active" onclick="filterMembers('all', this)">
+                All
+                <span class="ms-1 badge rounded-pill text-bg-dark"
+                      style="font-size:0.65rem;" th:text="${#lists.size(items)}"></span>
+            </span>
+            <span class="filter-pill f-active"    onclick="filterMembers('Active', this)">
+                <i class="bi bi-circle-fill me-1" style="font-size:0.45rem;color:#059669;"></i>Active
+            </span>
+            <span class="filter-pill f-pending"   onclick="filterMembers('Pending', this)">
+                <i class="bi bi-circle-fill me-1" style="font-size:0.45rem;color:#d97706;"></i>Pending
+            </span>
+            <span class="filter-pill f-suspended" onclick="filterMembers('Suspended', this)">
+                <i class="bi bi-circle-fill me-1" style="font-size:0.45rem;color:#6366f1;"></i>Suspended
+            </span>
+        </div>
+
+        <div class="d-flex align-items-center gap-2">
+            <span class="count-badge" id="resultCount"
+                  th:text="${#lists.size(items)} + ' member' + (${#lists.size(items)} != 1 ? 's' : '')"></span>
+            <div class="search-wrap">
+                <i class="bi bi-search"></i>
+                <input type="text" class="search-box" id="memberSearch"
+                       placeholder="Name, phone or email…"
+                       oninput="searchMembers(this.value)">
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Table -->
+    <div class="card border-0 shadow-sm" style="border-radius:14px;overflow:hidden;">
+        <div class="table-responsive">
+            <table class="table member-table mb-0" id="memberTable">
+                <thead>
                     <tr>
-                        <th style="width:48px;"></th>
+                        <th style="width:44px;padding-left:16px;"></th>
                         <th>#</th>
-                        <th>Full Name</th>
-                        <th>Phone</th>
-                        <th>Email</th>
-                        <th>City</th>
+                        <th>Member</th>
+                        <th>Contact</th>
+                        <th>Location</th>
                         <th>Membership</th>
                         <th>Member Since</th>
                         <th>Status</th>
-                        <th class="text-end">Actions</th>
+                        <th class="text-end" style="padding-right:16px;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr th:each="item, stat : ${items}">
-                        <td class="ps-3">
-                            <img th:if="${item.profilePicture != null}"
-                                 th:src="@{/members/{id}/photo(id=${item.id})}"
-                                 alt=""
-                                 style="width:36px;height:36px;object-fit:cover;border-radius:50%;border:2px solid #dee2e6;">
-                            <div th:unless="${item.profilePicture != null}"
-                                 style="width:36px;height:36px;border-radius:50%;background:#e9ecef;
-                                        display:flex;align-items:center;justify-content:center;">
-                                <i class="bi bi-person-fill text-muted" style="font-size:1rem;"></i>
+                    <tr th:each="item, stat : ${items}"
+                        class="member-row"
+                        th:attr="data-status=${item.approvalStatus != null and item.approvalStatus == 'Pending'} ? 'Pending' : ${item.status},
+                                 data-search=${(item.firstName + ' ' + item.lastName + ' ' + (item.phone != null ? item.phone : '') + ' ' + (item.email != null ? item.email : '')).toLowerCase()}">
+
+                        <!-- Avatar -->
+                        <td style="padding-left:16px;">
+                            <div class="member-avatar">
+                                <img th:if="${item.profilePicture != null}"
+                                     th:src="@{/members/{id}/photo(id=${item.id})}"
+                                     alt="photo">
+                                <span th:unless="${item.profilePicture != null}"
+                                      th:text="${#strings.substring(item.firstName,0,1) + #strings.substring(item.lastName,0,1)}"></span>
                             </div>
                         </td>
-                        <td class="text-muted" th:text="${stat.count}"></td>
-                        <td class="fw-medium" th:text="${item.firstName} + ' ' + ${item.lastName}"></td>
-                        <td th:text="${item.phone}"></td>
-                        <td th:text="${item.email != null} ? ${item.email} : '-'"></td>
-                        <td th:text="${item.city}"></td>
-                        <td><span class="badge bg-primary bg-opacity-75" th:text="${item.membershipType}"></span></td>
-                        <td th:text="${#temporals.format(item.membershipDate, 'dd-MMM-yyyy')}"></td>
+
+                        <!-- # -->
+                        <td class="text-muted fw-medium" th:text="${stat.count}"></td>
+
+                        <!-- Member name + approval badge -->
                         <td>
-                            <span th:with="sc=${item.status == 'Active'} ? 'bg-success' : (${item.status == 'Suspended'} ? 'bg-warning text-dark' : 'bg-secondary')"
-                                  th:class="'badge ' + ${sc}"
+                            <div class="member-name" th:text="${item.firstName + ' ' + item.lastName}"></div>
+                            <div class="member-sub mt-1" th:if="${item.approvalStatus != null and item.approvalStatus == 'Pending'}">
+                                <span class="badge rounded-pill"
+                                      style="background:#fef3c7;color:#92400e;font-size:0.63rem;font-weight:700;padding:2px 8px;">
+                                    <i class="bi bi-hourglass-split me-1"></i>Awaiting Approval
+                                </span>
+                            </div>
+                        </td>
+
+                        <!-- Contact -->
+                        <td>
+                            <div class="info-chip mb-1" th:if="${item.phone != null}">
+                                <i class="bi bi-telephone-fill"></i>
+                                <span th:text="${item.phone}"></span>
+                            </div>
+                            <div class="info-chip" th:if="${item.email != null}">
+                                <i class="bi bi-envelope-fill"></i>
+                                <span th:text="${item.email}"></span>
+                            </div>
+                            <span th:unless="${item.phone != null or item.email != null}"
+                                  class="text-muted" style="font-size:0.78rem;">—</span>
+                        </td>
+
+                        <!-- Location -->
+                        <td>
+                            <div class="info-chip" th:if="${item.city != null}">
+                                <i class="bi bi-geo-alt-fill"></i>
+                                <span th:text="${item.city}"></span>
+                            </div>
+                            <span th:unless="${item.city != null}" class="text-muted" style="font-size:0.78rem;">—</span>
+                        </td>
+
+                        <!-- Membership type -->
+                        <td>
+                            <span th:class="'memtype-badge memtype-' + ${item.membershipType != null ? item.membershipType : 'General'}"
+                                  th:text="${item.membershipType != null ? item.membershipType : 'General'}"></span>
+                        </td>
+
+                        <!-- Member since -->
+                        <td class="date-cell">
+                            <i class="bi bi-calendar3 me-1" style="font-size:0.72rem;"></i>
+                            <span th:text="${#temporals.format(item.membershipDate,'dd MMM yyyy')}"></span>
+                        </td>
+
+                        <!-- Status -->
+                        <td>
+                            <span th:class="'status-pill status-' + ${item.status}"
                                   th:text="${item.status}"></span>
                         </td>
-                        <td class="text-end">
+
+                        <!-- Actions -->
+                        <td class="text-end" style="padding-right:16px;white-space:nowrap;">
                             <a th:if="${item.qrCode != null}"
                                th:href="@{/members/{id}/qr(id=${item.id})}"
-                               class="btn btn-sm btn-outline-success"
+                               class="qr-btn me-1 d-inline-flex align-items-center"
                                title="Download QR Code">
                                 <i class="bi bi-qr-code"></i>
                             </a>
-                            <a th:href="@{/members/{id}/edit(id=${item.id})}" class="btn btn-sm btn-outline-warning">
-                                <i class="bi bi-pencil"></i>
+                            <a th:href="@{/members/{id}/edit(id=${item.id})}"
+                               class="btn btn-sm btn-outline-warning me-1"
+                               title="Edit member">
+                                <i class="bi bi-pencil-fill"></i>
                             </a>
-                            <form th:action="@{/members/{id}/delete(id=${item.id})}" method="post" class="d-inline"
-                                  data-confirm='Delete this member?'>
-                                <button type="submit" class="btn btn-sm btn-outline-danger">
-                                    <i class="bi bi-trash"></i>
+                            <form th:action="@{/members/{id}/delete(id=${item.id})}" method="post"
+                                  class="d-inline" onsubmit="return confirm('Delete this member?')">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+                                    <i class="bi bi-trash-fill"></i>
                                 </button>
                             </form>
                         </td>
+
                     </tr>
+
+                    <tr id="emptyRow" style="display:none;">
+                        <td colspan="9" class="text-center py-5">
+                            <i class="bi bi-person-x d-block mb-2" style="font-size:2.5rem;color:#c7d2fe;"></i>
+                            <div class="fw-semibold text-muted">No members match your filter</div>
+                        </td>
+                    </tr>
+
                     <tr th:if="${#lists.isEmpty(items)}">
-                        <td colspan="10" class="text-center text-muted py-4">No members found.</td>
+                        <td colspan="9" class="text-center py-5">
+                            <i class="bi bi-person-plus d-block mb-2" style="font-size:2.5rem;color:#c7d2fe;"></i>
+                            <div class="fw-bold mb-1" style="color:#6366f1;">No members yet</div>
+                            <p class="text-muted small mb-3">Register the first community member.</p>
+                            <a th:href="@{/members/new}" class="btn btn-primary btn-sm">
+                                <i class="bi bi-person-plus me-1"></i>Add First Member
+                            </a>
+                        </td>
                     </tr>
+
                 </tbody>
             </table>
         </div>
     </div>
+
 </div>
+
+<th:block layout:fragment="page-scripts">
+<script>
+var currentFilter = 'all';
+
+function filterMembers(status, pill) {
+    currentFilter = status;
+    document.querySelectorAll('.filter-pill').forEach(function(p) { p.classList.remove('active'); });
+    pill.classList.add('active');
+    applyFilters();
+}
+
+function searchMembers(q) { applyFilters(q); }
+
+function applyFilters(q) {
+    q = (q !== undefined ? q : document.getElementById('memberSearch').value).toLowerCase();
+    var rows   = document.querySelectorAll('#memberTable tbody tr.member-row');
+    var visible = 0;
+    rows.forEach(function(row) {
+        var matchS = currentFilter === 'all' || row.dataset.status === currentFilter;
+        var matchQ = !q || row.dataset.search.includes(q);
+        var show   = matchS && matchQ;
+        row.style.display = show ? '' : 'none';
+        if (show) visible++;
+    });
+    document.getElementById('emptyRow').style.display = visible === 0 && rows.length > 0 ? '' : 'none';
+    document.getElementById('resultCount').textContent = visible + (visible !== 1 ? ' members' : ' member');
+}
+</script>
+</th:block>
+
 </body>
 </html>

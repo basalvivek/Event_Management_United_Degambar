@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+<title>Payment Ledger</title>
+<style>
+.src-badge { display:inline-flex; align-items:center; gap:5px; border-radius:20px; padding:3px 10px; font-size:0.7rem; font-weight:700; color:#fff; white-space:nowrap; }
+.filter-btn { border-radius:20px; font-size:0.78rem; padding:4px 14px; font-weight:600; }
+.filter-btn.active { color:#fff; }
+.amount-col { font-family:monospace; font-size:0.83rem; }
+.pending-positive { color:#dc2626; font-weight:600; }
+.pending-zero { color:#94a3b8; }
+.stat-card { background:#fff; border-radius:12px; padding:16px 20px; box-shadow:0 2px 12px rgba(0,0,0,0.06); }
+.stat-card .label { font-size:0.72rem; font-weight:700; letter-spacing:0.5px; text-transform:uppercase; color:#94a3b8; }
+.stat-card .value { font-size:1.5rem; font-weight:800; color:#1e1b4b; line-height:1.2; margin-top:4px; }
+</style>
+</head>
+<body>
+
+<th:block layout:fragment="page-title">Payment Ledger</th:block>
+
+<div layout:fragment="content">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <h5 class="fw-semibold mb-0">Payment Ledger</h5>
+        <div class="d-flex gap-2">
+            <a th:href="@{/finance/sponsors/new}" class="btn btn-sm btn-primary">
+                <i class="bi bi-plus-lg me-1"></i>Sponsor Donation
+            </a>
+            <a th:href="@{/finance/org-donations/new}" class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-plus-lg me-1"></i>Organisation Donation
+            </a>
+            <a th:href="@{/finance/org-donations/new(type='member')}" class="btn btn-sm btn-outline-info">
+                <i class="bi bi-plus-lg me-1"></i>Member Donation
+            </a>
+        </div>
+    </div>
+
+    <!-- Summary cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="stat-card">
+                <div class="label">Transactions</div>
+                <div class="value" th:text="${totalCount}">0</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card">
+                <div class="label">Total Committed</div>
+                <div class="value" style="color:#4f46e5;"
+                     th:text="'£' + ${#numbers.formatDecimal(totalCommitted,1,2)}">£0.00</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card">
+                <div class="label">Total Received</div>
+                <div class="value" style="color:#059669;"
+                     th:text="'£' + ${#numbers.formatDecimal(totalDonated,1,2)}">£0.00</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card">
+                <div class="label">Total Pending</div>
+                <div class="value" style="color:#dc2626;"
+                     th:text="'£' + ${#numbers.formatDecimal(totalPending,1,2)}">£0.00</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Source filter -->
+    <div class="d-flex gap-2 mb-3 flex-wrap">
+        <a th:href="@{/finance}" th:class="${selectedSource == null ? 'btn filter-btn btn-dark active' : 'btn filter-btn btn-outline-secondary'}">All</a>
+        <a th:href="@{/finance(source='Sponsors')}"        th:class="${selectedSource == 'Sponsors' ? 'btn filter-btn active' : 'btn filter-btn btn-outline-secondary'}" th:style="${selectedSource == 'Sponsors' ? 'background:#7c3aed;border-color:#7c3aed;' : ''}"><i class="bi bi-building-fill me-1"></i>Sponsors</a>
+        <a th:href="@{/finance(source='Organisation')}" th:class="${selectedSource == 'Organisation' ? 'btn filter-btn active' : 'btn filter-btn btn-outline-secondary'}" th:style="${selectedSource == 'Organisation' ? 'background:#6366f1;border-color:#6366f1;' : ''}"><i class="bi bi-building-fill me-1"></i>Organisation</a>
+        <a th:href="@{/finance(source='Member')}" th:class="${selectedSource == 'Member' ? 'btn filter-btn active' : 'btn filter-btn btn-outline-secondary'}" th:style="${selectedSource == 'Member' ? 'background:#0ea5e9;border-color:#0ea5e9;' : ''}"><i class="bi bi-person-fill me-1"></i>Member</a>
+        <a th:href="@{/finance(source='Members')}"          th:class="${selectedSource == 'Members' ? 'btn filter-btn active' : 'btn filter-btn btn-outline-secondary'}" th:style="${selectedSource == 'Members' ? 'background:#10b981;border-color:#10b981;' : ''}"><i class="bi bi-ticket-perforated-fill me-1"></i>Members</a>
+        <a th:href="@{/finance(source='Invitation')}"      th:class="${selectedSource == 'Invitation' ? 'btn filter-btn active' : 'btn filter-btn btn-outline-secondary'}" th:style="${selectedSource == 'Invitation' ? 'background:#f59e0b;border-color:#f59e0b;' : ''}"><i class="bi bi-envelope-paper-fill me-1"></i>Invitation</a>
+    </div>
+
+    <!-- Ledger table -->
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" style="font-size:0.83rem;">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Source</th>
+                            <th>Organisation / Event</th>
+                            <th>Person</th>
+                            <th>Payment Mode</th>
+                            <th>Payment Date</th>
+                            <th class="text-end">Committed</th>
+                            <th class="text-end">Received</th>
+                            <th class="text-end">Pending</th>
+                            <th>Status</th>
+                            <th>Remark</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="r : ${records}">
+                            <td>
+                                <span class="src-badge"
+                                      th:style="'background:' + ${r.sourceBadgeColor}"
+                                      th:text="${r.source}">
+                                </span>
+                            </td>
+                            <td class="fw-medium" th:text="${r.orgName}"></td>
+                            <td th:text="${r.personName}"></td>
+                            <td>
+                                <span th:if="${r.paymentMode != null}"
+                                      class="badge bg-light text-dark border"
+                                      th:text="${r.paymentMode}"></span>
+                                <span th:unless="${r.paymentMode != null}" class="text-muted">—</span>
+                            </td>
+                            <td class="text-muted"
+                                th:text="${r.paymentDate != null ? #temporals.format(r.paymentDate,'dd MMM yyyy') : '—'}"></td>
+                            <td class="text-end amount-col"
+                                th:text="${r.committedAmount != null ? '£' + #numbers.formatDecimal(r.committedAmount,1,2) : '—'}"></td>
+                            <td class="text-end amount-col" style="color:#059669;"
+                                th:text="${r.donatedAmount != null ? '£' + #numbers.formatDecimal(r.donatedAmount,1,2) : '—'}"></td>
+                            <td class="text-end amount-col"
+                                th:class="${(r.pendingAmount != null and r.pendingAmount > 0) ? 'text-end amount-col pending-positive' : 'text-end amount-col pending-zero'}"
+                                th:text="${r.pendingAmount != null ? '£' + #numbers.formatDecimal(r.pendingAmount,1,2) : '—'}"></td>
+                            <td>
+                                <span th:if="${r.status != null}"
+                                      th:class="${r.status == 'Accepted' or r.status == 'Received' ? 'badge bg-success' : (r.status == 'Pending' or r.status == 'Partial' ? 'badge bg-warning text-dark' : 'badge bg-secondary')}"
+                                      th:text="${r.status}"></span>
+                            </td>
+                            <td class="text-muted small" style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"
+                                th:text="${r.remark}"></td>
+                            <td class="text-end" style="white-space:nowrap;">
+                                <a th:href="${r.editUrl}" class="btn btn-sm btn-outline-warning me-1">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a th:if="${r.source == 'Sponsors'}"
+                                   th:href="@{/finance/sponsors/{id}/invoice(id=${r.sourceId})}"
+                                   class="btn btn-sm btn-outline-secondary" title="Print Invoice" target="_blank">
+                                    <i class="bi bi-printer"></i>
+                                </a>
+                                <a th:if="${r.source == 'Organisation' or r.source == 'Member' or r.source == 'Members'}"
+                                   th:href="@{/finance/org-donations/{id}/invoice(id=${r.sourceId})}"
+                                   class="btn btn-sm btn-outline-secondary" title="Print Invoice" target="_blank">
+                                    <i class="bi bi-printer"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(records)}">
+                            <td colspan="11" class="text-center text-muted py-5">
+                                <i class="bi bi-credit-card d-block mb-2" style="font-size:2rem;opacity:0.3;"></i>
+                                No payment records found.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

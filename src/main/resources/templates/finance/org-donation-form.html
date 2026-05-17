@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head><title>Add Donation</title></head>
+<body>
+<th:block layout:fragment="page-title"
+          th:text="${item.id == null ? 'Add Donation' : 'Edit Donation'}">Donation</th:block>
+<div layout:fragment="content">
+<style>
+.don-card{border-radius:16px;border:0;box-shadow:0 4px 24px rgba(0,0,0,0.07);}
+.don-card .card-header{border-radius:16px 16px 0 0;padding:20px 28px;border-bottom:1px solid #e0e7ff;}
+.section-card{border-radius:12px;border:1.5px solid #e0e7ff;background:#fafbff;padding:20px 24px;margin-bottom:1.25rem;}
+.section-card .section-title{font-size:.7rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#6366f1;margin-bottom:14px;display:flex;align-items:center;gap:7px;}
+.toggle-group{display:flex;gap:8px;background:#f1f5f9;border-radius:12px;padding:4px;}
+.toggle-btn{flex:1;border:0;border-radius:9px;padding:8px 20px;font-size:.82rem;font-weight:600;color:#64748b;background:transparent;cursor:pointer;transition:all .18s;display:flex;align-items:center;justify-content:center;gap:6px;}
+.toggle-btn.active-org{background:#fff;color:#4f46e5;box-shadow:0 2px 8px rgba(99,102,241,.18);}
+.toggle-btn.active-member{background:#fff;color:#0284c7;box-shadow:0 2px 8px rgba(2,132,199,.18);}
+.form-label{font-size:.82rem;font-weight:600;color:#374151;margin-bottom:5px;}
+.form-control,.form-select{border-radius:9px;border:1.5px solid #e5e7eb;font-size:.86rem;padding:9px 13px;transition:border-color .18s,box-shadow .18s;}
+.form-control:focus,.form-select:focus{border-color:#6366f1;box-shadow:0 0 0 3px rgba(99,102,241,.12);outline:none;}
+.amt-input{font-family:monospace;font-size:.9rem;}
+.pending-box{background:linear-gradient(135deg,#f5f3ff,#ede9fe);border:1.5px solid #c4b5fd;border-radius:9px;padding:9px 13px;font-family:monospace;font-size:.9rem;font-weight:700;color:#5b21b6;}
+.req-star{color:#ef4444;}
+</style>
+
+<div style="max-width:700px;">
+<div class="card don-card">
+
+    <!-- Header -->
+    <div class="card-header bg-white d-flex align-items-center gap-3">
+        <div style="width:42px;height:42px;border-radius:11px;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i class="bi bi-cash-coin text-white fs-5"></i>
+        </div>
+        <div>
+            <div class="fw-bold" style="color:#1e1b4b;font-size:1rem;" th:text="${item.id == null ? 'Add Donation' : 'Edit Donation'}"></div>
+            <div class="text-muted" style="font-size:.75rem;">Record a donation from an organisation or community member</div>
+        </div>
+    </div>
+
+    <div class="card-body p-4">
+    <form th:action="${item.id == null ? '/finance/org-donations' : '/finance/org-donations/' + item.id}"
+          th:object="${item}" method="post">
+
+        <!-- Donor Type -->
+        <div class="section-card">
+            <div class="section-title"><i class="bi bi-person-badge"></i>Donor Type</div>
+            <div class="toggle-group">
+                <button type="button" id="btnOrg"
+                        th:class="${donorType == 'org'} ? 'toggle-btn active-org' : 'toggle-btn'"
+                        onclick="setDonorType('org')">
+                    <i class="bi bi-building-fill"></i>Organisation
+                </button>
+                <button type="button" id="btnMember"
+                        th:class="${donorType == 'member'} ? 'toggle-btn active-member' : 'toggle-btn'"
+                        onclick="setDonorType('member')">
+                    <i class="bi bi-person-fill"></i>Member
+                </button>
+            </div>
+            <input type="hidden" id="donorTypeHidden" name="donorTypeHidden" th:value="${donorType}">
+
+            <!-- Org donor -->
+            <div id="sectionOrg" class="mt-3" th:style="${donorType == 'member'} ? 'display:none' : ''">
+                <label class="form-label">Donor Organisation</label>
+                <select class="form-select" name="organizationId">
+                    <option value="">— Select Organisation —</option>
+                    <option th:each="org : ${supportiveOrgs}"
+                            th:value="${org.id}"
+                            th:text="${org.name}"
+                            th:selected="${item.supportiveOrganization != null and item.supportiveOrganization.id == org.id}"></option>
+                </select>
+            </div>
+
+            <!-- Member donor -->
+            <div id="sectionMember" class="mt-3" th:style="${donorType != 'member'} ? 'display:none' : ''">
+                <label class="form-label">Donor Member</label>
+                <select class="form-select" name="memberId" id="memberSelect">
+                    <option value="">— Select Member —</option>
+                    <option th:each="m : ${members}"
+                            th:value="${m.id}"
+                            th:text="${m.firstName + ' ' + m.lastName}"
+                            th:selected="${item.member != null and item.member.id == m.id}"></option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Payment Details -->
+        <div class="section-card">
+            <div class="section-title"><i class="bi bi-credit-card"></i>Payment Details</div>
+            <div class="row g-3">
+                <div class="col-md-5">
+                    <label class="form-label">Payment Mode <span class="req-star">*</span></label>
+                    <select class="form-select" th:field="*{paymentMode}"
+                            th:classappend="${#fields.hasErrors('paymentMode')} ? ' is-invalid'">
+                        <option value="">— Select —</option>
+                        <option value="Cash">Cash</option>
+                        <option value="Bank Transfer">Bank Transfer</option>
+                        <option value="Cheque">Cheque</option>
+                        <option value="Online">Online</option>
+                        <option value="Card">Card</option>
+                    </select>
+                    <div class="invalid-feedback" th:errors="*{paymentMode}"></div>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Payment Date</label>
+                    <input type="date" class="form-control" th:field="*{paymentDate}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Status <span class="req-star">*</span></label>
+                    <select class="form-select" th:field="*{status}"
+                            th:classappend="${#fields.hasErrors('status')} ? ' is-invalid'">
+                        <option value="Pending">Pending</option>
+                        <option value="Done">Done</option>
+                        <option value="Partial">Partial</option>
+                    </select>
+                    <div class="invalid-feedback" th:errors="*{status}"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Amounts -->
+        <div class="section-card">
+            <div class="section-title"><i class="bi bi-currency-pound"></i>Amounts</div>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Committed (£)</label>
+                    <div class="input-group">
+                        <span class="input-group-text" style="border-radius:9px 0 0 9px;border:1.5px solid #e5e7eb;border-right:0;background:#f8f7ff;color:#6366f1;font-weight:700;">£</span>
+                        <input type="number" class="form-control amt-input" th:field="*{committedAmount}"
+                               min="0" step="0.01" placeholder="0.00" oninput="calcPending()"
+                               style="border-radius:0 9px 9px 0;">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Donated (£)</label>
+                    <div class="input-group">
+                        <span class="input-group-text" style="border-radius:9px 0 0 9px;border:1.5px solid #e5e7eb;border-right:0;background:#f0fdf4;color:#059669;font-weight:700;">£</span>
+                        <input type="number" class="form-control amt-input" th:field="*{amount}"
+                               min="0" step="0.01" placeholder="0.00" oninput="calcPending()"
+                               style="border-radius:0 9px 9px 0;">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Pending (£)</label>
+                    <div class="pending-box" id="pendingDisplay">£0.00</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Instalment Panel (edit mode only) -->
+        <div th:if="${item.id != null}" class="section-card" style="border-color:#d1fae5;">
+            <div class="section-title" style="color:#059669;"><i class="bi bi-cash-coin"></i>Payment Instalments</div>
+
+            <!-- Summary strip -->
+            <div class="row g-2 mb-3">
+                <div class="col-4">
+                    <div class="text-center p-2 rounded-3" style="background:#f5f3ff;border:1.5px solid #c4b5fd;">
+                        <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#7c3aed;">Committed</div>
+                        <div style="font-family:monospace;font-weight:800;color:#5b21b6;font-size:.95rem;"
+                             th:text="${item.committedAmount != null ? '£' + #numbers.formatDecimal(item.committedAmount,1,2) : '£0.00'}"></div>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="text-center p-2 rounded-3" style="background:#f0fdf4;border:1.5px solid #bbf7d0;">
+                        <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#059669;">Paid</div>
+                        <div style="font-family:monospace;font-weight:800;color:#166534;font-size:.95rem;"
+                             th:text="${item.amount != null ? '£' + #numbers.formatDecimal(item.amount,1,2) : '£0.00'}"></div>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="text-center p-2 rounded-3" style="background:#fef2f2;border:1.5px solid #fecaca;">
+                        <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#dc2626;">Remaining</div>
+                        <div style="font-family:monospace;font-weight:800;color:#991b1b;font-size:.95rem;"
+                             th:text="${(item.committedAmount != null and item.amount != null) ? '£' + #numbers.formatDecimal(item.committedAmount - item.amount,1,2) : '£0.00'}"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- History table -->
+            <div th:if="${instalments != null and not #lists.isEmpty(instalments)}" class="mb-3">
+                <table class="table table-sm mb-0" style="font-size:.8rem;border-radius:8px;overflow:hidden;">
+                    <thead style="background:#ecfdf5;">
+                        <tr>
+                            <th style="font-size:.68rem;font-weight:700;text-transform:uppercase;color:#059669;padding:7px 10px;">#</th>
+                            <th style="font-size:.68rem;font-weight:700;text-transform:uppercase;color:#059669;padding:7px 10px;">Date</th>
+                            <th style="font-size:.68rem;font-weight:700;text-transform:uppercase;color:#059669;padding:7px 10px;">Mode</th>
+                            <th style="font-size:.68rem;font-weight:700;text-transform:uppercase;color:#059669;padding:7px 10px;">Notes</th>
+                            <th style="font-size:.68rem;font-weight:700;text-transform:uppercase;color:#059669;padding:7px 10px;text-align:right;">Amount</th>
+                            <th style="padding:7px 10px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="ins, s : ${instalments}" style="border-color:#d1fae5;">
+                            <td style="padding:7px 10px;color:#64748b;" th:text="${s.count}"></td>
+                            <td style="padding:7px 10px;font-weight:600;" th:text="${#temporals.format(ins.paymentDate,'dd MMM yyyy')}"></td>
+                            <td style="padding:7px 10px;"><span style="background:#f1f5f9;border-radius:6px;padding:2px 8px;font-size:.72rem;font-weight:600;" th:text="${ins.paymentMode}"></span></td>
+                            <td style="padding:7px 10px;color:#64748b;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" th:text="${ins.notes != null ? ins.notes : '—'}"></td>
+                            <td style="padding:7px 10px;text-align:right;font-family:monospace;font-weight:700;color:#166634;" th:text="${'£' + #numbers.formatDecimal(ins.amount,1,2)}"></td>
+                            <td style="padding:7px 10px;">
+                                <form th:action="@{/finance/instalments/{id}/delete(id=${ins.id})}" method="post" class="d-inline"
+                                      onsubmit="return confirm('Remove this instalment?')">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-1" style="border-radius:6px;font-size:.72rem;">
+                                        <i class="bi bi-trash-fill"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div th:unless="${instalments != null and not #lists.isEmpty(instalments)}"
+                 class="text-center text-muted py-2 mb-3" style="font-size:.78rem;">
+                <i class="bi bi-clock-history me-1"></i>No instalments recorded yet
+            </div>
+
+            <!-- Add Payment -->
+            <div style="background:#f0fdf4;border-radius:10px;border:1.5px solid #bbf7d0;padding:18px 20px;">
+                <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#059669;margin-bottom:14px;">
+                    <i class="bi bi-plus-circle-fill me-1"></i>Add Payment
+                </div>
+                <form th:action="@{/finance/org-donations/{id}/pay(id=${item.id})}" method="post">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-size:.8rem;font-weight:600;color:#374151;">Amount (£) <span style="color:#ef4444;">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text" style="background:#dcfce7;border:1.5px solid #bbf7d0;border-right:0;color:#166534;font-weight:700;border-radius:9px 0 0 9px;">£</span>
+                                <input type="number" name="amount" class="form-control" min="0.01" step="0.01" placeholder="0.00" required
+                                       style="border:1.5px solid #bbf7d0;border-left:0;border-radius:0 9px 9px 0;font-family:monospace;">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-size:.8rem;font-weight:600;color:#374151;">Payment Date <span style="color:#ef4444;">*</span></label>
+                            <input type="date" name="paymentDate" class="form-control" required
+                                   style="border:1.5px solid #bbf7d0;border-radius:9px;">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-size:.8rem;font-weight:600;color:#374151;">Payment Mode <span style="color:#ef4444;">*</span></label>
+                            <select name="paymentMode" class="form-select" required
+                                    style="border:1.5px solid #bbf7d0;border-radius:9px;">
+                                <option value="">— Select Mode —</option>
+                                <option value="Cash">Cash</option>
+                                <option value="Bank Transfer">Bank Transfer</option>
+                                <option value="Cheque">Cheque</option>
+                                <option value="Online">Online</option>
+                                <option value="Card">Card</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-size:.8rem;font-weight:600;color:#374151;">Notes / Reference</label>
+                            <input type="text" name="notes" class="form-control" placeholder="Cheque no., bank ref…"
+                                   style="border:1.5px solid #bbf7d0;border-radius:9px;">
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <button type="submit" class="btn btn-success px-4" style="border-radius:9px;font-weight:600;">
+                            <i class="bi bi-plus-lg me-1"></i>Add Payment
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="mb-4">
+            <label class="form-label">Notes / Reference</label>
+            <input type="text" class="form-control" th:field="*{notes}" placeholder="Cheque no., bank ref, or any note…">
+        </div>
+
+        <!-- Actions -->
+        <div class="d-flex gap-2 flex-wrap">
+            <button type="submit" class="btn btn-primary px-5" style="border-radius:10px;">
+                <i class="bi bi-check-lg me-1"></i>Save Donation
+            </button>
+            <a th:href="@{/finance}" class="btn btn-outline-secondary px-4" style="border-radius:10px;">Cancel</a>
+            <a th:if="${item.id != null}"
+               th:href="@{/finance/org-donations/{id}/invoice(id=${item.id})}"
+               class="btn btn-outline-dark px-4" style="border-radius:10px;" target="_blank">
+                <i class="bi bi-printer-fill me-1"></i>Print Invoice
+            </a>
+        </div>
+
+    </form>
+    </div>
+</div>
+</div>
+</div>
+
+<th:block layout:fragment="page-scripts">
+<script>
+function setDonorType(t) {
+    document.getElementById('sectionOrg').style.display    = t === 'org'    ? '' : 'none';
+    document.getElementById('sectionMember').style.display = t === 'member' ? '' : 'none';
+    document.getElementById('btnOrg').className    = t === 'org'    ? 'toggle-btn active-org'    : 'toggle-btn';
+    document.getElementById('btnMember').className = t === 'member' ? 'toggle-btn active-member' : 'toggle-btn';
+    document.getElementById('donorTypeHidden').value = t;
+}
+function calcPending() {
+    var c = parseFloat(document.querySelector('[name="committedAmount"]').value) || 0;
+    var d = parseFloat(document.querySelector('[name="amount"]').value) || 0;
+    var p = c - d;
+    document.getElementById('pendingDisplay').textContent = '£' + Math.abs(p).toFixed(2) + (p < 0 ? ' (over)' : '');
+    document.getElementById('pendingDisplay').style.color = p < 0 ? '#dc2626' : '#5b21b6';
+}
+window.addEventListener('load', calcPending);
+</script>
+</th:block>
+</body>
+</html>

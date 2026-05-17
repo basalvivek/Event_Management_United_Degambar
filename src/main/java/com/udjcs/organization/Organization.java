@@ -59,8 +59,11 @@ public class Organization extends BaseEntity {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "logo_path", length = 255)
-    private String logoPath;
+    @Column(name = "logo_data", columnDefinition = "BYTEA")
+    private byte[] logoData;
+
+    @Column(name = "logo_mime_type", length = 50)
+    private String logoMimeType;
 
     @Column(name = "banner_image", columnDefinition = "BYTEA")
     private byte[] bannerImage;
@@ -104,8 +107,11 @@ public class Organization extends BaseEntity {
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
 
-    public String getLogoPath() { return logoPath; }
-    public void setLogoPath(String logoPath) { this.logoPath = logoPath; }
+    public byte[] getLogoData() { return logoData; }
+    public void setLogoData(byte[] logoData) { this.logoData = logoData; }
+
+    public String getLogoMimeType() { return logoMimeType; }
+    public void setLogoMimeType(String logoMimeType) { this.logoMimeType = logoMimeType; }
 
     public byte[] getBannerImage() { return bannerImage; }
     public void setBannerImage(byte[] bannerImage) { this.bannerImage = bannerImage; }

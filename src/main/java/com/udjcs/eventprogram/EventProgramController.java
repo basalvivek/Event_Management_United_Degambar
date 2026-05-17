@@ -45,7 +45,7 @@ public class EventProgramController {
     @GetMapping("/new")
     public String showCreateForm(Model model) {
         model.addAttribute("item", null);
-        model.addAttribute("events", eventService.findByStatus("Planned"));
+        model.addAttribute("events", eventService.findExcludingStatus("Completed"));
         model.addAttribute("members", memberService.findAll());
         return "event-program/form";
     }
@@ -256,7 +256,7 @@ public class EventProgramController {
     private String errorForm(Model model, String message) {
         model.addAttribute("item", null);
         model.addAttribute("formError", message);
-        model.addAttribute("events", eventService.findByStatus("Planned"));
+        model.addAttribute("events", eventService.findExcludingStatus("Completed"));
         model.addAttribute("members", memberService.findAll());
         return "event-program/form";
     }

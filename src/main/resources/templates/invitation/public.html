@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${invitation.eventTitle} + ' — Invitation'">Event Invitation</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f8f7ff; color: #1e1b4b; }
+
+        /* ── Hero ── */
+        .hero {
+            position: relative; min-height: 340px;
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 60%, #a855f7 100%);
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: flex-end;
+            padding: 0 0 0 0; overflow: hidden;
+        }
+        .hero-bg {
+            position: absolute; inset: 0;
+            background-size: cover; background-position: center;
+            filter: brightness(0.45);
+        }
+        .hero-overlay {
+            position: absolute; inset: 0;
+            background: linear-gradient(to bottom, rgba(30,27,75,0.25) 0%, rgba(30,27,75,0.75) 100%);
+        }
+        .hero-content {
+            position: relative; z-index: 2;
+            width: 100%; max-width: 800px;
+            padding: 40px 28px 36px;
+        }
+        .org-row {
+            display: flex; align-items: center; gap: 12px; margin-bottom: 20px;
+        }
+        .org-logo {
+            width: 52px; height: 52px; border-radius: 10px;
+            object-fit: contain; background: rgba(255,255,255,0.12);
+            padding: 4px; border: 1px solid rgba(255,255,255,0.3);
+        }
+        .org-logo-placeholder {
+            width: 52px; height: 52px; border-radius: 10px;
+            background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+        }
+        .org-name { color: rgba(255,255,255,0.9); font-size: 0.82rem; font-weight: 600; letter-spacing: 0.3px; }
+        .org-sub  { color: rgba(255,255,255,0.55); font-size: 0.7rem; }
+
+        .event-tag {
+            display: inline-block; background: rgba(255,255,255,0.2);
+            color: rgba(255,255,255,0.9); border-radius: 20px;
+            padding: 3px 14px; font-size: 0.72rem; font-weight: 700;
+            letter-spacing: 1px; text-transform: uppercase;
+            border: 1px solid rgba(255,255,255,0.25); margin-bottom: 10px;
+        }
+        .event-title {
+            color: #fff; font-size: 2rem; font-weight: 800;
+            line-height: 1.2; margin-bottom: 14px;
+            letter-spacing: -0.3px; text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        .event-meta {
+            display: flex; flex-wrap: wrap; gap: 16px;
+        }
+        .meta-chip {
+            display: flex; align-items: center; gap: 7px;
+            color: rgba(255,255,255,0.85); font-size: 0.83rem;
+        }
+        .meta-chip i { color: rgba(255,255,255,0.6); font-size: 0.95rem; }
+
+        /* ── Body ── */
+        .page-body { max-width: 800px; margin: 0 auto; padding: 32px 20px 64px; }
+
+        /* ── Section card ── */
+        .section-card {
+            background: #fff; border-radius: 14px; padding: 24px 28px;
+            box-shadow: 0 2px 16px rgba(79,70,229,0.08); margin-bottom: 20px;
+        }
+        .section-title {
+            font-size: 0.68rem; font-weight: 800; letter-spacing: 1.4px;
+            text-transform: uppercase; color: #6366f1; margin-bottom: 16px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .section-title::after {
+            content: ''; flex: 1; height: 1px; background: #e0e7ff;
+        }
+
+        /* ── Schedule ── */
+        .schedule-row {
+            display: grid; grid-template-columns: 110px 1fr;
+            gap: 0 16px; padding: 12px 0;
+            border-bottom: 1px solid #f1f0ff;
+            align-items: start;
+        }
+        .schedule-row:last-child { border-bottom: none; padding-bottom: 0; }
+        .schedule-time {
+            font-size: 0.78rem; font-weight: 700; color: #6366f1;
+            padding-top: 2px; white-space: nowrap;
+        }
+        .schedule-time .time-range { color: #a5b4fc; font-weight: 500; font-size: 0.72rem; display: block; }
+        .schedule-name { font-weight: 600; font-size: 0.9rem; color: #1e1b4b; }
+        .schedule-desc { color: #64748b; font-size: 0.8rem; margin-top: 2px; }
+
+        /* ── About ── */
+        .about-text { color: #475569; font-size: 0.9rem; line-height: 1.75; white-space: pre-wrap; }
+
+        /* ── Share bar ── */
+        .share-bar {
+            position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+            background: rgba(255,255,255,0.96); backdrop-filter: blur(10px);
+            border-top: 1px solid #e0e7ff;
+            padding: 10px 20px;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            box-shadow: 0 -4px 20px rgba(79,70,229,0.1);
+        }
+        .share-url {
+            font-family: monospace; font-size: 0.78rem; color: #4f46e5;
+            background: #eef2ff; border: 1px solid #c7d2fe;
+            border-radius: 6px; padding: 5px 12px;
+            max-width: 340px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .btn-copy {
+            background: #4f46e5; color: #fff; border: none;
+            border-radius: 8px; padding: 7px 16px; font-size: 0.82rem;
+            font-weight: 600; cursor: pointer; white-space: nowrap;
+            display: flex; align-items: center; gap: 6px;
+            transition: background 0.15s;
+        }
+        .btn-copy:hover { background: #4338ca; }
+        .btn-copy.copied { background: #059669; }
+        .share-label { font-size: 0.75rem; color: #94a3b8; white-space: nowrap; }
+        body { padding-bottom: 60px; }
+
+        /* ── Registration ── */
+        .reg-card { background:#fff; border-radius:14px; padding:28px; box-shadow:0 2px 16px rgba(79,70,229,0.08); margin-bottom:20px; }
+        .reg-title { font-size:0.68rem; font-weight:800; letter-spacing:1.4px; text-transform:uppercase; color:#6366f1; margin-bottom:20px; display:flex; align-items:center; gap:8px; }
+        .reg-title::after { content:''; flex:1; height:1px; background:#e0e7ff; }
+        .attendee-row { display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid #f1f0ff; }
+        .attendee-row:last-child { border-bottom:none; }
+        .attendee-label { font-size:0.88rem; font-weight:600; color:#1e1b4b; }
+        .attendee-price { font-size:0.78rem; color:#6366f1; font-weight:500; }
+        .attendee-subtotal { font-size:0.82rem; font-weight:600; color:#4f46e5; min-width:70px; text-align:right; }
+        .qty-input { width:80px; text-align:center; border:1.5px solid #e0e7ff; border-radius:8px; padding:6px 8px; font-size:0.9rem; font-weight:600; }
+        .qty-input:focus { border-color:#6366f1; outline:none; box-shadow:0 0 0 3px rgba(99,102,241,0.12); }
+        .total-bar { background:#eef2ff; border-radius:10px; padding:14px 18px; display:flex; justify-content:space-between; align-items:center; margin-top:16px; }
+        .total-label { font-weight:700; color:#1e1b4b; }
+        .total-value { font-size:1.3rem; font-weight:800; color:#4f46e5; }
+        .success-box { background:#f0fdf4; border:1px solid #bbf7d0; border-radius:12px; padding:24px; text-align:center; margin-bottom:20px; }
+
+        /* ── Footer ── */
+        .inv-footer {
+            text-align: center; padding: 24px 0 8px;
+            color: #94a3b8; font-size: 0.73rem;
+        }
+        .inv-footer strong { color: #6366f1; }
+
+        @media (max-width: 600px) {
+            .event-title { font-size: 1.45rem; }
+            .hero-content { padding: 28px 18px 28px; }
+            .section-card { padding: 18px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ══ HERO ══ -->
+<div class="hero">
+    <div class="hero-bg"
+         th:if="${invitation.bannerImage != null}"
+         th:style="'background-image:url(/invitations/' + ${invitation.id} + '/banner)'"></div>
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+
+        <div class="org-row">
+            <img th:if="${invitation.organization != null and invitation.organization.logoData != null}"
+                 th:src="@{/organization/{id}/logo(id=${invitation.organization.id})}"
+                 class="org-logo" alt="Logo">
+            <div th:unless="${invitation.organization != null and invitation.organization.logoData != null}"
+                 class="org-logo-placeholder">
+                <i class="bi bi-building text-white" style="font-size:1.2rem;opacity:0.7;"></i>
+            </div>
+            <div>
+                <div class="org-name"
+                     th:text="${invitation.organization != null ? invitation.organization.name : 'United Digambar Jain Community'}"></div>
+                <div class="org-sub"
+                     th:text="${invitation.organization != null ? invitation.organization.trustType : ''}"></div>
+            </div>
+        </div>
+
+        <div th:if="${invitation.eventTag != null and !invitation.eventTag.isEmpty()}"
+             class="event-tag" th:text="${invitation.eventTag}"></div>
+
+        <div class="event-title" th:text="${invitation.eventTitle}"></div>
+
+        <div class="event-meta">
+            <div class="meta-chip" th:if="${invitation.eventDate != null}">
+                <i class="bi bi-calendar3"></i>
+                <span th:text="${#temporals.format(invitation.eventDate, 'EEEE, dd MMMM yyyy')}"></span>
+            </div>
+            <div class="meta-chip" th:if="${invitation.address != null and !invitation.address.isEmpty()}">
+                <i class="bi bi-geo-alt"></i>
+                <span th:text="${invitation.address + (invitation.postcode != null and !invitation.postcode.isEmpty() ? ', ' + invitation.postcode : '')}"></span>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- ══ BODY ══ -->
+<div class="page-body">
+
+    <!-- Activities Schedule -->
+    <div class="section-card"
+         th:if="${invitation.activities != null and !#lists.isEmpty(invitation.activities)}">
+        <div class="section-title"><i class="bi bi-clock"></i>Programme Schedule</div>
+        <div th:each="act : ${invitation.activities}" class="schedule-row">
+            <div class="schedule-time">
+                <span th:if="${act.startTime != null}" th:text="${act.startTime}">—</span>
+                <span class="time-range"
+                      th:if="${act.endTime != null}" th:text="'until ' + ${act.endTime}"></span>
+            </div>
+            <div>
+                <div class="schedule-name" th:text="${act.activityName}"></div>
+                <div class="schedule-desc"
+                     th:if="${act.description != null and !act.description.isEmpty()}"
+                     th:text="${act.description}"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Venue -->
+    <div class="section-card"
+         th:if="${(invitation.address != null and !invitation.address.isEmpty()) or invitation.eventDate != null}">
+        <div class="section-title"><i class="bi bi-geo-alt"></i>Venue &amp; Date</div>
+        <div class="row g-3">
+            <div class="col-sm-6" th:if="${invitation.eventDate != null}">
+                <div class="text-muted small mb-1">Date</div>
+                <div class="fw-semibold" th:text="${#temporals.format(invitation.eventDate, 'EEEE, dd MMMM yyyy')}"></div>
+            </div>
+            <div class="col-sm-6"
+                 th:if="${invitation.address != null and !invitation.address.isEmpty()}">
+                <div class="text-muted small mb-1">Address</div>
+                <div class="fw-medium" style="white-space:pre-line;"
+                     th:text="${invitation.address}"></div>
+                <div th:if="${invitation.postcode != null and !invitation.postcode.isEmpty()}"
+                     class="text-muted small mt-1"
+                     th:text="${invitation.postcode}"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- About -->
+    <div class="section-card"
+         th:if="${invitation.aboutEvent != null and !invitation.aboutEvent.isEmpty()}">
+        <div class="section-title"><i class="bi bi-info-circle"></i>About the Event</div>
+        <div class="about-text" th:text="${invitation.aboutEvent}"></div>
+    </div>
+
+    <!-- Registration Success -->
+    <div class="success-box" th:if="${registered}">
+        <div style="font-size:2.5rem;">🎉</div>
+        <h5 class="mt-2 fw-bold" style="color:#166534;">Registration Confirmed!</h5>
+        <p class="text-muted mb-0">Thank you for registering. We look forward to seeing you at the event.</p>
+    </div>
+
+    <!-- Registration Form -->
+    <div class="reg-card" th:if="${!registered}" id="registerSection">
+        <div class="reg-title"><i class="bi bi-person-plus"></i>Register for this Event</div>
+
+        <form th:action="@{/e/{slug}/register(slug=${invitation.slug})}"
+              th:object="${registration}" method="post">
+
+            <!-- Personal details -->
+            <div class="row g-3 mb-3">
+                <div class="col-sm-6">
+                    <label class="form-label fw-medium">First Name <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" th:field="*{firstName}"
+                           th:classappend="${#fields.hasErrors('firstName')} ? ' is-invalid'"
+                           placeholder="First name">
+                    <div class="invalid-feedback" th:errors="*{firstName}"></div>
+                </div>
+                <div class="col-sm-6">
+                    <label class="form-label fw-medium">Last Name <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" th:field="*{lastName}"
+                           th:classappend="${#fields.hasErrors('lastName')} ? ' is-invalid'"
+                           placeholder="Last name">
+                    <div class="invalid-feedback" th:errors="*{lastName}"></div>
+                </div>
+                <div class="col-sm-4">
+                    <label class="form-label fw-medium">Age</label>
+                    <input type="number" class="form-control" th:field="*{age}" min="1" max="120" placeholder="Age">
+                </div>
+                <div class="col-sm-4">
+                    <label class="form-label fw-medium">Sex</label>
+                    <select class="form-select" th:field="*{sex}">
+                        <option value="">— Select —</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                        <option value="Prefer not to say">Prefer not to say</option>
+                    </select>
+                </div>
+                <div class="col-sm-4">
+                    <label class="form-label fw-medium">Phone</label>
+                    <input type="tel" class="form-control" th:field="*{phone}" placeholder="+44 7700 000000">
+                </div>
+                <div class="col-12">
+                    <label class="form-label fw-medium">Email</label>
+                    <input type="email" class="form-control" th:field="*{email}"
+                           th:classappend="${#fields.hasErrors('email')} ? ' is-invalid'"
+                           placeholder="your@email.com">
+                    <div class="invalid-feedback" th:errors="*{email}"></div>
+                </div>
+            </div>
+
+            <!-- Attendees -->
+            <div class="mb-3">
+                <label class="form-label fw-medium">Number of Attendees</label>
+                <div style="border:1px solid #e0e7ff;border-radius:10px;overflow:hidden;">
+
+                    <div class="attendee-row px-3">
+                        <div>
+                            <div class="attendee-label">Adult (18+)</div>
+                            <div class="attendee-price"
+                                 th:text="${invitation.ticketPriceAdult != null and invitation.ticketPriceAdult > 0} ? '£' + ${#numbers.formatDecimal(invitation.ticketPriceAdult,1,2)} + ' per person' : 'Free'"></div>
+                        </div>
+                        <div class="d-flex align-items-center gap-3">
+                            <input type="number" class="qty-input" th:field="*{attendeesAdult}"
+                                   id="qtyAdult" min="0" value="0" oninput="calcTotal()">
+                            <span class="attendee-subtotal" id="subAdult">£0.00</span>
+                        </div>
+                    </div>
+
+                    <div class="attendee-row px-3">
+                        <div>
+                            <div class="attendee-label">Youth (8–18)</div>
+                            <div class="attendee-price"
+                                 th:text="${invitation.ticketPriceYouth != null and invitation.ticketPriceYouth > 0} ? '£' + ${#numbers.formatDecimal(invitation.ticketPriceYouth,1,2)} + ' per person' : 'Free'"></div>
+                        </div>
+                        <div class="d-flex align-items-center gap-3">
+                            <input type="number" class="qty-input" th:field="*{attendeesYouth}"
+                                   id="qtyYouth" min="0" value="0" oninput="calcTotal()">
+                            <span class="attendee-subtotal" id="subYouth">£0.00</span>
+                        </div>
+                    </div>
+
+                    <div class="attendee-row px-3">
+                        <div>
+                            <div class="attendee-label">Under 8</div>
+                            <div class="attendee-price"
+                                 th:text="${invitation.ticketPriceUnder8 != null and invitation.ticketPriceUnder8 > 0} ? '£' + ${#numbers.formatDecimal(invitation.ticketPriceUnder8,1,2)} + ' per person' : 'Free'"></div>
+                        </div>
+                        <div class="d-flex align-items-center gap-3">
+                            <input type="number" class="qty-input" th:field="*{attendeesUnder8}"
+                                   id="qtyUnder8" min="0" value="0" oninput="calcTotal()">
+                            <span class="attendee-subtotal" id="subUnder8">£0.00</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Donation -->
+            <div class="mb-3">
+                <label class="form-label fw-medium">
+                    <i class="bi bi-heart me-1 text-danger"></i>Additional Donation (optional) £
+                </label>
+                <input type="number" class="form-control" th:field="*{donationAmount}"
+                       id="donationAmount" min="0" step="0.01" placeholder="0.00"
+                       style="max-width:180px;" oninput="calcTotal()">
+            </div>
+
+            <!-- Hidden prices for JS -->
+            <input type="hidden" id="priceAdult"
+                   th:value="${invitation.ticketPriceAdult != null ? invitation.ticketPriceAdult : 0}">
+            <input type="hidden" id="priceYouth"
+                   th:value="${invitation.ticketPriceYouth != null ? invitation.ticketPriceYouth : 0}">
+            <input type="hidden" id="priceUnder8"
+                   th:value="${invitation.ticketPriceUnder8 != null ? invitation.ticketPriceUnder8 : 0}">
+
+            <!-- Total -->
+            <div class="total-bar mb-3">
+                <span class="total-label">Total Amount</span>
+                <span class="total-value" id="totalDisplay">£0.00</span>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg w-100"
+                    style="background:#4f46e5;border:none;border-radius:10px;font-weight:700;">
+                <i class="bi bi-check-circle me-2"></i>Register Now
+            </button>
+
+        </form>
+    </div>
+
+    <div class="inv-footer">
+        Invitation by <strong th:text="${invitation.organization != null ? invitation.organization.name : 'United Digambar Jain Community'}">United Digambar Jain Community</strong>
+    </div>
+
+</div>
+
+<!-- ══ SHARE BAR ══ -->
+<div class="share-bar">
+    <span class="share-label">Share this invitation:</span>
+    <span class="share-url" id="shareUrl"></span>
+    <button class="btn-copy" id="copyBtn" onclick="copyLink()">
+        <i class="bi bi-clipboard"></i> Copy Link
+    </button>
+    <a id="waBtn" href="#" target="_blank" rel="noopener"
+       style="background:#25d366;color:#fff;border:none;border-radius:8px;padding:7px 14px;
+              font-size:0.82rem;font-weight:600;text-decoration:none;display:flex;align-items:center;gap:6px;">
+        <i class="bi bi-whatsapp"></i> WhatsApp
+    </a>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+(function() {
+    var url = window.location.href;
+    document.getElementById('shareUrl').textContent = url;
+    document.getElementById('waBtn').href =
+        'https://wa.me/?text=' + encodeURIComponent(
+            'You are invited to: ' + document.title.replace(' — Invitation','') +
+            '\n\n' + url
+        );
+})();
+
+function calcTotal() {
+    var pA = parseFloat(document.getElementById('priceAdult').value)  || 0;
+    var pY = parseFloat(document.getElementById('priceYouth').value)  || 0;
+    var pU = parseFloat(document.getElementById('priceUnder8').value) || 0;
+    var qA = parseInt(document.getElementById('qtyAdult').value)   || 0;
+    var qY = parseInt(document.getElementById('qtyYouth').value)   || 0;
+    var qU = parseInt(document.getElementById('qtyUnder8').value)  || 0;
+    var don = parseFloat(document.getElementById('donationAmount').value) || 0;
+    document.getElementById('subAdult').textContent  = '£' + (pA * qA).toFixed(2);
+    document.getElementById('subYouth').textContent  = '£' + (pY * qY).toFixed(2);
+    document.getElementById('subUnder8').textContent = '£' + (pU * qU).toFixed(2);
+    document.getElementById('totalDisplay').textContent = '£' + (pA*qA + pY*qY + pU*qU + don).toFixed(2);
+}
+
+function copyLink() {
+    var url = window.location.href;
+    var btn = document.getElementById('copyBtn');
+    navigator.clipboard.writeText(url).then(function() {
+        btn.innerHTML = '<i class="bi bi-check-lg"></i> Copied!';
+        btn.classList.add('copied');
+        setTimeout(function() {
+            btn.innerHTML = '<i class="bi bi-clipboard"></i> Copy Link';
+            btn.classList.remove('copied');
+        }, 2500);
+    }).catch(function() {
+        var ta = document.createElement('textarea');
+        ta.value = url; ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        btn.innerHTML = '<i class="bi bi-check-lg"></i> Copied!';
+        btn.classList.add('copied');
+        setTimeout(function() {
+            btn.innerHTML = '<i class="bi bi-clipboard"></i> Copy Link';
+            btn.classList.remove('copied');
+        }, 2500);
+    });
+}
+</script>
+</body>
+</html>

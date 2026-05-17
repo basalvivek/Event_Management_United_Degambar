@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head><title>Food Registration</title></head>
+<body>
+<th:block layout:fragment="page-title"
+          th:text="${item.id == null ? 'Add Food Registration' : 'Edit Food Registration'}">Food Registration</th:block>
+<div layout:fragment="content">
+<style>
+.fd-card{border-radius:16px;border:0;box-shadow:0 6px 32px rgba(0,0,0,0.08);}
+.fd-card .card-header{border-radius:16px 16px 0 0;padding:22px 30px;border-bottom:1px solid #fde68a;background:linear-gradient(135deg,#fff9eb,#fff);}
+.sc{border-radius:12px;border:1.5px solid #e0e7ff;background:#fafbff;padding:20px 24px;margin-bottom:1.25rem;}
+.sc-warm{border-color:#fde68a;background:#fffdf5;}
+.sc-green{border-color:#bbf7d0;background:#f0fdf4;}
+.sc-purple{border-color:#e9d5ff;background:#faf5ff;}
+.sc-slate{border-color:#e2e8f0;background:#f8fafc;}
+.section-title{font-size:.7rem;font-weight:800;letter-spacing:1.1px;text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.st-indigo{color:#4f46e5;}
+.st-amber{color:#d97706;}
+.st-green{color:#059669;}
+.st-purple{color:#7c3aed;}
+.st-slate{color:#475569;}
+.form-label{font-size:.82rem;font-weight:600;color:#374151;margin-bottom:5px;}
+.form-control,.form-select{border-radius:9px;border:1.5px solid #e5e7eb;font-size:.86rem;padding:9px 13px;transition:border-color .18s,box-shadow .18s;}
+.form-control:focus,.form-select:focus{border-color:#f59e0b;box-shadow:0 0 0 3px rgba(245,158,11,.12);outline:none;}
+/* Food item rows */
+.food-item-row{background:#fff;border:1.5px solid #e5e7eb;border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:8px;margin-bottom:8px;transition:border-color .15s,box-shadow .15s;}
+.food-item-row:hover{border-color:#fcd34d;box-shadow:0 2px 8px rgba(245,158,11,.1);}
+.food-item-header{display:flex;font-size:.62rem;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:#9ca3af;margin-bottom:4px;padding:0 14px 0 42px;gap:8px;}
+/* Member card */
+.member-card{background:#fff;border:1.5px solid #e9d5ff;border-radius:10px;padding:14px 16px;transition:border-color .15s,box-shadow .15s;}
+.member-card:hover{border-color:#c4b5fd;box-shadow:0 2px 10px rgba(139,92,246,.1);}
+.member-avatar{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#8b5cf6,#6366f1);display:flex;align-items:center;justify-content:center;color:#fff;font-size:.78rem;font-weight:800;flex-shrink:0;}
+/* Star rating display */
+.stars{color:#f59e0b;font-size:.82rem;letter-spacing:1px;}
+/* Status chips */
+.fs-OPEN{background:#e0f2fe;color:#0c4a6e;}
+.fs-INPROGRESS{background:#dbeafe;color:#1e40af;}
+.fs-HOLD{background:#fef3c7;color:#92400e;}
+.fs-REJECTED{background:#fee2e2;color:#991b1b;}
+.fs-ACCEPTED{background:#dcfce7;color:#166534;}
+.st-chip{display:inline-flex;align-items:center;border-radius:20px;padding:4px 14px;font-size:.72rem;font-weight:700;}
+/* Financial tiles */
+.fin-tile{border-radius:10px;padding:14px 16px;text-align:center;}
+.fin-label{font-size:.63rem;font-weight:700;text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px;}
+.fin-val{font-family:monospace;font-weight:800;font-size:1rem;}
+/* Overall rating bar */
+.rating-bar-wrap{background:#fef3c7;border:1.5px solid #fde68a;border-radius:10px;padding:14px 18px;}
+/* Add food btn */
+.add-food-btn{border-radius:20px;border:1.5px dashed #fcd34d;background:#fffdf5;color:#d97706;font-size:.8rem;font-weight:600;padding:7px 18px;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:6px;}
+.add-food-btn:hover{background:#fef3c7;border-color:#f59e0b;color:#b45309;}
+.req-star{color:#ef4444;}
+</style>
+
+<div style="max-width:860px;">
+<div class="card fd-card">
+
+    <!-- Header -->
+    <div class="card-header d-flex align-items-center gap-3">
+        <div style="width:50px;height:50px;border-radius:14px;background:linear-gradient(135deg,#f59e0b,#ef4444);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 6px 16px rgba(245,158,11,.35);">
+            <i class="bi bi-cup-hot-fill text-white" style="font-size:1.3rem;"></i>
+        </div>
+        <div>
+            <div class="fw-bold" style="color:#1e1b4b;font-size:1.05rem;" th:text="${item.id == null ? 'Add Food Registration' : 'Edit Food Registration'}"></div>
+            <div class="text-muted" style="font-size:.75rem;">Manage vendor selection, tasting panel ratings and payment tracking</div>
+        </div>
+        <div th:if="${item.id != null}" class="ms-auto d-flex flex-wrap gap-2 justify-content-end">
+            <span th:class="'st-chip fs-' + ${item.foodSelectionStatus}" th:text="${item.foodSelectionStatus}"></span>
+            <span th:if="${item.paymentStatus == 'Completed'}" class="st-chip" style="background:#dcfce7;color:#166534;"><i class="bi bi-check-circle-fill me-1"></i>Fully Paid</span>
+            <span th:unless="${item.paymentStatus == 'Completed'}" class="st-chip" style="background:#fef3c7;color:#92400e;"><i class="bi bi-hourglass-split me-1"></i>Payment Pending</span>
+        </div>
+    </div>
+
+    <div class="card-body p-4">
+    <form th:action="${item.id == null ? '/food-registrations' : '/food-registrations/' + item.id}"
+          th:object="${item}" method="post">
+
+        <!-- ① Vendor Details -->
+        <div class="sc sc-warm">
+            <div class="section-title st-amber"><i class="bi bi-shop-window"></i>Vendor Details</div>
+            <div class="row g-3">
+                <div class="col-md-7">
+                    <label class="form-label">Vendor / Catering Company <span class="req-star">*</span></label>
+                    <input type="text" class="form-control" th:field="*{vendorName}" placeholder="Company or individual name"
+                           th:classappend="${#fields.hasErrors('vendorName')} ? ' is-invalid'">
+                    <div class="invalid-feedback" th:errors="*{vendorName}"></div>
+                </div>
+                <div class="col-md-5">
+                    <label class="form-label">Postcode</label>
+                    <input type="text" class="form-control" th:field="*{postcode}" placeholder="LE1 1AA">
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Full Address</label>
+                    <input type="text" class="form-control" th:field="*{vendorAddress}" placeholder="Street, City">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Listed Price / Plate (£)</label>
+                    <div class="input-group">
+                        <span class="input-group-text" style="border-radius:9px 0 0 9px;border:1.5px solid #e5e7eb;border-right:0;background:#fef9ec;color:#d97706;font-weight:700;">£</span>
+                        <input type="number" class="form-control" th:field="*{pricePerPlate}" min="0" step="0.01" placeholder="0.00" style="border-radius:0 9px 9px 0;font-family:monospace;">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Expected Head Count</label>
+                    <input type="number" class="form-control" th:field="*{totalExpectedHeadCount}" min="1" placeholder="0" oninput="calcFull()">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Negotiated Price / Plate (£)</label>
+                    <div class="input-group">
+                        <span class="input-group-text" style="border-radius:9px 0 0 9px;border:1.5px solid #e5e7eb;border-right:0;background:#f0fdf4;color:#059669;font-weight:700;">£</span>
+                        <input type="number" class="form-control" th:field="*{negotiatedPricePerPlate}" min="0" step="0.01" placeholder="0.00" style="border-radius:0 9px 9px 0;font-family:monospace;">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ② Food Items -->
+        <div class="sc">
+            <div class="section-title st-indigo"><i class="bi bi-list-ul"></i>Food Items</div>
+            <!-- Column headers -->
+            <div class="food-item-header">
+                <span style="flex:0 0 30px;"></span>
+                <span style="flex:0 0 140px;">Category</span>
+                <span style="flex:1;">Food Name</span>
+                <span style="flex:0 0 68px;">Qty</span>
+                <span style="flex:0 0 88px;">Rating</span>
+                <span style="flex:0 0 34px;"></span>
+            </div>
+            <div id="foodRows">
+                <div th:each="fi, s : ${item.foodItems}" class="food-item-row">
+                    <span class="badge rounded-pill flex-shrink-0" style="background:#eef2ff;color:#4f46e5;min-width:26px;text-align:center;" th:text="${s.count}"></span>
+                    <input type="text" name="foodCategory" class="form-control form-control-sm" placeholder="e.g. Starter" th:value="${fi.foodCategory}" style="border-radius:7px;max-width:140px;">
+                    <input type="text" name="foodName"     class="form-control form-control-sm flex-grow-1" placeholder="Food item name" th:value="${fi.foodName}" style="border-radius:7px;">
+                    <input type="number" name="foodQty"    class="form-control form-control-sm" placeholder="Qty" th:value="${fi.quantity}" min="0" style="border-radius:7px;max-width:68px;">
+                    <select name="foodRating" class="form-select form-select-sm" style="border-radius:7px;max-width:88px;">
+                        <option value="">—</option>
+                        <option th:each="n : ${#numbers.sequence(1,5)}" th:value="${n}" th:text="${n} + ' ★'" th:selected="${fi.rating == n}"></option>
+                    </select>
+                    <button type="button" class="btn btn-sm btn-outline-danger flex-shrink-0 px-2" style="border-radius:7px;" onclick="removeFoodRow(this)"><i class="bi bi-x-lg"></i></button>
+                </div>
+            </div>
+            <button type="button" class="add-food-btn mt-2" onclick="addFoodRow()">
+                <i class="bi bi-plus-lg"></i>Add Food Item
+            </button>
+        </div>
+
+        <!-- ③ Tasting Panel -->
+        <div class="sc sc-purple">
+            <div class="section-title st-purple"><i class="bi bi-people-fill"></i>Tasting Panel &amp; Ratings</div>
+            <div class="row g-3">
+                <!-- Member 1 -->
+                <div class="col-md-6">
+                    <div class="member-card">
+                        <div class="d-flex align-items-center gap-3 mb-2">
+                            <div class="member-avatar">M1</div>
+                            <div class="fw-semibold" style="font-size:.82rem;color:#6d28d9;">Panel Member 1</div>
+                        </div>
+                        <input type="text" name="member1Name" class="form-control form-control-sm mb-2" placeholder="Full name" th:value="${item.member1Name}" style="border-radius:7px;">
+                        <div class="d-flex align-items-center gap-2">
+                            <span style="font-size:.75rem;color:#6b7280;font-weight:600;">Rating:</span>
+                            <select name="member1Rating" class="form-select form-select-sm" style="border-radius:7px;max-width:100px;">
+                                <option value="">—</option>
+                                <option th:each="r : ${#numbers.sequence(1,5)}" th:value="${r}" th:text="${r} + ' ★'" th:selected="${item.member1Rating != null and item.member1Rating == r}"></option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <!-- Member 2 -->
+                <div class="col-md-6">
+                    <div class="member-card">
+                        <div class="d-flex align-items-center gap-3 mb-2">
+                            <div class="member-avatar">M2</div>
+                            <div class="fw-semibold" style="font-size:.82rem;color:#6d28d9;">Panel Member 2</div>
+                        </div>
+                        <input type="text" name="member2Name" class="form-control form-control-sm mb-2" placeholder="Full name" th:value="${item.member2Name}" style="border-radius:7px;">
+                        <div class="d-flex align-items-center gap-2">
+                            <span style="font-size:.75rem;color:#6b7280;font-weight:600;">Rating:</span>
+                            <select name="member2Rating" class="form-select form-select-sm" style="border-radius:7px;max-width:100px;">
+                                <option value="">—</option>
+                                <option th:each="r : ${#numbers.sequence(1,5)}" th:value="${r}" th:text="${r} + ' ★'" th:selected="${item.member2Rating != null and item.member2Rating == r}"></option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <!-- Member 3 -->
+                <div class="col-md-6">
+                    <div class="member-card">
+                        <div class="d-flex align-items-center gap-3 mb-2">
+                            <div class="member-avatar">M3</div>
+                            <div class="fw-semibold" style="font-size:.82rem;color:#6d28d9;">Panel Member 3</div>
+                        </div>
+                        <input type="text" name="member3Name" class="form-control form-control-sm mb-2" placeholder="Full name" th:value="${item.member3Name}" style="border-radius:7px;">
+                        <div class="d-flex align-items-center gap-2">
+                            <span style="font-size:.75rem;color:#6b7280;font-weight:600;">Rating:</span>
+                            <select name="member3Rating" class="form-select form-select-sm" style="border-radius:7px;max-width:100px;">
+                                <option value="">—</option>
+                                <option th:each="r : ${#numbers.sequence(1,5)}" th:value="${r}" th:text="${r} + ' ★'" th:selected="${item.member3Rating != null and item.member3Rating == r}"></option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <!-- Member 4 -->
+                <div class="col-md-6">
+                    <div class="member-card">
+                        <div class="d-flex align-items-center gap-3 mb-2">
+                            <div class="member-avatar">M4</div>
+                            <div class="fw-semibold" style="font-size:.82rem;color:#6d28d9;">Panel Member 4</div>
+                        </div>
+                        <input type="text" name="member4Name" class="form-control form-control-sm mb-2" placeholder="Full name" th:value="${item.member4Name}" style="border-radius:7px;">
+                        <div class="d-flex align-items-center gap-2">
+                            <span style="font-size:.75rem;color:#6b7280;font-weight:600;">Rating:</span>
+                            <select name="member4Rating" class="form-select form-select-sm" style="border-radius:7px;max-width:100px;">
+                                <option value="">—</option>
+                                <option th:each="r : ${#numbers.sequence(1,5)}" th:value="${r}" th:text="${r} + ' ★'" th:selected="${item.member4Rating != null and item.member4Rating == r}"></option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Overall rating -->
+            <div th:if="${item.overallFoodRating != null}" class="rating-bar-wrap mt-3 d-flex align-items-center gap-3 flex-wrap">
+                <div>
+                    <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;color:#92400e;letter-spacing:.6px;">Overall Panel Rating</div>
+                    <div style="font-size:1.4rem;font-weight:800;color:#f59e0b;line-height:1;">
+                        ★ <span th:text="${item.overallFoodRating}"></span><span style="font-size:.8rem;color:#d97706;"> / 5</span>
+                    </div>
+                </div>
+                <div th:if="${item.foodSelectionStatus == 'REJECTED'}" class="badge d-flex align-items-center gap-1" style="background:#fee2e2;color:#991b1b;font-size:.75rem;padding:6px 12px;border-radius:10px;">
+                    <i class="bi bi-exclamation-triangle-fill"></i>Auto-Rejected — 3 or more members rated ≤ 2/5
+                </div>
+            </div>
+        </div>
+
+        <!-- ④ Financial Summary -->
+        <div class="sc">
+            <div class="section-title st-indigo"><i class="bi bi-currency-pound"></i>Financial Summary</div>
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Final Price / Plate (£)</label>
+                    <div class="input-group">
+                        <span class="input-group-text" style="border-radius:9px 0 0 9px;border:1.5px solid #e5e7eb;border-right:0;background:#f8f7ff;color:#4f46e5;font-weight:700;">£</span>
+                        <input type="number" class="form-control" th:field="*{finalPricePerPlate}" id="finalPriceInput" min="0" step="0.01" placeholder="0.00" oninput="calcFull()" style="border-radius:0 9px 9px 0;font-family:monospace;">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Full Amount (£)</label>
+                    <div class="input-group">
+                        <span class="input-group-text" style="border-radius:9px 0 0 9px;border:1.5px solid #e5e7eb;border-right:0;background:#f8f7ff;color:#1e1b4b;font-weight:700;">£</span>
+                        <input type="number" class="form-control" th:field="*{fullAmount}" id="fullAmtInput" min="0" step="0.01" placeholder="0.00" oninput="calcBalance()" style="border-radius:0 9px 9px 0;font-family:monospace;">
+                    </div>
+                    <div class="form-text" style="font-size:.7rem;">Auto = heads × final price</div>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Initial Deposit (£)</label>
+                    <div class="input-group">
+                        <span class="input-group-text" style="border-radius:9px 0 0 9px;border:1.5px solid #e5e7eb;border-right:0;background:#f0fdf4;color:#059669;font-weight:700;">£</span>
+                        <input type="number" class="form-control" th:field="*{depositAmount}" id="depositInput" min="0" step="0.01" placeholder="0.00" oninput="calcBalance()" style="border-radius:0 9px 9px 0;font-family:monospace;">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Balance Due (£)</label>
+                    <div id="balanceDisplay" style="border-radius:9px;border:1.5px solid #fecaca;background:#fef2f2;padding:9px 13px;font-family:monospace;font-weight:800;color:#991b1b;min-height:42px;">£0.00</div>
+                </div>
+                <!-- Edit-mode payment summary tiles -->
+                <div th:if="${item.id != null}" class="col-12">
+                    <div class="row g-2">
+                        <div class="col-4">
+                            <div class="fin-tile" style="background:#f0fdf4;border:1.5px solid #bbf7d0;">
+                                <div class="fin-label" style="color:#059669;">Total Paid</div>
+                                <div class="fin-val" style="color:#166534;" th:text="${totalPaid != null ? '£' + #numbers.formatDecimal(totalPaid,1,2) : '£0.00'}"></div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="fin-tile" style="background:#fef2f2;border:1.5px solid #fecaca;">
+                                <div class="fin-label" style="color:#dc2626;">Remaining</div>
+                                <div class="fin-val" style="color:#991b1b;" th:text="${balance != null ? '£' + #numbers.formatDecimal(balance,1,2) : '—'}"></div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="fin-tile" style="background:#f8f7ff;border:1.5px solid #e0e7ff;">
+                                <div class="fin-label" style="color:#4f46e5;">Payment Status</div>
+                                <div class="fin-val" style="font-size:.88rem;">
+                                    <span th:if="${item.paymentStatus == 'Completed'}" style="color:#166534;"><i class="bi bi-check-circle-fill me-1"></i>Completed</span>
+                                    <span th:unless="${item.paymentStatus == 'Completed'}" style="color:#92400e;"><i class="bi bi-hourglass-split me-1"></i>In Progress</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ⑤ Selection Status & Notes -->
+        <div class="sc sc-slate">
+            <div class="section-title st-slate"><i class="bi bi-clipboard-check"></i>Selection Status &amp; Notes</div>
+            <div class="row g-3">
+                <div class="col-md-5">
+                    <label class="form-label">Food Selection Status</label>
+                    <select class="form-select" th:field="*{foodSelectionStatus}" style="font-weight:600;">
+                        <option value="OPEN">OPEN</option>
+                        <option value="INPROGRESS">INPROGRESS</option>
+                        <option value="HOLD">HOLD</option>
+                        <option value="REJECTED">REJECTED</option>
+                        <option value="ACCEPTED">ACCEPTED</option>
+                    </select>
+                    <div class="form-text" style="font-size:.72rem;color:#6b7280;">Auto-set to REJECTED if 3+ members rate ≤ 2 / 5</div>
+                </div>
+                <div class="col-md-7">
+                    <label class="form-label">Notes</label>
+                    <textarea class="form-control" th:field="*{notes}" rows="3"
+                              placeholder="Observations about food quality, vendor behaviour, special requirements…"
+                              style="border-radius:9px;resize:none;"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- ⑥ Vendor Bank Details -->
+        <div class="sc sc-green">
+            <div class="section-title st-green"><i class="bi bi-bank2"></i>Vendor Bank Details</div>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Payable Name</label>
+                    <input type="text" class="form-control" th:field="*{vendorPayableName}" placeholder="Account holder / company name">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Sort Code</label>
+                    <input type="text" class="form-control" th:field="*{sortCode}" placeholder="12-34-56">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Account Number</label>
+                    <input type="text" class="form-control" th:field="*{accountNumber}" placeholder="12345678">
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="d-flex gap-2 mb-4">
+            <button type="submit" class="btn px-5" style="border-radius:10px;background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;border:0;font-weight:600;box-shadow:0 4px 14px rgba(245,158,11,.35);">
+                <i class="bi bi-check-lg me-1"></i>Save Registration
+            </button>
+            <a th:href="@{/food-registrations}" class="btn btn-outline-secondary px-4" style="border-radius:10px;">Cancel</a>
+        </div>
+
+    </form>
+
+    <!-- ⑦ Partial Payments (edit only) -->
+    <div th:if="${item.id != null}" class="mt-2" style="border:1.5px solid #d1fae5;border-radius:14px;padding:22px 24px;background:#fafffe;">
+        <div style="font-size:.7rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#059669;margin-bottom:16px;display:flex;align-items:center;gap:8px;">
+            <i class="bi bi-cash-coin fs-6"></i>Partial Payments
+        </div>
+
+        <div th:if="${instalments != null and not #lists.isEmpty(instalments)}" class="mb-3">
+            <table class="table table-sm mb-0" style="font-size:.8rem;border-radius:8px;overflow:hidden;">
+                <thead style="background:#ecfdf5;">
+                    <tr>
+                        <th style="font-size:.68rem;font-weight:700;text-transform:uppercase;color:#059669;padding:8px 12px;">#</th>
+                        <th style="font-size:.68rem;font-weight:700;text-transform:uppercase;color:#059669;padding:8px 12px;">Date</th>
+                        <th style="font-size:.68rem;font-weight:700;text-transform:uppercase;color:#059669;padding:8px 12px;">Mode</th>
+                        <th style="font-size:.68rem;font-weight:700;text-transform:uppercase;color:#059669;padding:8px 12px;">Notes</th>
+                        <th style="font-size:.68rem;font-weight:700;text-transform:uppercase;color:#059669;padding:8px 12px;text-align:right;">Amount</th>
+                        <th style="padding:8px 12px;"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="ins, s : ${instalments}" style="border-color:#d1fae5;">
+                        <td style="padding:8px 12px;color:#64748b;" th:text="${s.count}"></td>
+                        <td style="padding:8px 12px;font-weight:600;color:#1e1b4b;" th:text="${#temporals.format(ins.paymentDate,'dd MMM yyyy')}"></td>
+                        <td style="padding:8px 12px;"><span style="background:#f1f5f9;border-radius:6px;padding:2px 9px;font-size:.72rem;font-weight:600;" th:text="${ins.paymentMode}"></span></td>
+                        <td style="padding:8px 12px;color:#64748b;" th:text="${ins.notes != null ? ins.notes : '—'}"></td>
+                        <td style="padding:8px 12px;text-align:right;font-family:monospace;font-weight:700;color:#166534;" th:text="${'£' + #numbers.formatDecimal(ins.amount,1,2)}"></td>
+                        <td style="padding:8px 12px;">
+                            <form th:action="@{/food-registrations/instalments/{id}/delete(id=${ins.id})}" method="post" class="d-inline" onsubmit="return confirm('Remove this payment?')">
+                                <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-1" style="border-radius:6px;"><i class="bi bi-trash-fill"></i></button>
+                            </form>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div th:unless="${instalments != null and not #lists.isEmpty(instalments)}"
+             class="text-center text-muted py-2 mb-3" style="font-size:.78rem;">
+            <i class="bi bi-clock-history me-1"></i>No partial payments recorded yet
+        </div>
+
+        <div style="background:#f0fdf4;border-radius:10px;border:1.5px solid #bbf7d0;padding:18px 22px;">
+            <div style="font-size:.7rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#059669;margin-bottom:14px;display:flex;align-items:center;gap:6px;">
+                <i class="bi bi-plus-circle-fill"></i>Add Payment
+            </div>
+            <form th:action="@{/food-registrations/{id}/pay(id=${item.id})}" method="post">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label" style="font-size:.8rem;font-weight:600;color:#374151;">Amount (£) <span style="color:#ef4444;">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text" style="background:#dcfce7;border:1.5px solid #bbf7d0;border-right:0;color:#166534;font-weight:700;border-radius:9px 0 0 9px;">£</span>
+                            <input type="number" name="amount" class="form-control" min="0.01" step="0.01" placeholder="0.00" required style="border:1.5px solid #bbf7d0;border-left:0;border-radius:0 9px 9px 0;font-family:monospace;">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" style="font-size:.8rem;font-weight:600;color:#374151;">Payment Date <span style="color:#ef4444;">*</span></label>
+                        <input type="date" name="paymentDate" class="form-control" required style="border:1.5px solid #bbf7d0;border-radius:9px;">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" style="font-size:.8rem;font-weight:600;color:#374151;">Payment Mode <span style="color:#ef4444;">*</span></label>
+                        <select name="paymentMode" class="form-select" required style="border:1.5px solid #bbf7d0;border-radius:9px;">
+                            <option value="">— Select Mode —</option>
+                            <option value="Cash">Cash</option>
+                            <option value="Bank Transfer">Bank Transfer</option>
+                            <option value="Cheque">Cheque</option>
+                            <option value="Online">Online</option>
+                            <option value="Card">Card</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" style="font-size:.8rem;font-weight:600;color:#374151;">Notes / Reference</label>
+                        <input type="text" name="notes" class="form-control" placeholder="Cheque no., bank ref…" style="border:1.5px solid #bbf7d0;border-radius:9px;">
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <button type="submit" class="btn btn-success px-5" style="border-radius:9px;font-weight:600;">
+                        <i class="bi bi-plus-lg me-1"></i>Add Payment
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    </div><!-- card-body -->
+</div><!-- card -->
+</div><!-- max-width -->
+</div>
+
+<th:block layout:fragment="page-scripts">
+<script>
+var rowCount = document.getElementById('foodRows').children.length;
+
+function addFoodRow() {
+    rowCount++;
+    var div = document.createElement('div');
+    div.className = 'food-item-row';
+    div.innerHTML =
+        '<span class="badge rounded-pill flex-shrink-0" style="background:#eef2ff;color:#4f46e5;min-width:26px;text-align:center;">' + rowCount + '</span>' +
+        '<input type="text" name="foodCategory" class="form-control form-control-sm" placeholder="e.g. Starter" style="border-radius:7px;max-width:140px;">' +
+        '<input type="text" name="foodName" class="form-control form-control-sm flex-grow-1" placeholder="Food item name" style="border-radius:7px;">' +
+        '<input type="number" name="foodQty" class="form-control form-control-sm" placeholder="Qty" min="0" style="border-radius:7px;max-width:68px;">' +
+        '<select name="foodRating" class="form-select form-select-sm" style="border-radius:7px;max-width:88px;">' +
+          '<option value="">—</option>' +
+          [1,2,3,4,5].map(function(n){return '<option value="'+n+'">'+n+' ★</option>';}).join('') +
+        '</select>' +
+        '<button type="button" class="btn btn-sm btn-outline-danger flex-shrink-0 px-2" style="border-radius:7px;" onclick="removeFoodRow(this)"><i class="bi bi-x-lg"></i></button>';
+    document.getElementById('foodRows').appendChild(div);
+    div.querySelector('input').focus();
+}
+
+function removeFoodRow(btn) {
+    btn.closest('.food-item-row').remove();
+    document.querySelectorAll('#foodRows .food-item-row').forEach(function(r, i) {
+        r.querySelector('.badge').textContent = i + 1;
+    });
+    rowCount = document.getElementById('foodRows').children.length;
+}
+
+function calcFull() {
+    var heads = parseFloat(document.querySelector('[name="totalExpectedHeadCount"]').value) || 0;
+    var price = parseFloat(document.getElementById('finalPriceInput').value) || 0;
+    if (heads > 0 && price > 0) document.getElementById('fullAmtInput').value = (heads * price).toFixed(2);
+    calcBalance();
+}
+
+function calcBalance() {
+    var full    = parseFloat(document.getElementById('fullAmtInput').value) || 0;
+    var deposit = parseFloat(document.getElementById('depositInput').value) || 0;
+    var bal = full - deposit;
+    var el = document.getElementById('balanceDisplay');
+    el.textContent = '£' + Math.abs(bal).toFixed(2) + (bal < 0 ? ' (over)' : '');
+    el.style.borderColor = bal < 0 ? '#fca5a5' : '#fecaca';
+    el.style.color = bal < 0 ? '#dc2626' : '#991b1b';
+}
+
+window.addEventListener('load', calcBalance);
+if (rowCount === 0) addFoodRow();
+</script>
+</th:block>
+</body>
+</html>

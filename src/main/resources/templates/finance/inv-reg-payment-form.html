@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head><title>Edit Invitation Payment</title></head>
+<body>
+<th:block layout:fragment="page-title">Edit Invitation Registration Payment</th:block>
+<div layout:fragment="content">
+<div class="card shadow-sm border-0" style="max-width:520px;">
+    <div class="card-header bg-white border-bottom d-flex align-items-center gap-2 py-3">
+        <i class="bi bi-envelope-paper-fill text-warning fs-5"></i>
+        <span class="fw-semibold">Edit Invitation Registration Payment</span>
+    </div>
+    <div class="card-body">
+
+        <!-- Read-only summary -->
+        <div class="bg-light rounded-3 p-3 mb-4" style="font-size:0.85rem;">
+            <div class="row g-2">
+                <div class="col-6"><span class="text-muted">Event:</span> <strong th:text="${item.invitation?.eventTitle}"></strong></div>
+                <div class="col-6"><span class="text-muted">Registrant:</span> <strong th:text="${item.firstName + ' ' + item.lastName}"></strong></div>
+                <div class="col-6"><span class="text-muted">Total:</span> <strong th:text="${item.totalAmount != null ? '£' + item.totalAmount : '£0.00'}"></strong></div>
+                <div class="col-6"><span class="text-muted">Email:</span> <span class="text-muted" th:text="${item.email}"></span></div>
+            </div>
+        </div>
+
+        <form th:action="@{/finance/inv-registrations/{id}(id=${item.id})}" method="post">
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label class="form-label fw-medium">Payment Mode</label>
+                    <select class="form-select" name="paymentMode">
+                        <option value="">— Select —</option>
+                        <option value="Cash"         th:selected="${item.paymentMode == 'Cash'}">Cash</option>
+                        <option value="Bank Transfer" th:selected="${item.paymentMode == 'Bank Transfer'}">Bank Transfer</option>
+                        <option value="Cheque"        th:selected="${item.paymentMode == 'Cheque'}">Cheque</option>
+                        <option value="Online"        th:selected="${item.paymentMode == 'Online'}">Online</option>
+                        <option value="Card"          th:selected="${item.paymentMode == 'Card'}">Card</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-medium">Payment Date</label>
+                    <input type="date" class="form-control" name="paymentDate"
+                           th:value="${item.paymentDate}">
+                </div>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary px-4"><i class="bi bi-check-lg me-1"></i>Save</button>
+                <a th:href="@{/finance}" class="btn btn-outline-secondary px-4">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+</div>
+</body>
+</html>

@@ -35,4 +35,8 @@ public class EventService {
     public List<Event> findByStatus(String status) {
         return repository.findByStatusOrderByEventNameAsc(status);
     }
+
+    public List<Event> findExcludingStatus(String status) {
+        return repository.findByStatusNotOrderByEventNameAsc(status);
+    }
 }

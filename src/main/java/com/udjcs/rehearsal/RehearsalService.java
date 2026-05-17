@@ -86,6 +86,18 @@ public class RehearsalService {
         }
     }
 
+    public Map<Long, List<Object[]>> memberDetailsByRehearsal(List<Rehearsal> rehearsals) {
+        List<Long> ids = rehearsals.stream().map(Rehearsal::getId).collect(Collectors.toList());
+        if (ids.isEmpty()) return new LinkedHashMap<>();
+        Map<Long, List<Object[]>> result = new LinkedHashMap<>();
+        rehearsals.forEach(r -> result.put(r.getId(), new java.util.ArrayList<>()));
+        memberRepository.findAllMembersForRehearsalIds(ids).forEach(row -> {
+            Long rid = (Long) row[0];
+            result.computeIfAbsent(rid, k -> new java.util.ArrayList<>()).add(row);
+        });
+        return result;
+    }
+
     public void deleteById(Long id) {
         repository.deleteById(id);
     }

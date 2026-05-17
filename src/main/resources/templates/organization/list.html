@@ -37,11 +37,11 @@
                 <tbody>
                     <tr th:each="item, stat : ${items}">
                         <td>
-                            <img th:if="${item.logoPath != null}"
-                                 th:src="${item.logoPath}"
+                            <img th:if="${item.logoData != null}"
+                                 th:src="@{/organization/{id}/logo(id=${item.id})}"
                                  alt="Logo"
                                  style="width:42px;height:42px;object-fit:contain;border-radius:6px;border:1px solid #e9ecef;background:#fff;padding:2px;">
-                            <div th:unless="${item.logoPath != null}"
+                            <div th:unless="${item.logoData != null}"
                                  style="width:42px;height:42px;border-radius:6px;background:#f1f3f5;border:1px solid #e9ecef;display:flex;align-items:center;justify-content:center;">
                                 <i class="bi bi-building text-muted"></i>
                             </div>

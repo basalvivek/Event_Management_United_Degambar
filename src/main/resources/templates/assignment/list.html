@@ -4,142 +4,137 @@
       layout:decorate="~{layout/base}">
 <head><title>Assign Activities</title></head>
 <body>
-
 <th:block layout:fragment="page-title">Assign Activities</th:block>
-
 <div layout:fragment="content">
+<style>
+.as-table th{font-size:.7rem;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:#6366f1;padding:11px 14px;background:#f8f7ff;border-bottom:2px solid #e0e7ff;}
+.as-table td{padding:12px 14px;vertical-align:middle;border-color:#f1f5f9;}
+.as-row{cursor:pointer;transition:background .1s;}
+.as-row:hover{background:#fafafe;}
+.as-row.has-lead{border-left:3px solid #6366f1;}
+.as-row.no-lead{border-left:3px solid #f59e0b;}
+.cat-badge{display:inline-flex;align-items:center;gap:4px;border-radius:20px;padding:2px 10px;font-size:.7rem;font-weight:700;background:#eef2ff;color:#4f46e5;}
+.member-count{display:inline-flex;align-items:center;gap:5px;border-radius:20px;padding:3px 12px;font-size:.72rem;font-weight:700;background:#dbeafe;color:#1e40af;}
+.role-lead{display:inline-flex;align-items:center;border-radius:20px;padding:2px 10px;font-size:.68rem;font-weight:700;background:#fef3c7;color:#92400e;}
+.role-member{display:inline-flex;align-items:center;border-radius:20px;padding:2px 10px;font-size:.68rem;font-weight:700;background:#f1f5f9;color:#475569;}
+.ms-st-In-Progress{background:#dbeafe;color:#1e40af;}
+.ms-st-Completed{background:#dcfce7;color:#166534;}
+.ms-st-Dropped{background:#fee2e2;color:#991b1b;}
+.ms-st-Pending{background:#ede9fe;color:#5b21b6;}
+.ms-tag{display:inline-flex;align-items:center;border-radius:20px;padding:2px 10px;font-size:.68rem;font-weight:700;}
+.inner-table th{font-size:.68rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:#6366f1;padding:7px 10px;background:#eef2ff;border-bottom:2px solid #c7d2fe;}
+.inner-table td{padding:8px 10px;font-size:.82rem;border-color:#e0e7ff;}
+.sw{position:relative;}.sw i{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:.8rem;}
+.sb{border-radius:20px;border:1.5px solid #e5e7eb;padding:6px 14px 6px 32px;font-size:.84rem;width:220px;}
+.sb:focus{border-color:#6366f1;box-shadow:0 0 0 3px rgba(99,102,241,.1);outline:none;}
+</style>
 
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="fw-semibold mb-0">Assign Activities</h5>
-        <a th:href="@{/assignments/new}" class="btn btn-primary btn-sm">
-            <i class="bi bi-plus-lg me-1"></i>Add Assignment
-        </a>
+<div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
+    <div>
+        <h5 class="fw-bold mb-0" style="color:#1e1b4b;">Assign Activities</h5>
+        <p class="text-muted mb-0" style="font-size:.78rem;">Manage member assignments to community activities</p>
     </div>
-
-    <!-- Empty state -->
-    <div th:if="${groups == null or groups.isEmpty()}" class="card border-0 shadow-sm">
-        <div class="card-body text-center text-muted py-5">
-            <i class="bi bi-person-lines-fill d-block mb-2" style="font-size:2rem;opacity:0.3;"></i>
-            No assignments found.
-        </div>
-    </div>
-
-    <!-- Activity groups -->
-    <div class="card shadow-sm border-0" th:unless="${groups == null or groups.isEmpty()}">
-        <div class="card-body p-0">
-            <table class="table table-hover mb-0">
-                <thead class="table-dark">
-                    <tr>
-                        <th class="ps-3" style="width:36px;">#</th>
-                        <th>Activity</th>
-                        <th>Category</th>
-                        <th>Lead</th>
-                        <th class="text-center">Members</th>
-                        <th class="text-end pe-3">Details</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <th:block th:each="entry, stat : ${groups}">
-
-                        <!-- Activity summary row -->
-                        <tr th:with="assignments=${entry.value},
-                                     activity=${entry.value[0].activity},
-                                     leads=${entry.value.?[role == 'Lead']}">
-                            <td class="ps-3 text-muted align-middle" th:text="${stat.count}"></td>
-                            <td class="fw-semibold align-middle" th:text="${activity.activityName}"></td>
-                            <td class="align-middle">
-                                <span class="badge bg-primary bg-opacity-75"
-                                      th:text="${activity.activityCategory.categoryName}"></span>
-                            </td>
-                            <td class="align-middle">
-                                <span th:if="${not #lists.isEmpty(leads)}"
-                                      th:text="${leads[0].member.firstName + ' ' + leads[0].member.lastName}"
-                                      class="fw-medium"></span>
-                                <span th:unless="${not #lists.isEmpty(leads)}"
-                                      class="text-muted" style="font-size:0.82rem;">No lead assigned</span>
-                            </td>
-                            <td class="text-center align-middle">
-                                <span class="badge rounded-pill"
-                                      style="background:rgba(59,130,246,0.12);color:#1d4ed8;font-size:0.8rem;padding:5px 12px;">
-                                    <i class="bi bi-people-fill me-1"></i>
-                                    <span th:text="${#lists.size(assignments)}">0</span>
-                                </span>
-                            </td>
-                            <td class="text-end pe-3 align-middle">
-                                <a th:href="@{/assignments/new(activityId=${entry.key})}"
-                                   class="btn btn-sm btn-primary me-1">
-                                    <i class="bi bi-person-plus-fill me-1"></i>Add Member
-                                </a>
-                                <button class="btn btn-sm btn-outline-secondary"
-                                        type="button"
-                                        data-bs-toggle="collapse"
-                                        th:attr="data-bs-target='#members-' + ${entry.key}"
-                                        aria-expanded="false">
-                                    <i class="bi bi-chevron-down me-1" style="font-size:0.75rem;"></i>View Members
-                                </button>
-                            </td>
-                        </tr>
-
-                        <!-- Collapsible member detail rows -->
-                        <tr>
-                            <td colspan="6" class="p-0 border-0">
-                                <div class="collapse" th:id="'members-' + ${entry.key}">
-                                    <div class="px-4 py-3" style="background:#f8faff;border-top:1px solid #e0e7ff;">
-                                        <table class="table table-sm mb-0" style="font-size:0.84rem;">
-                                            <thead>
-                                                <tr style="background:#ede9fe;">
-                                                    <th class="ps-2 text-muted fw-semibold" style="font-size:0.75rem;">Member</th>
-                                                    <th class="text-muted fw-semibold" style="font-size:0.75rem;">Role</th>
-                                                    <th class="text-muted fw-semibold" style="font-size:0.75rem;">Assigned Date</th>
-                                                    <th class="text-muted fw-semibold" style="font-size:0.75rem;">Status</th>
-                                                    <th class="text-end pe-2 text-muted fw-semibold" style="font-size:0.75rem;">Actions</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr th:each="a : ${entry.value}">
-                                                    <td class="ps-2 align-middle">
-                                                        <i class="bi bi-person-circle text-muted me-1"></i>
-                                                        <span th:text="${a.member.firstName + ' ' + a.member.lastName}"></span>
-                                                    </td>
-                                                    <td class="align-middle">
-                                                        <span class="badge rounded-pill"
-                                                              th:style="${a.role == 'Lead'} ? 'background:rgba(234,179,8,0.15);color:#a16207;' : 'background:rgba(107,114,128,0.1);color:#6b7280;'"
-                                                              th:text="${a.role}"></span>
-                                                    </td>
-                                                    <td class="align-middle text-muted"
-                                                        th:text="${#temporals.format(a.assignedDate,'dd-MMM-yyyy')}"></td>
-                                                    <td class="align-middle">
-                                                        <span th:with="sc=${a.status == 'In Progress'} ? 'bg-primary' : (${a.status == 'Completed'} ? 'bg-success' : (${a.status == 'Dropped'} ? 'bg-danger' : 'bg-secondary'))"
-                                                              th:class="'badge ' + ${sc}"
-                                                              th:text="${a.status}"></span>
-                                                    </td>
-                                                    <td class="text-end pe-2 align-middle">
-                                                        <a th:href="@{/assignments/{id}/edit(id=${a.id})}"
-                                                           class="btn btn-sm btn-outline-warning py-0 px-2">
-                                                            <i class="bi bi-pencil"></i>
-                                                        </a>
-                                                        <form th:action="@{/assignments/{id}/delete(id=${a.id})}"
-                                                              method="post" class="d-inline"
-                                                              data-confirm='Remove this member assignment?'>
-                                                            <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2">
-                                                                <i class="bi bi-trash"></i>
-                                                            </button>
-                                                        </form>
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-
-                    </th:block>
-                </tbody>
-            </table>
-        </div>
-    </div>
-
+    <a th:href="@{/assignments/new}" class="btn btn-primary"><i class="bi bi-person-plus-fill me-1"></i>Add Assignment</a>
 </div>
-</body>
-</html>
+
+<div class="d-flex justify-content-end mb-3">
+    <div class="sw"><i class="bi bi-search"></i><input type="text" class="sb form-control" id="asSearch" placeholder="Search activity…" oninput="assearch(this.value)"></div>
+</div>
+
+<div th:if="${groups == null or groups.isEmpty()}" class="card border-0 shadow-sm" style="border-radius:14px;">
+    <div class="card-body text-center py-5">
+        <i class="bi bi-person-lines-fill d-block mb-2" style="font-size:2.5rem;color:#c7d2fe;"></i>
+        <div class="fw-semibold text-muted">No assignments yet</div>
+    </div>
+</div>
+
+<div th:unless="${groups == null or groups.isEmpty()}" class="card border-0 shadow-sm" style="border-radius:14px;overflow:hidden;">
+    <div class="table-responsive">
+        <table class="table as-table mb-0" id="asTable">
+            <thead><tr>
+                <th style="width:36px;">#</th>
+                <th>Activity</th>
+                <th>Category</th>
+                <th>Lead</th>
+                <th>Members</th>
+                <th class="text-end" style="padding-right:16px;">Actions</th>
+            </tr></thead>
+            <tbody>
+                <th:block th:each="entry, stat : ${groups}"
+                          th:with="assignments=${entry.value}, activity=${entry.value[0].activity}, leads=${entry.value.?[role == 'Lead']}">
+                    <tr th:class="'as-row ' + (${not #lists.isEmpty(leads)} ? 'has-lead' : 'no-lead')"
+                        data-bs-toggle="collapse"
+                        th:attr="data-q=${activity.activityName.toLowerCase()}, data-bs-target='#m-' + ${entry.key}">
+                        <td class="text-muted fw-medium" th:text="${stat.count}"></td>
+                        <td>
+                            <div class="fw-semibold" style="font-size:.88rem;color:#1e1b4b;" th:text="${activity.activityName}"></div>
+                            <div style="font-size:.7rem;color:#94a3b8;margin-top:2px;"><i class="bi bi-chevron-down me-1"></i>Click to view members</div>
+                        </td>
+                        <td><span class="cat-badge" th:text="${activity.activityCategory.categoryName}"></span></td>
+                        <td>
+                            <span th:if="${not #lists.isEmpty(leads)}" class="fw-semibold" style="font-size:.84rem;color:#1e1b4b;">
+                                <i class="bi bi-person-fill me-1" style="color:#6366f1;"></i>
+                                <span th:text="${leads[0].member.firstName + ' ' + leads[0].member.lastName}"></span>
+                            </span>
+                            <span th:unless="${not #lists.isEmpty(leads)}" class="text-muted" style="font-size:.8rem;">No lead assigned</span>
+                        </td>
+                        <td><span class="member-count"><i class="bi bi-people-fill"></i><span th:text="${#lists.size(assignments)}"></span></span></td>
+                        <td class="text-end" style="padding-right:16px;">
+                            <a th:href="@{/assignments/new(activityId=${entry.key})}" class="btn btn-sm btn-primary" onclick="event.stopPropagation()">
+                                <i class="bi bi-person-plus-fill me-1"></i>Add Member
+                            </a>
+                        </td>
+                    </tr>
+                    <tr class="as-detail">
+                        <td colspan="6" class="p-0 border-0">
+                            <div class="collapse" th:id="'m-' + ${entry.key}">
+                                <div class="px-3 py-3" style="background:#f5f7ff;border-top:1px solid #e0e7ff;">
+                                    <table class="table inner-table mb-0" style="border-radius:8px;overflow:hidden;">
+                                        <thead><tr>
+                                            <th>Member</th>
+                                            <th>Role</th>
+                                            <th>Assigned Date</th>
+                                            <th>Status</th>
+                                            <th class="text-end" style="padding-right:12px;">Actions</th>
+                                        </tr></thead>
+                                        <tbody>
+                                            <tr th:each="a : ${entry.value}">
+                                                <td>
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;color:#fff;font-size:.65rem;font-weight:700;flex-shrink:0;"
+                                                             th:text="${#strings.substring(a.member.firstName,0,1) + #strings.substring(a.member.lastName,0,1)}"></div>
+                                                        <span class="fw-semibold" th:text="${a.member.firstName + ' ' + a.member.lastName}"></span>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <span th:if="${a.role == 'Lead'}" class="role-lead"><i class="bi bi-star-fill me-1" style="font-size:.6rem;"></i>Lead</span>
+                                                    <span th:unless="${a.role == 'Lead'}" class="role-member" th:text="${a.role}"></span>
+                                                </td>
+                                                <td style="color:#64748b;" th:text="${#temporals.format(a.assignedDate,'dd MMM yyyy')}"></td>
+                                                <td>
+                                                    <span th:class="'ms-tag ms-st-' + ${a.status.replace(' ','-')}" th:text="${a.status}"></span>
+                                                </td>
+                                                <td class="text-end" style="padding-right:12px;">
+                                                    <a th:href="@{/assignments/{id}/edit(id=${a.id})}" class="btn btn-sm btn-outline-warning me-1"><i class="bi bi-pencil-fill"></i></a>
+                                                    <form th:action="@{/assignments/{id}/delete(id=${a.id})}" method="post" class="d-inline" onsubmit="return confirm('Remove this member assignment?')">
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash-fill"></i></button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </th:block>
+                <tr id="asEmpty" style="display:none;"><td colspan="6" class="text-center py-4 text-muted">No records match</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</div>
+<th:block layout:fragment="page-scripts"><script>
+function assearch(q){q=q.toLowerCase();var rows=document.querySelectorAll('#asTable tbody tr.as-row'),v=0;rows.forEach(r=>{var ok=!q||r.dataset.q.includes(q);r.style.display=ok?'':'none';var nxt=r.nextElementSibling;if(nxt&&nxt.classList.contains('as-detail'))nxt.style.display=ok?'':'none';if(ok)v++;});document.getElementById('asEmpty').style.display=v===0&&rows.length>0?'':'none';}
+</script></th:block>
+</body></html>

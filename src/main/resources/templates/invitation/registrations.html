@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head><title>Registrations</title></head>
+<body>
+
+<th:block layout:fragment="page-title"
+          th:text="${invitation.eventTitle} + ' — Registrations'">Registrations</th:block>
+
+<div layout:fragment="content">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h5 class="fw-semibold mb-0" th:text="${invitation.eventTitle}"></h5>
+            <span class="text-muted small"
+                  th:text="${#lists.size(registrations)} + ' registration(s)'"></span>
+        </div>
+        <a th:href="@{/invitations/{id}/edit(id=${invitation.id})}"
+           class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>Back to Invitation
+        </a>
+    </div>
+
+    <!-- Summary cards -->
+    <div class="row g-3 mb-4" th:if="${!#lists.isEmpty(registrations)}">
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm text-center py-3">
+                <div class="fw-bold fs-4 text-primary"
+                     th:text="${#lists.size(registrations)}">0</div>
+                <div class="text-muted small">Registrations</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm text-center py-3">
+                <div class="fw-bold fs-4 text-success"
+                     th:text="'£' + ${#aggregates.sum(registrations.![totalAmount != null ? totalAmount : 0])}">£0</div>
+                <div class="text-muted small">Total Collected</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm text-center py-3">
+                <div class="fw-bold fs-4 text-info"
+                     th:text="${#aggregates.sum(registrations.![attendeesAdult != null ? attendeesAdult : 0]) + #aggregates.sum(registrations.![attendeesYouth != null ? attendeesYouth : 0]) + #aggregates.sum(registrations.![attendeesUnder8 != null ? attendeesUnder8 : 0])}">0</div>
+                <div class="text-muted small">Total Attendees</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm text-center py-3">
+                <div class="fw-bold fs-4 text-warning"
+                     th:text="'£' + ${#aggregates.sum(registrations.![donationAmount != null ? donationAmount : 0])}">£0</div>
+                <div class="text-muted small">Total Donations</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>#</th>
+                            <th>Name</th>
+                            <th>Age / Sex</th>
+                            <th>Contact</th>
+                            <th class="text-center">Adult</th>
+                            <th class="text-center">Youth</th>
+                            <th class="text-center">Under 8</th>
+                            <th class="text-end">Donation</th>
+                            <th class="text-end">Total</th>
+                            <th class="text-muted small">Registered</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="r, s : ${registrations}">
+                            <td class="text-muted small" th:text="${s.count}"></td>
+                            <td>
+                                <div class="fw-medium"
+                                     th:text="${r.firstName + ' ' + r.lastName}"></div>
+                            </td>
+                            <td class="small text-muted"
+                                th:text="${(r.age != null ? r.age : '—') + ' / ' + (r.sex != null ? r.sex : '—')}"></td>
+                            <td>
+                                <div class="small" th:text="${r.phone}"></div>
+                                <div class="small text-muted" th:text="${r.email}"></div>
+                            </td>
+                            <td class="text-center" th:text="${r.attendeesAdult ?: 0}"></td>
+                            <td class="text-center" th:text="${r.attendeesYouth ?: 0}"></td>
+                            <td class="text-center" th:text="${r.attendeesUnder8 ?: 0}"></td>
+                            <td class="text-end text-muted small"
+                                th:text="${r.donationAmount != null ? '£' + #numbers.formatDecimal(r.donationAmount,1,2) : '—'}"></td>
+                            <td class="text-end fw-semibold"
+                                th:text="${r.totalAmount != null ? '£' + #numbers.formatDecimal(r.totalAmount,1,2) : '£0.00'}"
+                                style="color:#4f46e5;"></td>
+                            <td class="text-muted small"
+                                th:text="${#temporals.format(r.createdAt,'dd MMM HH:mm')}"></td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(registrations)}">
+                            <td colspan="10" class="text-center text-muted py-5">
+                                <i class="bi bi-inbox d-block mb-2" style="font-size:2rem;opacity:0.3;"></i>
+                                No registrations yet.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

@@ -4,65 +4,105 @@
       layout:decorate="~{layout/base}">
 <head><title>Activities</title></head>
 <body>
-
 <th:block layout:fragment="page-title">Activities</th:block>
-
 <div layout:fragment="content">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="fw-semibold mb-0">Activity Management</h5>
-        <a th:href="@{/activities/new}" class="btn btn-primary btn-sm">
-            <i class="bi bi-plus-lg me-1"></i>Add New
-        </a>
+<style>
+.act-table th{font-size:.7rem;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:#6366f1;padding:11px 14px;background:#f8f7ff;border-bottom:2px solid #e0e7ff;}
+.act-table td{padding:12px 14px;vertical-align:middle;border-color:#f1f5f9;}
+.act-row:hover{background:#fafafe;}
+.act-row.s-In-Progress{border-left:3px solid #3b82f6;}
+.act-row.s-Planned{border-left:3px solid #6366f1;}
+.act-row.s-Completed{border-left:3px solid #059669;}
+.act-row.s-Cancelled{border-left:3px solid #ef4444;}
+.cat-badge{display:inline-flex;align-items:center;gap:4px;border-radius:20px;padding:2px 10px;font-size:.7rem;font-weight:700;background:#eef2ff;color:#4f46e5;}
+.st-tag{display:inline-flex;align-items:center;gap:5px;border-radius:20px;padding:3px 12px;font-size:.72rem;font-weight:700;}
+.st-In-Progress{background:#dbeafe;color:#1e40af;}
+.st-Planned{background:#ede9fe;color:#5b21b6;}
+.st-Completed{background:#dcfce7;color:#166534;}
+.st-Cancelled{background:#fee2e2;color:#991b1b;}
+.fp{border-radius:20px;padding:5px 14px;font-size:.78rem;font-weight:600;border:1.5px solid #e5e7eb;background:#fff;color:#475569;cursor:pointer;transition:all .15s;}
+.fp:hover{border-color:#6366f1;color:#6366f1;}
+.fp.fa{background:#1e1b4b;border-color:#1e1b4b;color:#fff;}
+.fp.fp-ip.fa{background:#3b82f6;border-color:#3b82f6;}
+.fp.fp-done.fa{background:#059669;border-color:#059669;}
+.sw{position:relative;}.sw i{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:.8rem;}
+.sb{border-radius:20px;border:1.5px solid #e5e7eb;padding:6px 14px 6px 32px;font-size:.84rem;width:220px;}
+.sb:focus{border-color:#6366f1;box-shadow:0 0 0 3px rgba(99,102,241,.1);outline:none;}
+</style>
+<div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
+    <div>
+        <h5 class="fw-bold mb-0" style="color:#1e1b4b;">Activities</h5>
+        <p class="text-muted mb-0" style="font-size:.78rem;">Manage community activity records</p>
     </div>
-    <div class="card shadow-sm border-0">
-        <div class="card-body p-0">
-            <table class="table table-hover mb-0">
-                <thead class="table-dark">
-                    <tr>
-                        <th>#</th>
-                        <th>Activity Name</th>
-                        <th>Category</th>
-                        <th>Start Date</th>
-                        <th>End Date</th>
-                        <th>Venue</th>
-                        <th>Responsible</th>
-                        <th>Status</th>
-                        <th class="text-end">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:each="item, stat : ${items}">
-                        <td class="text-muted" th:text="${stat.count}"></td>
-                        <td class="fw-medium" th:text="${item.activityName}"></td>
-                        <td><span class="badge bg-primary bg-opacity-75" th:text="${item.activityCategory.categoryName}"></span></td>
-                        <td th:text="${item.startDate != null} ? ${#temporals.format(item.startDate, 'dd-MMM-yyyy')} : '-'"></td>
-                        <td th:text="${item.endDate != null} ? ${#temporals.format(item.endDate, 'dd-MMM-yyyy')} : '-'"></td>
-                        <td th:text="${item.venue != null} ? ${item.venue} : '-'"></td>
-                        <td th:text="${item.responsiblePerson != null} ? ${item.responsiblePerson} : '-'"></td>
-                        <td>
-                            <span th:with="sc=${item.status == 'In Progress'} ? 'bg-primary' : (${item.status == 'Completed'} ? 'bg-success' : (${item.status == 'Cancelled'} ? 'bg-danger' : 'bg-secondary'))"
-                                  th:class="'badge ' + ${sc}"
-                                  th:text="${item.status}"></span>
-                        </td>
-                        <td class="text-end">
-                            <a th:href="@{/activities/{id}/edit(id=${item.id})}" class="btn btn-sm btn-outline-warning">
-                                <i class="bi bi-pencil"></i>
-                            </a>
-                            <form th:action="@{/activities/{id}/delete(id=${item.id})}" method="post" class="d-inline"
-                                  data-confirm='Delete this activity?'>
-                                <button type="submit" class="btn btn-sm btn-outline-danger">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </form>
-                        </td>
-                    </tr>
-                    <tr th:if="${#lists.isEmpty(items)}">
-                        <td colspan="9" class="text-center text-muted py-4">No activities found.</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+    <a th:href="@{/activities/new}" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>Add Activity</a>
+</div>
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <div class="d-flex gap-2 flex-wrap">
+        <span class="fp fa" onclick="afilter('all',this)">All <span class="ms-1 badge rounded-pill text-bg-dark" style="font-size:.65rem;" th:text="${#lists.size(items)}"></span></span>
+        <span class="fp fp-ip"   onclick="afilter('In Progress',this)"><i class="bi bi-circle-fill me-1" style="font-size:.45rem;color:#3b82f6;"></i>In Progress</span>
+        <span class="fp"          onclick="afilter('Planned',this)"><i class="bi bi-circle-fill me-1" style="font-size:.45rem;color:#6366f1;"></i>Planned</span>
+        <span class="fp fp-done" onclick="afilter('Completed',this)"><i class="bi bi-circle-fill me-1" style="font-size:.45rem;color:#059669;"></i>Completed</span>
+    </div>
+    <div class="sw"><i class="bi bi-search"></i><input type="text" class="sb form-control" id="actSearch" placeholder="Search activities…" oninput="asearch(this.value)"></div>
+</div>
+<div class="card border-0 shadow-sm" style="border-radius:14px;overflow:hidden;">
+    <div class="table-responsive">
+        <table class="table act-table mb-0" id="actTable">
+            <thead><tr>
+                <th style="width:36px;">#</th>
+                <th>Activity</th>
+                <th>Category</th>
+                <th>Dates</th>
+                <th>Venue</th>
+                <th>Responsible</th>
+                <th>Status</th>
+                <th class="text-end" style="padding-right:16px;">Actions</th>
+            </tr></thead>
+            <tbody>
+                <tr th:each="item,stat : ${items}"
+                    th:class="'act-row s-' + ${item.status.replace(' ','-')}"
+                    th:attr="data-s=${item.status}, data-q=${(item.activityName + ' ' + item.activityCategory.categoryName).toLowerCase()}">
+                    <td class="text-muted fw-medium" th:text="${stat.count}"></td>
+                    <td>
+                        <div class="fw-semibold" style="font-size:.88rem;color:#1e1b4b;" th:text="${item.activityName}"></div>
+                        <div th:if="${item.responsiblePerson != null}" style="font-size:.72rem;color:#94a3b8;">
+                            <i class="bi bi-person-fill me-1"></i><span th:text="${item.responsiblePerson}"></span>
+                        </div>
+                    </td>
+                    <td><span class="cat-badge" th:text="${item.activityCategory.categoryName}"></span></td>
+                    <td>
+                        <div style="font-size:.8rem;">
+                            <i class="bi bi-calendar3 me-1" style="color:#94a3b8;font-size:.72rem;"></i>
+                            <span th:text="${item.startDate != null ? #temporals.format(item.startDate,'dd MMM yyyy') : '—'}"></span>
+                        </div>
+                        <div th:if="${item.endDate != null}" style="font-size:.72rem;color:#94a3b8;">
+                            to <span th:text="${#temporals.format(item.endDate,'dd MMM yyyy')}"></span>
+                        </div>
+                    </td>
+                    <td>
+                        <div th:if="${item.venue != null}" style="font-size:.8rem;"><i class="bi bi-geo-alt-fill me-1" style="color:#94a3b8;font-size:.72rem;"></i><span th:text="${item.venue}"></span></div>
+                        <span th:unless="${item.venue != null}" class="text-muted">—</span>
+                    </td>
+                    <td style="font-size:.8rem;" th:text="${item.responsiblePerson != null ? item.responsiblePerson : '—'}"></td>
+                    <td><span th:class="'st-tag st-' + ${item.status.replace(' ','-')}" th:text="${item.status}"></span></td>
+                    <td class="text-end" style="padding-right:16px;white-space:nowrap;">
+                        <a th:href="@{/activities/{id}/edit(id=${item.id})}" class="btn btn-sm btn-outline-warning me-1"><i class="bi bi-pencil-fill"></i></a>
+                        <form th:action="@{/activities/{id}/delete(id=${item.id})}" method="post" class="d-inline" onsubmit="return confirm('Delete this activity?')">
+                            <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash-fill"></i></button>
+                        </form>
+                    </td>
+                </tr>
+                <tr id="actEmpty" style="display:none;"><td colspan="8" class="text-center py-4 text-muted">No records match</td></tr>
+                <tr th:if="${#lists.isEmpty(items)}"><td colspan="8" class="text-center py-5"><i class="bi bi-list-task d-block mb-2" style="font-size:2.5rem;color:#c7d2fe;"></i><div class="fw-semibold text-muted">No activities yet</div></td></tr>
+            </tbody>
+        </table>
     </div>
 </div>
-</body>
-</html>
+</div>
+<th:block layout:fragment="page-scripts"><script>
+var af='all';
+function afilter(s,p){af=s;document.querySelectorAll('.fp').forEach(x=>x.classList.remove('fa'));p.classList.add('fa');adof();}
+function asearch(q){adof(q);}
+function adof(q){q=(q!==undefined?q:document.getElementById('actSearch').value).toLowerCase();var rows=document.querySelectorAll('#actTable tbody tr.act-row'),v=0;rows.forEach(r=>{var ok=(af==='all'||r.dataset.s===af)&&(!q||r.dataset.q.includes(q));r.style.display=ok?'':'none';if(ok)v++;});document.getElementById('actEmpty').style.display=v===0&&rows.length>0?'':'none';}
+</script></th:block>
+</body></html>

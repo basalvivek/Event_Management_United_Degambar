@@ -12,6 +12,9 @@ public interface EventTicketRepository extends JpaRepository<EventTicket, Long> 
     @Query("SELECT t FROM EventTicket t JOIN FETCH t.event JOIN FETCH t.member ORDER BY t.createdAt DESC")
     List<EventTicket> findAllWithDetails();
 
+    @Query("SELECT t FROM EventTicket t JOIN FETCH t.event JOIN FETCH t.member WHERE t.id = :id")
+    java.util.Optional<EventTicket> findByIdWithDetails(@Param("id") Long id);
+
     @Query("SELECT t FROM EventTicket t JOIN FETCH t.event JOIN FETCH t.member WHERE t.event.id = :eventId ORDER BY t.createdAt DESC")
     List<EventTicket> findByEventIdWithDetails(@Param("eventId") Long eventId);
 

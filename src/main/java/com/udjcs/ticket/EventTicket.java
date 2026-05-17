@@ -4,6 +4,8 @@ import com.udjcs.common.BaseEntity;
 import com.udjcs.event.Event;
 import com.udjcs.member.Member;
 import jakarta.persistence.*;
+import org.springframework.format.annotation.DateTimeFormat;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "event_tickets")
@@ -41,6 +43,19 @@ public class EventTicket extends BaseEntity {
     @Column(nullable = false, length = 20)
     private String status = "Pending";
 
+    @Column(name = "payment_mode", length = 50)
+    private String paymentMode;
+
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+    @Column(name = "payment_date")
+    private LocalDate paymentDate;
+
+    @Column(name = "committed_amount")
+    private Integer committedAmount;
+
+    @Column(name = "received_amount")
+    private Integer receivedAmount;
+
     @Transient
     private Long eventId;
 
@@ -73,6 +88,18 @@ public class EventTicket extends BaseEntity {
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+
+    public String getPaymentMode() { return paymentMode; }
+    public void setPaymentMode(String paymentMode) { this.paymentMode = paymentMode; }
+
+    public LocalDate getPaymentDate() { return paymentDate; }
+    public void setPaymentDate(LocalDate paymentDate) { this.paymentDate = paymentDate; }
+
+    public Integer getCommittedAmount() { return committedAmount; }
+    public void setCommittedAmount(Integer committedAmount) { this.committedAmount = committedAmount; }
+
+    public Integer getReceivedAmount() { return receivedAmount; }
+    public void setReceivedAmount(Integer receivedAmount) { this.receivedAmount = receivedAmount; }
 
     public Long getEventId() { return eventId; }
     public void setEventId(Long eventId) { this.eventId = eventId; }

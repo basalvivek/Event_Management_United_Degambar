@@ -5,6 +5,7 @@ import com.udjcs.organization.Organization;
 import com.udjcs.organization.OrganizationService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.propertyeditors.StringTrimmerEditor;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.WebDataBinder;
@@ -17,11 +18,15 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.beans.PropertyEditorSupport;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.time.LocalDate;
 import java.util.List;
 
 @ControllerAdvice
 public class GlobalControllerAdvice {
+
+    @Value("${app.base.url:}")
+    private String configuredBaseUrl;
 
     private final EventProgramService eventProgramService;
     private final OrganizationService organizationService;
@@ -30,6 +35,22 @@ public class GlobalControllerAdvice {
                                   OrganizationService organizationService) {
         this.eventProgramService = eventProgramService;
         this.organizationService = organizationService;
+    }
+
+    public String resolveBaseUrl(HttpServletRequest request) {
+        if (configuredBaseUrl != null && !configuredBaseUrl.isBlank()) {
+            return configuredBaseUrl.replaceAll("/$", "");
+        }
+        String scheme = request.getScheme();
+        int port = request.getServerPort();
+        String host = request.getServerName();
+        if ("localhost".equals(host) || "127.0.0.1".equals(host)) {
+            try {
+                String ip = InetAddress.getLocalHost().getHostAddress();
+                if (ip != null && !ip.startsWith("127.")) host = ip;
+            } catch (Exception ignored) {}
+        }
+        return scheme + "://" + host + ":" + port;
     }
 
     @InitBinder
@@ -50,6 +71,7 @@ public class GlobalControllerAdvice {
     @ModelAttribute
     public void addGlobalAttributes(HttpServletRequest request, Model model) {
         model.addAttribute("currentUri", request.getRequestURI());
+        model.addAttribute("baseUrl", resolveBaseUrl(request));
         HttpSession session = request.getSession(false);
         model.addAttribute("adminUser", session != null ? session.getAttribute("adminUser") : null);
         model.addAttribute("memberUser", session != null ? session.getAttribute("memberUser") : null);

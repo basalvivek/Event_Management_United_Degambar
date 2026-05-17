@@ -20,13 +20,16 @@ public class RehearsalController {
     private final RehearsalService service;
     private final ActivityService activityService;
     private final MemberService memberService;
+    private final RehearsalRepository rehearsalRepo;
 
     public RehearsalController(RehearsalService service,
                                ActivityService activityService,
-                               MemberService memberService) {
-        this.service = service;
+                               MemberService memberService,
+                               RehearsalRepository rehearsalRepo) {
+        this.service         = service;
         this.activityService = activityService;
-        this.memberService = memberService;
+        this.memberService   = memberService;
+        this.rehearsalRepo   = rehearsalRepo;
     }
 
     @GetMapping
@@ -47,10 +50,13 @@ public class RehearsalController {
         Map<Long, Long> memberCounts  = service.memberCountByRehearsal(allRehearsals);
         Map<Long, Long> attendedCounts = service.attendedCountByRehearsal(allRehearsals);
 
+        Map<Long, List<Object[]>> memberDetails = service.memberDetailsByRehearsal(allRehearsals);
+
         model.addAttribute("groups", groups);
         model.addAttribute("nextRehearsal", nextRehearsal);
         model.addAttribute("memberCounts", memberCounts);
         model.addAttribute("attendedCounts", attendedCounts);
+        model.addAttribute("memberDetails", memberDetails);
         return "rehearsal/list";
     }
 
@@ -62,6 +68,35 @@ public class RehearsalController {
         model.addAttribute("activities", activityService.findAll());
         model.addAttribute("members", memberService.findAll());
         model.addAttribute("existingMembers", List.of());
+        return "rehearsal/form";
+    }
+
+    @GetMapping("/more/{activityId}")
+    public String moreSession(@PathVariable Long activityId,
+                               Model model,
+                               RedirectAttributes attrs) {
+        List<Rehearsal> past = rehearsalRepo.findByActivityIdOrderByDateDesc(activityId);
+        Rehearsal item = new Rehearsal();
+        item.setActivityId(activityId);
+        item.setStatus("Scheduled");
+        java.util.List<RehearsalMember> existingMembers = List.of();
+        if (!past.isEmpty()) {
+            Rehearsal src = past.get(0);
+            // Auto-mark the most recent session as Completed (unless already terminal)
+            if (!"Completed".equals(src.getStatus()) && !"Cancelled".equals(src.getStatus())) {
+                src.setStatus("Completed");
+                rehearsalRepo.save(src);
+            }
+            // Carry over everything except date, time and venue — user fills those in
+            item.setConductedBy(src.getConductedBy());
+            item.setNotes(src.getNotes());
+            existingMembers = service.findMembers(src.getId());
+        }
+        model.addAttribute("item", item);
+        model.addAttribute("activities", activityService.findAll());
+        model.addAttribute("members", memberService.findAll());
+        model.addAttribute("existingMembers", existingMembers);
+        model.addAttribute("moreSession", true);
         return "rehearsal/form";
     }
 

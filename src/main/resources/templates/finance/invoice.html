@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head><title>Donation Receipt</title></head>
+<body>
+<th:block layout:fragment="page-title">Donation Receipt</th:block>
+<div layout:fragment="content">
+<style>
+/* Screen styles */
+.inv-wrap{max-width:820px;margin:0 auto;}
+.inv-card{border-radius:16px;border:0;box-shadow:0 4px 24px rgba(0,0,0,0.09);background:#fff;padding:48px 52px;}
+.inv-header{border-bottom:2px solid #1e1b4b;padding-bottom:28px;margin-bottom:28px;}
+.inv-logo{width:72px;height:72px;object-fit:contain;border-radius:10px;}
+.inv-logo-placeholder{width:72px;height:72px;border-radius:10px;background:linear-gradient(135deg,#1e1b4b,#6366f1);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.6rem;font-weight:800;}
+.org-name{font-size:1.25rem;font-weight:800;color:#1e1b4b;line-height:1.2;}
+.org-sub{font-size:.75rem;color:#6b7280;margin-top:2px;}
+.receipt-title{font-size:1.6rem;font-weight:800;color:#1e1b4b;letter-spacing:-.5px;}
+.inv-no{font-size:.78rem;font-weight:700;color:#6366f1;background:#eef2ff;border-radius:6px;padding:3px 10px;display:inline-block;}
+.section-lbl{font-size:.65rem;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:#9ca3af;margin-bottom:6px;}
+.info-val{font-size:.88rem;font-weight:600;color:#1e1b4b;}
+.info-sub{font-size:.78rem;color:#6b7280;}
+.status-done{background:#dcfce7;color:#166534;border-radius:20px;padding:4px 14px;font-size:.75rem;font-weight:700;}
+.status-partial{background:#fef3c7;color:#92400e;border-radius:20px;padding:4px 14px;font-size:.75rem;font-weight:700;}
+.status-pending{background:#fee2e2;color:#991b1b;border-radius:20px;padding:4px 14px;font-size:.75rem;font-weight:700;}
+.inv-table{width:100%;border-collapse:collapse;margin-top:6px;}
+.inv-table th{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#6366f1;background:#f8f7ff;padding:10px 14px;border-bottom:2px solid #e0e7ff;text-align:left;}
+.inv-table th.r{text-align:right;}
+.inv-table td{font-size:.84rem;padding:10px 14px;border-bottom:1px solid #f1f5f9;color:#374151;}
+.inv-table td.r{text-align:right;font-family:monospace;font-weight:600;}
+.inv-table tr:last-child td{border-bottom:none;}
+.total-row td{font-weight:700;color:#1e1b4b;background:#f8f7ff;font-size:.9rem;}
+.summary-box{border:1.5px solid #e0e7ff;border-radius:12px;padding:18px 20px;background:#fafbff;}
+.divider{border:none;border-top:1px solid #e5e7eb;margin:24px 0;}
+.footer-text{font-size:.72rem;color:#9ca3af;text-align:center;line-height:1.6;}
+.print-btn{position:fixed;bottom:28px;right:28px;z-index:200;}
+
+/* Print */
+@media print {
+  #sidebar, #topbar, #main > #topbar, .print-btn, .alert { display:none !important; }
+  #main { margin-left:0 !important; }
+  #content { padding:0 !important; }
+  .inv-card { box-shadow:none !important; border-radius:0 !important; padding:24px 32px !important; }
+  .inv-wrap { max-width:100% !important; }
+  body { background:#fff !important; }
+  @page { margin:12mm 14mm; size:A4; }
+}
+</style>
+
+<!-- Print trigger button (screen only) -->
+<div class="print-btn d-print-none">
+    <button onclick="window.print()" class="btn shadow-lg"
+            style="border-radius:50px;background:linear-gradient(135deg,#1e1b4b,#6366f1);color:#fff;font-weight:700;padding:12px 28px;font-size:.88rem;border:0;">
+        <i class="bi bi-printer-fill me-2"></i>Print / Save PDF
+    </button>
+</div>
+
+<div class="inv-wrap">
+<div class="inv-card">
+
+    <!-- Header: org left, receipt title right -->
+    <div class="inv-header d-flex justify-content-between align-items-start">
+        <div class="d-flex align-items-start gap-3">
+            <img th:if="${org != null and org.logoData != null}"
+                 th:src="@{/organization/__${org.id}__/logo}"
+                 class="inv-logo" alt="Logo">
+            <div th:unless="${org != null and org.logoData != null}" class="inv-logo-placeholder">
+                <span th:text="${org != null ? #strings.substring(org.name,0,1) : 'U'}">U</span>
+            </div>
+            <div>
+                <div class="org-name" th:text="${org != null ? org.name : 'Organisation'}">Organisation</div>
+                <div class="org-sub" th:if="${org != null and org.trustType != null}" th:text="${org.trustType}"></div>
+                <div class="org-sub" th:if="${org != null and org.registrationNumber != null}">
+                    Reg No: <span th:text="${org.registrationNumber}"></span>
+                </div>
+                <div class="org-sub" th:if="${org != null and org.address != null}" th:text="${org.address}"></div>
+                <div class="org-sub" th:if="${org != null}">
+                    <span th:if="${org.city != null}" th:text="${org.city + ', '}"></span>
+                    <span th:if="${org.state != null}" th:text="${org.state + ' '}"></span>
+                    <span th:if="${org.pincode != null}" th:text="${org.pincode}"></span>
+                </div>
+                <div class="org-sub" th:if="${org != null and org.phone != null}">
+                    Tel: <span th:text="${org.phone}"></span>
+                    <span th:if="${org.email != null}"> | <span th:text="${org.email}"></span></span>
+                </div>
+            </div>
+        </div>
+        <div class="text-end">
+            <div class="receipt-title">DONATION RECEIPT</div>
+            <div class="inv-no mt-2" th:text="${invoiceNumber}"></div>
+            <div class="info-sub mt-2">Date: <strong th:text="${#temporals.format(invoiceDate,'dd MMM yyyy')}"></strong></div>
+        </div>
+    </div>
+
+    <!-- Donor & Payment Info -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-6">
+            <div class="section-lbl">Received From</div>
+            <div class="info-val" th:text="${donorName}"></div>
+            <div class="info-sub" th:if="${donorOrg != null and donorOrg != donorName}" th:text="${donorOrg}"></div>
+            <div class="info-sub mt-1">
+                <span class="badge rounded-pill" style="background:#eef2ff;color:#4f46e5;font-size:.7rem;" th:text="${donorType}"></span>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="section-lbl">Status</div>
+            <span th:if="${status == 'Done' or status == 'Received'}" class="status-done" th:text="${status}"></span>
+            <span th:if="${status == 'Partial' or status == 'Instalment'}" class="status-partial" th:text="${status}"></span>
+            <span th:if="${status == 'Pending'}" class="status-pending" th:text="${status}"></span>
+        </div>
+        <div class="col-md-3 text-md-end">
+            <div class="section-lbl">Total Received</div>
+            <div style="font-size:1.4rem;font-weight:800;color:#059669;font-family:monospace;"
+                 th:text="${paidAmount != null ? '£' + #numbers.formatDecimal(paidAmount,1,2) : '£0.00'}"></div>
+        </div>
+    </div>
+
+    <!-- Payment Summary -->
+    <div class="summary-box mb-4">
+        <div class="row g-3 text-center">
+            <div class="col-4">
+                <div class="section-lbl">Committed</div>
+                <div style="font-family:monospace;font-weight:700;font-size:.95rem;color:#5b21b6;"
+                     th:text="${committedAmount != null ? '£' + #numbers.formatDecimal(committedAmount,1,2) : '—'}"></div>
+            </div>
+            <div class="col-4">
+                <div class="section-lbl">Paid</div>
+                <div style="font-family:monospace;font-weight:700;font-size:.95rem;color:#166534;"
+                     th:text="${paidAmount != null ? '£' + #numbers.formatDecimal(paidAmount,1,2) : '—'}"></div>
+            </div>
+            <div class="col-4">
+                <div class="section-lbl">Balance Due</div>
+                <div style="font-family:monospace;font-weight:700;font-size:.95rem;"
+                     th:style="${pendingAmount != null and pendingAmount > 0} ? 'color:#dc2626' : 'color:#6b7280'"
+                     th:text="${pendingAmount != null ? '£' + #numbers.formatDecimal(pendingAmount,1,2) : '£0.00'}"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment details table -->
+    <div class="section-lbl mb-2">Payment History</div>
+    <table class="inv-table" th:if="${instalments != null and not #lists.isEmpty(instalments)}">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Date</th>
+                <th>Payment Mode</th>
+                <th>Reference / Notes</th>
+                <th class="r">Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="ins, s : ${instalments}">
+                <td th:text="${s.count}" style="color:#9ca3af;"></td>
+                <td th:text="${#temporals.format(ins.paymentDate,'dd MMM yyyy')}"></td>
+                <td><span style="background:#f1f5f9;border-radius:5px;padding:2px 8px;font-size:.75rem;font-weight:600;" th:text="${ins.paymentMode}"></span></td>
+                <td style="color:#6b7280;" th:text="${ins.notes != null ? ins.notes : '—'}"></td>
+                <td class="r" style="color:#166534;" th:text="${'£' + #numbers.formatDecimal(ins.amount,1,2)}"></td>
+            </tr>
+            <tr class="total-row">
+                <td colspan="4" class="text-end" style="font-size:.78rem;letter-spacing:.5px;">TOTAL PAID</td>
+                <td class="r" th:text="${paidAmount != null ? '£' + #numbers.formatDecimal(paidAmount,1,2) : '£0.00'}"></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- Single / direct payment (no instalments) -->
+    <table class="inv-table" th:if="${instalments == null or #lists.isEmpty(instalments)}">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Date</th>
+                <th>Payment Mode</th>
+                <th>Reference / Notes</th>
+                <th class="r">Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td style="color:#9ca3af;">1</td>
+                <td th:text="${directPaymentDate != null ? #temporals.format(directPaymentDate,'dd MMM yyyy') : '—'}"></td>
+                <td><span style="background:#f1f5f9;border-radius:5px;padding:2px 8px;font-size:.75rem;font-weight:600;" th:text="${directPaymentMode != null ? directPaymentMode : '—'}"></span></td>
+                <td style="color:#6b7280;" th:text="${remark != null ? remark : '—'}"></td>
+                <td class="r" style="color:#166534;" th:text="${paidAmount != null ? '£' + #numbers.formatDecimal(paidAmount,1,2) : '—'}"></td>
+            </tr>
+            <tr class="total-row">
+                <td colspan="4" class="text-end" style="font-size:.78rem;letter-spacing:.5px;">TOTAL PAID</td>
+                <td class="r" th:text="${paidAmount != null ? '£' + #numbers.formatDecimal(paidAmount,1,2) : '£0.00'}"></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <hr class="divider">
+
+    <!-- Signatures -->
+    <div class="row mt-4 mb-5">
+        <div class="col-6">
+            <div style="border-top:1.5px solid #374151;padding-top:8px;margin-top:40px;">
+                <div class="info-sub">Donor Signature</div>
+                <div class="info-sub mt-1" th:text="${donorName}"></div>
+            </div>
+        </div>
+        <div class="col-6 text-end">
+            <div style="border-top:1.5px solid #374151;padding-top:8px;margin-top:40px;">
+                <div class="info-sub">Authorised Signatory</div>
+                <div class="info-sub mt-1" th:text="${org != null ? org.name : 'Organisation'}"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <hr class="divider" style="margin-top:0;">
+    <div class="footer-text">
+        <p th:if="${org != null and org.registrationNumber != null}">
+            This receipt is issued by <strong th:text="${org.name}"></strong> —
+            Registered No: <span th:text="${org.registrationNumber}"></span>
+        </p>
+        <p>This is a computer-generated receipt and is valid without a physical signature unless stated above.</p>
+        <p th:if="${org != null and org.website != null}" th:text="${org.website}"></p>
+    </div>
+
+</div>
+</div>
+
+</div>
+</body>
+</html>

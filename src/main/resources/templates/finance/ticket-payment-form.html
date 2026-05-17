@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+<title>Edit Ticket Payment</title>
+<style>
+    .detail-card {
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        border: 1px solid #bbf7d0;
+        border-radius: 12px;
+        padding: 20px 24px;
+    }
+    .detail-item { display: flex; flex-direction: column; }
+    .detail-label { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: #6b7280; margin-bottom: 2px; }
+    .detail-value { font-size: 0.92rem; font-weight: 600; color: #1e1b4b; }
+    .amount-group {
+        background: #f8f7ff;
+        border: 1px solid #e0e7ff;
+        border-radius: 12px;
+        padding: 20px;
+    }
+    .amount-row {
+        display: flex; align-items: center;
+        padding: 10px 0;
+        border-bottom: 1px solid #e0e7ff;
+        gap: 16px;
+    }
+    .amount-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .amount-label {
+        flex: 0 0 160px;
+        font-size: 0.83rem; font-weight: 600; color: #374151;
+        display: flex; align-items: center; gap: 8px;
+    }
+    .amount-label i { font-size: 0.9rem; }
+    .amount-input {
+        flex: 1;
+        border: 1.5px solid #e0e7ff;
+        border-radius: 8px;
+        padding: 8px 14px;
+        font-size: 0.9rem; font-weight: 600;
+        text-align: right;
+        font-family: monospace;
+        transition: border-color 0.18s, box-shadow 0.18s;
+        background: #fff;
+    }
+    .amount-input:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.1); outline: none; }
+    .amount-input.readonly { background: #eef2ff; color: #4f46e5; font-weight: 700; border-color: #c7d2fe; cursor: default; }
+    .amount-prefix {
+        font-size: 0.88rem; font-weight: 600; color: #6b7280; min-width: 14px;
+    }
+    .pending-positive { color: #dc2626 !important; }
+    .pending-zero     { color: #6b7280 !important; }
+</style>
+</head>
+<body>
+<th:block layout:fragment="page-title">Edit Ticket Payment Details</th:block>
+
+<div layout:fragment="content">
+<div class="card shadow-sm border-0" style="max-width:600px;">
+
+    <div class="card-header bg-white border-bottom py-3 d-flex align-items-center gap-2">
+        <span style="width:36px;height:36px;background:#dcfce7;border-radius:8px;display:flex;align-items:center;justify-content:center;">
+            <i class="bi bi-ticket-perforated-fill" style="color:#059669;font-size:1.1rem;"></i>
+        </span>
+        <div>
+            <div class="fw-semibold" style="font-size:0.95rem;">Edit Ticket Payment Details</div>
+            <div class="text-muted" style="font-size:0.72rem;">Update payment information for this event ticket</div>
+        </div>
+    </div>
+
+    <div class="card-body p-4">
+
+        <!-- Ticket Summary -->
+        <div class="detail-card mb-4">
+            <div class="row g-3">
+                <div class="col-6">
+                    <div class="detail-item">
+                        <span class="detail-label"><i class="bi bi-calendar-event me-1"></i>Event</span>
+                        <span class="detail-value" th:text="${item.event?.eventName}">—</span>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="detail-item">
+                        <span class="detail-label"><i class="bi bi-person me-1"></i>Member</span>
+                        <span class="detail-value" th:text="${item.member?.firstName + ' ' + item.member?.lastName}">—</span>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="detail-item">
+                        <span class="detail-label"><i class="bi bi-people me-1"></i>Attendees (Adult/Youth/Child)</span>
+                        <span class="detail-value" th:text="${item.adultCount + ' / ' + item.youngerCount + ' / ' + item.childCount}">—</span>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="detail-item">
+                        <span class="detail-label"><i class="bi bi-receipt me-1"></i>Ticket Total</span>
+                        <span class="detail-value" style="color:#059669;" th:text="'£' + ${item.totalAmount}">—</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <form th:action="@{/finance/tickets/{id}(id=${item.id})}" method="post">
+
+            <!-- Payment Mode & Date -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold" style="font-size:0.82rem;">
+                        <i class="bi bi-credit-card me-1 text-primary"></i>Payment Mode
+                    </label>
+                    <select class="form-select" name="paymentMode">
+                        <option value="">— Select —</option>
+                        <option value="Cash"          th:selected="${item.paymentMode == 'Cash'}">Cash</option>
+                        <option value="Bank Transfer"  th:selected="${item.paymentMode == 'Bank Transfer'}">Bank Transfer</option>
+                        <option value="Cheque"         th:selected="${item.paymentMode == 'Cheque'}">Cheque</option>
+                        <option value="Online"         th:selected="${item.paymentMode == 'Online'}">Online</option>
+                        <option value="Card"           th:selected="${item.paymentMode == 'Card'}">Card</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold" style="font-size:0.82rem;">
+                        <i class="bi bi-calendar3 me-1 text-primary"></i>Payment Date
+                    </label>
+                    <input type="date" class="form-control" name="paymentDate" th:value="${item.paymentDate}">
+                </div>
+            </div>
+
+            <!-- Amount Section -->
+            <div class="amount-group mb-4">
+                <div class="fw-semibold mb-3" style="font-size:0.8rem;letter-spacing:0.5px;text-transform:uppercase;color:#6366f1;">
+                    <i class="bi bi-currency-pound me-1"></i>Amount Breakdown
+                </div>
+
+                <div class="amount-row">
+                    <div class="amount-label">
+                        <i class="bi bi-bookmark-check text-primary"></i>
+                        Committed
+                    </div>
+                    <span class="amount-prefix">£</span>
+                    <input type="number" class="amount-input" name="committedAmount" id="committedAmt"
+                           th:value="${item.committedAmount != null ? item.committedAmount : item.totalAmount}"
+                           min="0" step="0.01" placeholder="0.00" oninput="calcPending()">
+                </div>
+
+                <div class="amount-row">
+                    <div class="amount-label">
+                        <i class="bi bi-check-circle-fill text-success"></i>
+                        Received
+                    </div>
+                    <span class="amount-prefix">£</span>
+                    <input type="number" class="amount-input" name="receivedAmount" id="receivedAmt"
+                           th:value="${item.receivedAmount != null ? item.receivedAmount : (item.status == 'Accepted' ? item.totalAmount : 0)}"
+                           min="0" step="0.01" placeholder="0.00" oninput="calcPending()">
+                </div>
+
+                <div class="amount-row">
+                    <div class="amount-label">
+                        <i class="bi bi-hourglass-split" id="pendingIcon" style="color:#dc2626;"></i>
+                        Pending
+                    </div>
+                    <span class="amount-prefix">£</span>
+                    <input type="text" class="amount-input readonly" id="pendingAmt" readonly placeholder="0.00">
+                </div>
+            </div>
+
+            <!-- Status -->
+            <div class="mb-4">
+                <label class="form-label fw-semibold" style="font-size:0.82rem;">
+                    <i class="bi bi-toggle2-on me-1 text-primary"></i>Payment Status
+                </label>
+                <div class="d-flex gap-3 flex-wrap">
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="status" id="statusPending"
+                               value="Pending" th:checked="${item.status == 'Pending'}">
+                        <label class="form-check-label fw-medium" for="statusPending">
+                            <span class="badge bg-warning text-dark">Pending</span>
+                        </label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="status" id="statusAccepted"
+                               value="Accepted" th:checked="${item.status == 'Accepted'}">
+                        <label class="form-check-label fw-medium" for="statusAccepted">
+                            <span class="badge bg-success">Accepted</span>
+                        </label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="status" id="statusCompleted"
+                               value="Completed" th:checked="${item.status == 'Completed'}">
+                        <label class="form-check-label fw-medium" for="statusCompleted">
+                            <span class="badge bg-primary">Completed</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 pt-2 border-top">
+                <button type="submit" class="btn btn-primary px-4">
+                    <i class="bi bi-check-lg me-1"></i>Save Changes
+                </button>
+                <a th:href="@{/finance}" class="btn btn-outline-secondary px-4">
+                    <i class="bi bi-arrow-left me-1"></i>Cancel
+                </a>
+            </div>
+        </form>
+
+        <!-- Instalment Panel -->
+        <div class="mt-4" style="border:1.5px solid #d1fae5;border-radius:12px;padding:20px 22px;background:#fafffe;">
+            <div style="font-size:.7rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#059669;margin-bottom:14px;display:flex;align-items:center;gap:7px;">
+                <i class="bi bi-cash-coin"></i>Payment Instalments
+            </div>
+
+            <!-- Summary strip -->
+            <div class="row g-2 mb-3">
+                <div class="col-4">
+                    <div class="text-center p-2 rounded-3" style="background:#f5f3ff;border:1.5px solid #c4b5fd;">
+                        <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;color:#7c3aed;">Committed</div>
+                        <div style="font-family:monospace;font-weight:800;color:#5b21b6;font-size:.95rem;"
+                             th:text="${item.committedAmount != null ? '£' + item.committedAmount : (item.totalAmount != null ? '£' + item.totalAmount : '£0')}"></div>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="text-center p-2 rounded-3" style="background:#f0fdf4;border:1.5px solid #bbf7d0;">
+                        <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;color:#059669;">Paid</div>
+                        <div style="font-family:monospace;font-weight:800;color:#166534;font-size:.95rem;"
+                             th:text="${item.receivedAmount != null ? '£' + item.receivedAmount : '£0'}"></div>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="text-center p-2 rounded-3" style="background:#fef2f2;border:1.5px solid #fecaca;">
+                        <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;color:#dc2626;">Remaining</div>
+                        <div style="font-family:monospace;font-weight:800;color:#991b1b;font-size:.95rem;"
+                             th:with="comm=${item.committedAmount != null ? item.committedAmount : (item.totalAmount != null ? item.totalAmount : 0)},
+                                       paid=${item.receivedAmount != null ? item.receivedAmount : 0}"
+                             th:text="${'£' + (comm - paid)}"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- History -->
+            <div th:if="${instalments != null and not #lists.isEmpty(instalments)}" class="mb-3">
+                <table class="table table-sm mb-0" style="font-size:.8rem;border-radius:8px;overflow:hidden;">
+                    <thead style="background:#ecfdf5;">
+                        <tr>
+                            <th style="font-size:.68rem;font-weight:700;text-transform:uppercase;color:#059669;padding:7px 10px;">#</th>
+                            <th style="font-size:.68rem;font-weight:700;text-transform:uppercase;color:#059669;padding:7px 10px;">Date</th>
+                            <th style="font-size:.68rem;font-weight:700;text-transform:uppercase;color:#059669;padding:7px 10px;">Mode</th>
+                            <th style="font-size:.68rem;font-weight:700;text-transform:uppercase;color:#059669;padding:7px 10px;">Notes</th>
+                            <th style="font-size:.68rem;font-weight:700;text-transform:uppercase;color:#059669;padding:7px 10px;text-align:right;">Amount</th>
+                            <th style="padding:7px 10px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="ins, s : ${instalments}" style="border-color:#d1fae5;">
+                            <td style="padding:7px 10px;color:#64748b;" th:text="${s.count}"></td>
+                            <td style="padding:7px 10px;font-weight:600;" th:text="${#temporals.format(ins.paymentDate,'dd MMM yyyy')}"></td>
+                            <td style="padding:7px 10px;"><span style="background:#f1f5f9;border-radius:6px;padding:2px 8px;font-size:.72rem;font-weight:600;" th:text="${ins.paymentMode}"></span></td>
+                            <td style="padding:7px 10px;color:#64748b;" th:text="${ins.notes != null ? ins.notes : '—'}"></td>
+                            <td style="padding:7px 10px;text-align:right;font-family:monospace;font-weight:700;color:#166534;" th:text="${'£' + #numbers.formatDecimal(ins.amount,1,2)}"></td>
+                            <td style="padding:7px 10px;">
+                                <form th:action="@{/finance/instalments/{id}/delete(id=${ins.id})}" method="post" class="d-inline"
+                                      onsubmit="return confirm('Remove this instalment?')">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-1" style="border-radius:6px;font-size:.72rem;">
+                                        <i class="bi bi-trash-fill"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div th:unless="${instalments != null and not #lists.isEmpty(instalments)}"
+                 class="text-center text-muted py-2 mb-3" style="font-size:.78rem;">
+                <i class="bi bi-clock-history me-1"></i>No instalments recorded yet
+            </div>
+
+            <!-- Add Payment -->
+            <div style="background:#f0fdf4;border-radius:10px;border:1.5px solid #bbf7d0;padding:18px 20px;">
+                <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#059669;margin-bottom:14px;">
+                    <i class="bi bi-plus-circle-fill me-1"></i>Add Payment
+                </div>
+                <form th:action="@{/finance/tickets/{id}/pay(id=${item.id})}" method="post">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-size:.8rem;font-weight:600;color:#374151;">Amount (£) <span style="color:#ef4444;">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text" style="background:#dcfce7;border:1.5px solid #bbf7d0;border-right:0;color:#166534;font-weight:700;border-radius:9px 0 0 9px;">£</span>
+                                <input type="number" name="amount" class="form-control" min="0.01" step="0.01" placeholder="0.00" required
+                                       style="border:1.5px solid #bbf7d0;border-left:0;border-radius:0 9px 9px 0;font-family:monospace;">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-size:.8rem;font-weight:600;color:#374151;">Payment Date <span style="color:#ef4444;">*</span></label>
+                            <input type="date" name="paymentDate" class="form-control" required
+                                   style="border:1.5px solid #bbf7d0;border-radius:9px;">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-size:.8rem;font-weight:600;color:#374151;">Payment Mode <span style="color:#ef4444;">*</span></label>
+                            <select name="paymentMode" class="form-select" required
+                                    style="border:1.5px solid #bbf7d0;border-radius:9px;">
+                                <option value="">— Select Mode —</option>
+                                <option value="Cash">Cash</option>
+                                <option value="Bank Transfer">Bank Transfer</option>
+                                <option value="Cheque">Cheque</option>
+                                <option value="Online">Online</option>
+                                <option value="Card">Card</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-size:.8rem;font-weight:600;color:#374151;">Notes / Reference</label>
+                            <input type="text" name="notes" class="form-control" placeholder="Cheque no., bank ref…"
+                                   style="border:1.5px solid #bbf7d0;border-radius:9px;">
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <button type="submit" class="btn btn-success px-4" style="border-radius:9px;font-weight:600;">
+                            <i class="bi bi-plus-lg me-1"></i>Add Payment
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+</div>
+
+<th:block layout:fragment="page-scripts">
+<script>
+function calcPending() {
+    var c = parseFloat(document.getElementById('committedAmt').value) || 0;
+    var r = parseFloat(document.getElementById('receivedAmt').value)  || 0;
+    var p = c - r;
+    var el = document.getElementById('pendingAmt');
+    el.value = p.toFixed(2);
+    el.className = 'amount-input readonly ' + (p > 0 ? 'pending-positive' : 'pending-zero');
+}
+window.addEventListener('load', calcPending);
+</script>
+</th:block>
+</body>
+</html>

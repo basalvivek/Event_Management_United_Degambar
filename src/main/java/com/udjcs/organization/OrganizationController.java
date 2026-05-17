@@ -103,6 +103,16 @@ public class OrganizationController {
         return "redirect:/organization/" + id + "/edit";
     }
 
+    @GetMapping("/{id}/logo")
+    @ResponseBody
+    public ResponseEntity<byte[]> serveLogo(@PathVariable Long id) {
+        Organization org = service.findById(id);
+        if (org.getLogoData() == null) return ResponseEntity.notFound().build();
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(org.getLogoMimeType()))
+                .body(org.getLogoData());
+    }
+
     @GetMapping("/{id}/banner")
     @ResponseBody
     public ResponseEntity<byte[]> serveBanner(@PathVariable Long id) {

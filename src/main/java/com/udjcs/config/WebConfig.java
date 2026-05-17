@@ -20,7 +20,9 @@ public class WebConfig implements WebMvcConfigurer {
                         "/login", "/logout", "/switch-user",
                         "/member-login", "/member-logout", "/register",
                         "/portal/**",
-                        "/organization/*/banner", "/organization/display-pictures/*",
+                        "/e/**",
+                        "/organization/*/banner", "/organization/*/logo", "/organization/display-pictures/*",
+                        "/invitations/*/banner",
                         "/members/*/photo",
                         "/images/**", "/uploads/**", "/css/**", "/js/**", "/error");
 

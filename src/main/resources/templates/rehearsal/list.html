@@ -4,160 +4,186 @@
       layout:decorate="~{layout/base}">
 <head><title>Rehearsal Schedule</title></head>
 <body>
-
 <th:block layout:fragment="page-title">Rehearsal Schedule</th:block>
-
 <div layout:fragment="content">
+<style>
+.rh-table th{font-size:.7rem;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:#6366f1;padding:11px 14px;background:#f8f7ff;border-bottom:2px solid #e0e7ff;}
+.rh-table td{padding:12px 14px;vertical-align:middle;border-color:#f1f5f9;}
+.rh-row{cursor:pointer;transition:background .1s;}
+.rh-row:hover{background:#fafafe;}
+.rh-row.has-upcoming{border-left:3px solid #6366f1;}
+.rh-row.no-upcoming{border-left:3px solid #94a3b8;}
+.cat-badge{display:inline-flex;align-items:center;gap:4px;border-radius:20px;padding:2px 10px;font-size:.7rem;font-weight:700;background:#eef2ff;color:#4f46e5;}
+.sess-count{display:inline-flex;align-items:center;gap:5px;border-radius:20px;padding:3px 12px;font-size:.72rem;font-weight:700;background:#f3e8ff;color:#6d28d9;}
+.next-tag{display:inline-flex;align-items:center;gap:5px;border-radius:20px;padding:3px 10px;font-size:.72rem;font-weight:700;background:#dbeafe;color:#1e40af;}
+.rh-st-Scheduled{background:#dbeafe;color:#1e40af;}
+.rh-st-Completed{background:#dcfce7;color:#166534;}
+.rh-st-Cancelled{background:#fee2e2;color:#991b1b;}
+.rh-st-Postponed{background:#fef3c7;color:#92400e;}
+.rh-tag{display:inline-flex;align-items:center;border-radius:20px;padding:2px 10px;font-size:.68rem;font-weight:700;}
+.att-chip{display:inline-flex;align-items:center;gap:4px;border-radius:20px;padding:2px 9px;font-size:.7rem;font-weight:700;background:#dcfce7;color:#166534;}
+.inner-table th{font-size:.68rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:#6366f1;padding:7px 10px;background:#eef2ff;border-bottom:2px solid #c7d2fe;}
+.inner-table td{padding:8px 10px;font-size:.82rem;border-color:#e0e7ff;}
+.sw{position:relative;}.sw i{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:.8rem;}
+.sb{border-radius:20px;border:1.5px solid #e5e7eb;padding:6px 14px 6px 32px;font-size:.84rem;width:220px;}
+.sb:focus{border-color:#6366f1;box-shadow:0 0 0 3px rgba(99,102,241,.1);outline:none;}
+</style>
 
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="fw-semibold mb-0">Rehearsal Schedule</h5>
-        <a th:href="@{/rehearsals/new}" class="btn btn-primary btn-sm">
-            <i class="bi bi-plus-lg me-1"></i>Add Rehearsal
-        </a>
+<div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
+    <div>
+        <h5 class="fw-bold mb-0" style="color:#1e1b4b;">Rehearsal Schedule</h5>
+        <p class="text-muted mb-0" style="font-size:.78rem;">Track rehearsal sessions per activity</p>
     </div>
+    <a th:href="@{/rehearsals/new}" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>Add Rehearsal</a>
+</div>
 
-    <!-- Empty state -->
-    <div th:if="${groups == null or groups.isEmpty()}" class="card border-0 shadow-sm">
-        <div class="card-body text-center text-muted py-5">
-            <i class="bi bi-clock-history d-block mb-2" style="font-size:2rem;opacity:0.3;"></i>
-            No rehearsals found.
-        </div>
+<div class="d-flex justify-content-end mb-3">
+    <div class="sw"><i class="bi bi-search"></i><input type="text" class="sb form-control" id="rhSearch" placeholder="Search activity…" oninput="rhsearch(this.value)"></div>
+</div>
+
+<div th:if="${groups == null or groups.isEmpty()}" class="card border-0 shadow-sm" style="border-radius:14px;">
+    <div class="card-body text-center py-5">
+        <i class="bi bi-clock-history d-block mb-2" style="font-size:2.5rem;color:#c7d2fe;"></i>
+        <div class="fw-semibold text-muted">No rehearsals yet</div>
     </div>
+</div>
 
-    <!-- Activity groups -->
-    <div class="card shadow-sm border-0" th:unless="${groups == null or groups.isEmpty()}">
-        <div class="card-body p-0">
-            <table class="table table-hover mb-0">
-                <thead class="table-dark">
-                    <tr>
-                        <th class="ps-3" style="width:36px;">#</th>
-                        <th>Activity</th>
-                        <th>Category</th>
-                        <th>Next Rehearsal</th>
-                        <th class="text-center">Sessions</th>
-                        <th class="text-end pe-3">Actions</th>
+<div th:unless="${groups == null or groups.isEmpty()}" class="card border-0 shadow-sm" style="border-radius:14px;overflow:hidden;">
+    <div class="table-responsive">
+        <table class="table rh-table mb-0" id="rhTable">
+            <thead><tr>
+                <th style="width:36px;">#</th>
+                <th>Activity</th>
+                <th>Category</th>
+                <th>Next Rehearsal</th>
+                <th>Sessions</th>
+                <th class="text-end" style="padding-right:16px;">Actions</th>
+            </tr></thead>
+            <tbody>
+                <th:block th:each="entry, stat : ${groups}"
+                          th:with="rehearsals=${entry.value}, activity=${entry.value[0].activity}">
+                    <tr th:class="'rh-row ' + (${nextRehearsal[entry.key] != null} ? 'has-upcoming' : 'no-upcoming')"
+                        th:attr="data-q=${activity.activityName.toLowerCase()}">
+                        <td class="text-muted fw-medium" th:text="${stat.count}"></td>
+                        <td>
+                            <div class="fw-semibold" style="font-size:.88rem;color:#1e1b4b;" th:text="${activity.activityName}"></div>
+                        </td>
+                        <td><span class="cat-badge" th:text="${activity.activityCategory.categoryName}"></span></td>
+                        <td>
+                            <span th:if="${nextRehearsal[entry.key] != null}" class="next-tag">
+                                <i class="bi bi-calendar-check" style="font-size:.72rem;"></i>
+                                <span th:text="${#temporals.format(nextRehearsal[entry.key].rehearsalDate,'dd MMM yyyy')}"></span>
+                            </span>
+                            <span th:unless="${nextRehearsal[entry.key] != null}" class="text-muted" style="font-size:.8rem;">No upcoming</span>
+                        </td>
+                        <td><span class="sess-count"><i class="bi bi-clock-history"></i><span th:text="${#lists.size(rehearsals)}"></span></span></td>
+                        <td class="text-end" style="padding-right:16px;white-space:nowrap;">
+                            <!-- More Session: expand/collapse existing sessions -->
+                            <button type="button"
+                                    class="btn btn-sm btn-outline-secondary me-1"
+                                    data-bs-toggle="collapse"
+                                    th:attr="data-bs-target='#r-' + ${entry.key}"
+                                    aria-expanded="false">
+                                <i class="bi bi-chevron-down me-1" style="font-size:.72rem;"></i>More Session
+                            </button>
+                            <!-- Add: open pre-filled form to create a new session -->
+                            <a th:href="@{/rehearsals/more/{id}(id=${entry.key})}"
+                               class="btn btn-sm btn-primary">
+                                <i class="bi bi-plus-lg me-1"></i>Add
+                            </a>
+                        </td>
                     </tr>
-                </thead>
-                <tbody>
-                    <th:block th:each="entry, stat : ${groups}">
+                    <tr class="rh-detail">
+                        <td colspan="6" class="p-0 border-0">
+                            <div class="collapse" th:id="'r-' + ${entry.key}">
+                                <div class="px-3 py-3" style="background:#faf5ff;border-top:1px solid #e9d5ff;">
+                                    <!-- One card per session -->
+                                    <div th:each="r, rs : ${entry.value}"
+                                         th:class="${rs.last} ? 'session-card mb-0' : 'session-card mb-3'"
+                                         style="border:1.5px solid #e9d5ff;border-radius:10px;overflow:hidden;background:#fff;">
 
-                        <!-- Activity summary row -->
-                        <tr th:with="rehearsals=${entry.value},
-                                     activity=${entry.value[0].activity}">
-                            <td class="ps-3 text-muted align-middle" th:text="${stat.count}"></td>
-                            <td class="fw-semibold align-middle" th:text="${activity.activityName}"></td>
-                            <td class="align-middle">
-                                <span class="badge bg-primary bg-opacity-75"
-                                      th:text="${activity.activityCategory.categoryName}"></span>
-                            </td>
-                            <td class="align-middle">
-                                <span th:if="${nextRehearsal[entry.key] != null}"
-                                      th:text="${#temporals.format(nextRehearsal[entry.key].rehearsalDate, 'dd-MMM-yyyy')}"
-                                      class="fw-medium text-primary"></span>
-                                <span th:unless="${nextRehearsal[entry.key] != null}"
-                                      class="text-muted" style="font-size:0.82rem;">No upcoming</span>
-                            </td>
-                            <td class="text-center align-middle">
-                                <span class="badge rounded-pill"
-                                      style="background:rgba(139,92,246,0.12);color:#6d28d9;font-size:0.8rem;padding:5px 12px;">
-                                    <i class="bi bi-clock-history me-1"></i>
-                                    <span th:text="${#lists.size(rehearsals)}">0</span>
-                                </span>
-                            </td>
-                            <td class="text-end pe-3 align-middle">
-                                <button class="btn btn-sm btn-outline-secondary"
-                                        type="button"
-                                        data-bs-toggle="collapse"
-                                        th:attr="data-bs-target='#rehearsals-' + ${entry.key}"
-                                        aria-expanded="false">
-                                    <i class="bi bi-chevron-down me-1" style="font-size:0.75rem;"></i>View Sessions
-                                </button>
-                            </td>
-                        </tr>
+                                        <!-- Session header row -->
+                                        <div style="background:#f5f0ff;padding:10px 14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                                            <span style="font-size:.72rem;font-weight:700;color:#7c3aed;">
+                                                <i class="bi bi-calendar3 me-1"></i>
+                                                <span th:text="${#temporals.format(r.rehearsalDate,'dd MMM yyyy')}"></span>
+                                            </span>
+                                            <span th:if="${r.startTime != null or r.endTime != null}" style="font-size:.72rem;color:#6b7280;">
+                                                <i class="bi bi-clock me-1"></i>
+                                                <span th:if="${r.startTime != null}" th:text="${r.startTime}"></span>
+                                                <span th:if="${r.startTime != null and r.endTime != null}"> – </span>
+                                                <span th:if="${r.endTime != null}" th:text="${r.endTime}"></span>
+                                            </span>
+                                            <span th:if="${r.venue != null}" style="font-size:.72rem;color:#6b7280;">
+                                                <i class="bi bi-geo-alt me-1"></i><span th:text="${r.venue}"></span>
+                                            </span>
+                                            <span th:if="${r.conductedBy != null}" style="font-size:.72rem;color:#6b7280;">
+                                                <i class="bi bi-person me-1"></i><span th:text="${r.conductedBy}"></span>
+                                            </span>
+                                            <span class="ms-auto d-flex align-items-center gap-2">
+                                                <span th:if="${memberCounts[r.id] != null and memberCounts[r.id] > 0}" class="att-chip">
+                                                    <i class="bi bi-person-check" style="font-size:.7rem;"></i>
+                                                    <span th:text="${attendedCounts[r.id] != null ? attendedCounts[r.id] : 0}"></span>/<span th:text="${memberCounts[r.id]}"></span>
+                                                </span>
+                                                <span th:class="'rh-tag rh-st-' + ${r.status}" th:text="${r.status}"></span>
+                                                <a th:href="@{/rehearsals/{id}/attendance(id=${r.id})}" class="btn btn-sm btn-outline-success py-0 px-2" title="Attendance"><i class="bi bi-person-check-fill"></i></a>
+                                                <a th:href="@{/rehearsals/{id}/edit(id=${r.id})}" class="btn btn-sm btn-outline-warning py-0 px-2"><i class="bi bi-pencil-fill"></i></a>
+                                                <form th:action="@{/rehearsals/{id}/delete(id=${r.id})}" method="post" class="d-inline" onsubmit="return confirm('Delete this rehearsal?')">
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2"><i class="bi bi-trash-fill"></i></button>
+                                                </form>
+                                            </span>
+                                        </div>
 
-                        <!-- Collapsible rehearsal detail rows -->
-                        <tr>
-                            <td colspan="6" class="p-0 border-0">
-                                <div class="collapse" th:id="'rehearsals-' + ${entry.key}">
-                                    <div class="px-4 py-3" style="background:#faf5ff;border-top:1px solid #e9d5ff;">
-                                        <table class="table table-sm mb-0" style="font-size:0.84rem;">
-                                            <thead>
-                                                <tr style="background:#ede9fe;">
-                                                    <th class="ps-2 text-muted fw-semibold" style="font-size:0.75rem;">Date</th>
-                                                    <th class="text-muted fw-semibold" style="font-size:0.75rem;">Time</th>
-                                                    <th class="text-muted fw-semibold" style="font-size:0.75rem;">Venue</th>
-                                                    <th class="text-muted fw-semibold" style="font-size:0.75rem;">Conducted By</th>
-                                                    <th class="text-muted fw-semibold text-center" style="font-size:0.75rem;">Members</th>
-                                                    <th class="text-muted fw-semibold" style="font-size:0.75rem;">Status</th>
-                                                    <th class="text-end pe-2 text-muted fw-semibold" style="font-size:0.75rem;">Actions</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr th:each="r : ${entry.value}">
-                                                    <td class="ps-2 align-middle fw-medium"
-                                                        th:text="${#temporals.format(r.rehearsalDate,'dd-MMM-yyyy')}"></td>
-                                                    <td class="align-middle text-muted">
-                                                        <span th:if="${r.startTime != null}" th:text="${r.startTime}"></span>
-                                                        <span th:if="${r.startTime != null and r.endTime != null}"> – </span>
-                                                        <span th:if="${r.endTime != null}" th:text="${r.endTime}"></span>
-                                                        <span th:if="${r.startTime == null and r.endTime == null}">—</span>
-                                                    </td>
-                                                    <td class="align-middle text-muted"
-                                                        th:text="${r.venue != null ? r.venue : '—'}"></td>
-                                                    <td class="align-middle text-muted"
-                                                        th:text="${r.conductedBy != null ? r.conductedBy : '—'}"></td>
-                                                    <td class="align-middle text-center">
-                                                        <span th:if="${memberCounts[r.id] != null and memberCounts[r.id] > 0}"
-                                                              class="badge rounded-pill"
-                                                              style="background:rgba(16,185,129,0.12);color:#065f46;font-size:0.72rem;">
-                                                            <i class="bi bi-person-check me-1"></i>
-                                                            <span th:text="${attendedCounts[r.id] != null ? attendedCounts[r.id] : 0}">0</span>
-                                                            /
-                                                            <span th:text="${memberCounts[r.id]}">0</span>
-                                                        </span>
-                                                        <span th:unless="${memberCounts[r.id] != null and memberCounts[r.id] > 0}"
-                                                              class="text-muted" style="font-size:0.78rem;">—</span>
-                                                    </td>
-                                                    <td class="align-middle">
-                                                        <span th:with="sc=${r.status == 'Completed'} ? 'bg-success' : (${r.status == 'Cancelled'} ? 'bg-danger' : (${r.status == 'Postponed'} ? 'bg-warning text-dark' : 'bg-primary'))"
-                                                              th:class="'badge ' + ${sc}"
-                                                              th:text="${r.status}"></span>
-                                                    </td>
-                                                    <td class="text-end pe-2 align-middle">
-                                                        <a th:href="@{/rehearsals/{id}/attendance(id=${r.id})}"
-                                                           class="btn btn-sm btn-success py-0 px-2 me-1">
-                                                            <i class="bi bi-person-check-fill me-1"></i>Attendance
-                                                        </a>
-                                                        <a th:href="@{/rehearsals/{id}/edit(id=${r.id})}"
-                                                           class="btn btn-sm btn-primary py-0 px-2 me-1">
-                                                            <i class="bi bi-person-plus-fill me-1"></i>Add Member
-                                                        </a>
-                                                        <a th:href="@{/rehearsals/{id}/edit(id=${r.id})}"
-                                                           class="btn btn-sm btn-outline-warning py-0 px-2">
-                                                            <i class="bi bi-pencil"></i>
-                                                        </a>
-                                                        <form th:action="@{/rehearsals/{id}/delete(id=${r.id})}"
-                                                              method="post" class="d-inline"
-                                                              data-confirm='Delete this rehearsal?'>
-                                                            <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2">
-                                                                <i class="bi bi-trash"></i>
-                                                            </button>
-                                                        </form>
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
+                                        <!-- Members table — one row per member -->
+                                        <div th:if="${memberDetails[r.id] != null and not #lists.isEmpty(memberDetails[r.id])}"
+                                             style="padding:0;">
+                                            <table style="width:100%;border-collapse:collapse;font-size:.78rem;">
+                                                <thead>
+                                                    <tr style="background:#f0ebff;">
+                                                        <th style="padding:6px 14px;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#7c3aed;width:36px;">#</th>
+                                                        <th style="padding:6px 14px;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#7c3aed;">Member Name</th>
+                                                        <th style="padding:6px 14px;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#7c3aed;">Role</th>
+                                                        <th style="padding:6px 14px;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#7c3aed;">Attended</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr th:each="mrow, ms : ${memberDetails[r.id]}"
+                                                        th:style="${ms.odd} ? 'background:#fdfcff;' : 'background:#fff;'">
+                                                        <td style="padding:7px 14px;color:#9ca3af;" th:text="${ms.count}"></td>
+                                                        <td style="padding:7px 14px;">
+                                                            <div class="d-flex align-items-center gap-2">
+                                                                <div th:style="${mrow[4]} ? 'width:8px;height:8px;border-radius:50%;background:#059669;flex-shrink:0;' : 'width:8px;height:8px;border-radius:50%;background:#e5e7eb;flex-shrink:0;'"></div>
+                                                                <span class="fw-semibold" style="color:#1e1b4b;" th:text="${mrow[1] + ' ' + mrow[2]}"></span>
+                                                            </div>
+                                                        </td>
+                                                        <td style="padding:7px 14px;">
+                                                            <span style="background:#ede9fe;color:#6d28d9;border-radius:6px;padding:2px 8px;font-size:.7rem;font-weight:600;" th:text="${mrow[3]}"></span>
+                                                        </td>
+                                                        <td style="padding:7px 14px;">
+                                                            <span th:if="${mrow[4]}" style="background:#dcfce7;color:#166534;border-radius:6px;padding:2px 8px;font-size:.7rem;font-weight:600;"><i class="bi bi-check-lg me-1"></i>Yes</span>
+                                                            <span th:unless="${mrow[4]}" style="color:#9ca3af;font-size:.75rem;">—</span>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <div th:unless="${memberDetails[r.id] != null and not #lists.isEmpty(memberDetails[r.id])}"
+                                             style="padding:10px 14px;font-size:.75rem;color:#94a3b8;">
+                                            <i class="bi bi-person-x me-1"></i>No members assigned to this session
+                                        </div>
                                     </div>
                                 </div>
-                            </td>
-                        </tr>
-
-                    </th:block>
-                </tbody>
-            </table>
-        </div>
+                            </div>
+                        </td>
+                    </tr>
+                </th:block>
+                <tr id="rhEmpty" style="display:none;"><td colspan="6" class="text-center py-4 text-muted">No records match</td></tr>
+            </tbody>
+        </table>
     </div>
-
 </div>
-</body>
-</html>
+</div>
+<th:block layout:fragment="page-scripts"><script>
+function rhsearch(q){q=q.toLowerCase();var rows=document.querySelectorAll('#rhTable tbody tr.rh-row'),v=0;rows.forEach(r=>{var ok=!q||r.dataset.q.includes(q);r.style.display=ok?'':'none';var nxt=r.nextElementSibling;if(nxt&&nxt.classList.contains('rh-detail'))nxt.style.display=ok?'':'none';if(ok)v++;});document.getElementById('rhEmpty').style.display=v===0&&rows.length>0?'':'none';}
+</script></th:block>
+</body></html>

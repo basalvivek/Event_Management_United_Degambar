@@ -77,9 +77,9 @@
 
     <!-- Left: brand -->
     <a class="pnav-brand" th:href="@{/portal}">
-        <img th:if="${org != null and org.logoPath != null}"
-             th:src="${org.logoPath}" alt="Logo">
-        <img th:unless="${org != null and org.logoPath != null}"
+        <img th:if="${org != null and org.logoData != null}"
+             th:src="@{/organization/{id}/logo(id=${org.id})}" alt="Logo">
+        <img th:unless="${org != null and org.logoData != null}"
              th:src="@{/images/logo.jpeg}" alt="Logo">
         <div class="pnav-brand-text">
             <span th:text="${org != null ? org.name : 'UDJCS'}">UDJCS</span>

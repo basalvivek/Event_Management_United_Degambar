@@ -21,4 +21,7 @@ public interface RehearsalRepository extends JpaRepository<Rehearsal, Long> {
     List<Rehearsal> findUpcomingWithActivity(@Param("date") LocalDate date);
 
     boolean existsByActivity_IdAndRehearsalDate(Long activityId, LocalDate rehearsalDate);
+
+    @Query("SELECT r FROM Rehearsal r JOIN FETCH r.activity a JOIN FETCH a.activityCategory WHERE r.activity.id = :activityId ORDER BY r.rehearsalDate DESC")
+    List<Rehearsal> findByActivityIdOrderByDateDesc(@Param("activityId") Long activityId);
 }

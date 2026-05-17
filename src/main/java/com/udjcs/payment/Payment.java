@@ -22,6 +22,9 @@ public class Payment extends BaseEntity {
     @JoinColumn(name = "member_id")
     private Member member;
 
+    @Column(name = "committed_amount", precision = 12, scale = 2)
+    private BigDecimal committedAmount;
+
     @Column(precision = 12, scale = 2)
     private BigDecimal amount;
 
@@ -58,6 +61,9 @@ public class Payment extends BaseEntity {
 
     public Member getMember() { return member; }
     public void setMember(Member member) { this.member = member; }
+
+    public BigDecimal getCommittedAmount() { return committedAmount; }
+    public void setCommittedAmount(BigDecimal committedAmount) { this.committedAmount = committedAmount; }
 
     public BigDecimal getAmount() { return amount; }
     public void setAmount(BigDecimal amount) { this.amount = amount; }

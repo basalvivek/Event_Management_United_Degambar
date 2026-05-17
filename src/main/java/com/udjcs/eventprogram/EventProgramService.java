@@ -87,6 +87,10 @@ public class EventProgramService {
 
     public Map<Event, List<EventProgram>> findGroupedByEvent() {
         Map<Event, List<EventProgram>> grouped = new LinkedHashMap<>();
+        // Seed all events so events with 0 programmes still appear
+        eventRepository.findAll(org.springframework.data.domain.Sort.by("eventName"))
+                .forEach(e -> grouped.put(e, new ArrayList<>()));
+        // Populate programmes for events that have them
         for (EventProgram p : repository.findAllWithDetails()) {
             grouped.computeIfAbsent(p.getEvent(), k -> new ArrayList<>()).add(p);
         }

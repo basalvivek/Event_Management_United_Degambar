@@ -27,12 +27,19 @@ public class EventTicketAdminController {
                        @RequestParam(required = false) String status,
                        Model model) {
         java.util.List<EventTicket> tickets = service.findFiltered(eventId, status);
+        java.util.List<EventTicket> allTickets = service.findFiltered(null, null);
+        long totalPending  = allTickets.stream().filter(t -> "Pending".equals(t.getStatus())).count();
+        long totalAccepted = allTickets.stream().filter(t -> "Accepted".equals(t.getStatus())).count();
+        long totalRevenue  = allTickets.stream().filter(t -> "Accepted".equals(t.getStatus())).mapToInt(EventTicket::getTotalAmount).sum();
         model.addAttribute("tickets", tickets);
         model.addAttribute("events", eventService.findAll());
         model.addAttribute("selectedEventId", eventId);
         model.addAttribute("selectedStatus", status);
-        model.addAttribute("totalShown",
-                tickets.stream().mapToInt(EventTicket::getTotalAmount).sum());
+        model.addAttribute("totalShown", tickets.stream().mapToInt(EventTicket::getTotalAmount).sum());
+        model.addAttribute("totalPending",  totalPending);
+        model.addAttribute("totalAccepted", totalAccepted);
+        model.addAttribute("totalRevenue",  totalRevenue);
+        model.addAttribute("grandTotal",    allTickets.size());
         return "ticket/list";
     }
 

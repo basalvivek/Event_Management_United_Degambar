@@ -2,187 +2,572 @@
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout/base}">
-<head><title>Add / Edit Event</title></head>
+<head>
+<title>Event Booking</title>
+<style>
+    .section-card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        margin-bottom: 20px;
+        overflow: hidden;
+    }
+    .section-header {
+        padding: 12px 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.6px;
+        text-transform: uppercase;
+    }
+    .section-header i { font-size: 1rem; }
+    .section-body { padding: 20px; background: #fff; }
+    .section-hdr-blue   { background: linear-gradient(90deg,#eff6ff,#dbeafe); color:#1d4ed8; }
+    .section-hdr-purple { background: linear-gradient(90deg,#f5f3ff,#ede9fe); color:#6d28d9; }
+    .section-hdr-teal   { background: linear-gradient(90deg,#f0fdfa,#ccfbf1); color:#0f766e; }
+    .section-hdr-amber  { background: linear-gradient(90deg,#fffbeb,#fef3c7); color:#b45309; }
+    .section-hdr-slate  { background: linear-gradient(90deg,#f8fafc,#f1f5f9); color:#475569; }
+    .form-label {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 5px;
+    }
+    .form-control, .form-select {
+        font-size: 0.88rem;
+        border-radius: 8px;
+        border: 1.5px solid #e5e7eb;
+        transition: border-color 0.18s, box-shadow 0.18s;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: #6366f1;
+        box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+    }
+    .ticket-box {
+        background: #f8f7ff;
+        border: 1.5px solid #e0e7ff;
+        border-radius: 10px;
+        padding: 14px 16px;
+        text-align: center;
+    }
+    .ticket-box .ticket-label {
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        color: #6366f1;
+        margin-bottom: 8px;
+    }
+    .ticket-box .form-control {
+        text-align: center;
+        font-weight: 700;
+        font-size: 1rem;
+    }
+    .venue-add-btn {
+        white-space: nowrap;
+        border-radius: 8px;
+        font-size: 0.82rem;
+        font-weight: 600;
+    }
+    .required-star { color: #ef4444; }
+    .modal-header-venue { background: linear-gradient(135deg,#4f46e5,#7c3aed); }
+</style>
+</head>
 <body>
 
 <th:block layout:fragment="page-title"
-          th:text="${item.id == null ? 'Add' : 'Edit'} + ' Event'">Event</th:block>
+          th:text="${item.id == null ? 'Add Event' : 'Edit Event'}">Event</th:block>
 
 <div layout:fragment="content">
-    <div class="card shadow-sm border-0" style="max-width:720px;">
-        <div class="card-header bg-white border-bottom fw-semibold"
-             th:text="${item.id == null ? 'Add New Event' : 'Edit Event'}"></div>
-        <div class="card-body">
-            <form th:action="${item.id == null ? '/events' : '/events/' + item.id}"
-                  th:object="${item}" method="post">
+<form th:action="${item.id == null ? '/events' : '/events/' + item.id}"
+      th:object="${item}" method="post" style="max-width:820px;">
 
+    <!-- ── Section 1: Event Details ── -->
+    <div class="section-card">
+        <div class="section-header section-hdr-blue">
+            <i class="bi bi-calendar-event-fill"></i> Event Details
+        </div>
+        <div class="section-body">
+            <div class="row g-3">
+                <div class="col-12">
+                    <label class="form-label">Event Name <span class="required-star">*</span></label>
+                    <input type="text" class="form-control" th:field="*{eventName}"
+                           placeholder="e.g. Paryushana Mahotsav 2025"
+                           th:classappend="${#fields.hasErrors('eventName')} ? ' is-invalid'">
+                    <div class="invalid-feedback" th:errors="*{eventName}"></div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Start Date <span class="required-star">*</span></label>
+                    <input type="date" class="form-control" th:field="*{eventDate}"
+                           th:classappend="${#fields.hasErrors('eventDate')} ? ' is-invalid'">
+                    <div class="invalid-feedback" th:errors="*{eventDate}"></div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">End Date</label>
+                    <input type="date" class="form-control" th:field="*{endDate}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Event Type <span class="required-star">*</span></label>
+                    <select class="form-select" th:field="*{eventType}"
+                            th:classappend="${#fields.hasErrors('eventType')} ? ' is-invalid'">
+                        <option value="">— Select Type —</option>
+                        <option value="Religious">🕉 Religious</option>
+                        <option value="Cultural">🎭 Cultural</option>
+                        <option value="Social">🤝 Social</option>
+                        <option value="Community">🏘 Community</option>
+                        <option value="Educational">📚 Educational</option>
+                        <option value="Other">📌 Other</option>
+                    </select>
+                    <div class="invalid-feedback" th:errors="*{eventType}"></div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Status <span class="required-star">*</span></label>
+                    <select class="form-select" th:field="*{status}"
+                            th:classappend="${#fields.hasErrors('status')} ? ' is-invalid'">
+                        <option value="">— Select Status —</option>
+                        <option value="Planned">📋 Planned</option>
+                        <option value="Active">✅ Active</option>
+                        <option value="Completed">🏁 Completed</option>
+                        <option value="Cancelled">❌ Cancelled</option>
+                    </select>
+                    <div class="invalid-feedback" th:errors="*{status}"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Section 2: Location & Organisation ── -->
+    <div class="section-card">
+        <div class="section-header section-hdr-purple">
+            <i class="bi bi-geo-alt-fill"></i> Location &amp; Organisation
+        </div>
+        <div class="section-body">
+            <div class="row g-3">
+                <div class="col-12">
+                    <label class="form-label">Venue <span class="required-star">*</span></label>
+                    <div class="d-flex gap-2 align-items-start">
+                        <div class="flex-grow-1">
+                            <select class="form-select" th:field="*{venue}" id="venueSelect"
+                                    th:classappend="${#fields.hasErrors('venue')} ? ' is-invalid'">
+                                <option value="">— Select Venue —</option>
+                                <option th:each="v : ${venues}"
+                                        th:value="${v.venueName}"
+                                        th:text="${v.venueName} + ' — ' + ${v.city}"></option>
+                            </select>
+                            <div class="invalid-feedback" th:errors="*{venue}"></div>
+                        </div>
+                        <button type="button" class="btn btn-outline-primary venue-add-btn"
+                                data-bs-toggle="modal" data-bs-target="#addVenueModal"
+                                title="Add a new venue">
+                            <i class="bi bi-plus-lg me-1"></i>Add Venue
+                        </button>
+                    </div>
+                    <div class="form-text">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Venue not listed? Click <strong>Add Venue</strong> to create one instantly.
+                    </div>
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Organiser <span class="required-star">*</span></label>
+                    <div class="d-flex gap-2 align-items-start">
+                        <div class="flex-grow-1">
+                            <select class="form-select" th:field="*{organizerName}" id="organiserSelect"
+                                    th:classappend="${#fields.hasErrors('organizerName')} ? ' is-invalid'">
+                                <option value="">— Select Organiser —</option>
+                                <option th:each="org : ${organizers}"
+                                        th:value="${org.name}"
+                                        th:text="${org.name}"></option>
+                            </select>
+                            <div class="invalid-feedback" th:errors="*{organizerName}"></div>
+                        </div>
+                        <button type="button" class="btn btn-outline-primary venue-add-btn"
+                                data-bs-toggle="modal" data-bs-target="#addOrganiserModal"
+                                title="Add a new organiser">
+                            <i class="bi bi-plus-lg me-1"></i>Add Organiser
+                        </button>
+                    </div>
+                    <div class="form-text">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Organiser not listed? Click <strong>Add Organiser</strong> to create one instantly.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Section 3: Contact Members ── -->
+    <div class="section-card">
+        <div class="section-header section-hdr-teal">
+            <i class="bi bi-person-lines-fill"></i> Contact Members
+        </div>
+        <div class="section-body">
+            <div class="row g-3">
+                <div class="col-12">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <span class="badge rounded-pill text-bg-primary" style="font-size:0.7rem;">Contact 1</span>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label class="form-label">Name <span class="required-star">*</span></label>
+                            <select class="form-select" th:field="*{contactMember1Name}"
+                                    th:classappend="${#fields.hasErrors('contactMember1Name')} ? ' is-invalid'">
+                                <option value="">— Select Member —</option>
+                                <option th:each="m : ${members}"
+                                        th:value="${m.firstName + ' ' + m.lastName}"
+                                        th:text="${m.firstName + ' ' + m.lastName}"></option>
+                            </select>
+                            <div class="invalid-feedback" th:errors="*{contactMember1Name}"></div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Phone <span class="required-star">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text" style="border-radius:8px 0 0 8px;">
+                                    <i class="bi bi-telephone"></i>
+                                </span>
+                                <input type="text" class="form-control" th:field="*{contactMember1Phone}"
+                                       placeholder="+44 7700 000000" style="border-radius:0 8px 8px 0;"
+                                       th:classappend="${#fields.hasErrors('contactMember1Phone')} ? ' is-invalid'">
+                                <div class="invalid-feedback" th:errors="*{contactMember1Phone}"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <span class="badge rounded-pill text-bg-secondary" style="font-size:0.7rem;">Contact 2</span>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label class="form-label">Name <span class="required-star">*</span></label>
+                            <select class="form-select" th:field="*{contactMember2Name}"
+                                    th:classappend="${#fields.hasErrors('contactMember2Name')} ? ' is-invalid'">
+                                <option value="">— Select Member —</option>
+                                <option th:each="m : ${members}"
+                                        th:value="${m.firstName + ' ' + m.lastName}"
+                                        th:text="${m.firstName + ' ' + m.lastName}"></option>
+                            </select>
+                            <div class="invalid-feedback" th:errors="*{contactMember2Name}"></div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Phone <span class="required-star">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text" style="border-radius:8px 0 0 8px;">
+                                    <i class="bi bi-telephone"></i>
+                                </span>
+                                <input type="text" class="form-control" th:field="*{contactMember2Phone}"
+                                       placeholder="+44 7700 000000" style="border-radius:0 8px 8px 0;"
+                                       th:classappend="${#fields.hasErrors('contactMember2Phone')} ? ' is-invalid'">
+                                <div class="invalid-feedback" th:errors="*{contactMember2Phone}"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Section 4: Ticket Charges ── -->
+    <div class="section-card">
+        <div class="section-header section-hdr-amber">
+            <i class="bi bi-ticket-perforated-fill"></i> Entry Ticket Charges
+            <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:0.75rem;opacity:0.7;">
+                — leave blank or 0 for free entry
+            </span>
+        </div>
+        <div class="section-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <div class="ticket-box">
+                        <div class="ticket-label"><i class="bi bi-person-fill me-1"></i>Adult</div>
+                        <div class="input-group">
+                            <span class="input-group-text fw-bold"
+                                  style="border-radius:8px 0 0 8px;background:#eef2ff;color:#4f46e5;border-color:#e0e7ff;">£</span>
+                            <input type="number" class="form-control" th:field="*{ticketAdult}"
+                                   min="0" step="1" placeholder="0"
+                                   style="border-radius:0 8px 8px 0;"
+                                   th:classappend="${#fields.hasErrors('ticketAdult')} ? ' is-invalid'">
+                            <div class="invalid-feedback" th:errors="*{ticketAdult}"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="ticket-box">
+                        <div class="ticket-label"><i class="bi bi-person me-1"></i>Youth (8–18)</div>
+                        <div class="input-group">
+                            <span class="input-group-text fw-bold"
+                                  style="border-radius:8px 0 0 8px;background:#eef2ff;color:#4f46e5;border-color:#e0e7ff;">£</span>
+                            <input type="number" class="form-control" th:field="*{ticketYounger}"
+                                   min="0" step="1" placeholder="0"
+                                   style="border-radius:0 8px 8px 0;"
+                                   th:classappend="${#fields.hasErrors('ticketYounger')} ? ' is-invalid'">
+                            <div class="invalid-feedback" th:errors="*{ticketYounger}"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="ticket-box">
+                        <div class="ticket-label"><i class="bi bi-emoji-smile me-1"></i>Child (Under 8)</div>
+                        <div class="input-group">
+                            <span class="input-group-text fw-bold"
+                                  style="border-radius:8px 0 0 8px;background:#eef2ff;color:#4f46e5;border-color:#e0e7ff;">£</span>
+                            <input type="number" class="form-control" th:field="*{ticketChild}"
+                                   min="0" step="1" placeholder="0"
+                                   style="border-radius:0 8px 8px 0;"
+                                   th:classappend="${#fields.hasErrors('ticketChild')} ? ' is-invalid'">
+                            <div class="invalid-feedback" th:errors="*{ticketChild}"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Section 5: Description ── -->
+    <div class="section-card">
+        <div class="section-header section-hdr-slate">
+            <i class="bi bi-text-paragraph"></i> Description
+        </div>
+        <div class="section-body">
+            <textarea class="form-control" th:field="*{description}" rows="3"
+                      placeholder="Brief description of the event..."
+                      th:classappend="${#fields.hasErrors('description')} ? ' is-invalid'"></textarea>
+            <div class="invalid-feedback" th:errors="*{description}"></div>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="d-flex gap-2 mb-4">
+        <button type="submit" class="btn btn-primary px-4">
+            <i class="bi bi-check-lg me-1"></i>
+            <span th:text="${item.id == null ? 'Create Event' : 'Save Changes'}">Save</span>
+        </button>
+        <a th:href="@{/events}" class="btn btn-outline-secondary px-4">
+            <i class="bi bi-arrow-left me-1"></i>Cancel
+        </a>
+    </div>
+
+</form>
+
+<!-- ══ Add Organiser Modal ══ -->
+<div class="modal fade" id="addOrganiserModal" tabindex="-1" aria-labelledby="addOrganiserModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:480px;">
+        <div class="modal-content border-0" style="border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.18);">
+            <div class="modal-header py-3 px-4" style="background:linear-gradient(135deg,#0f766e,#0d9488);">
+                <h6 class="modal-title fw-bold text-white mb-0" id="addOrganiserModalLabel">
+                    <i class="bi bi-people-fill me-2"></i>Add New Organiser
+                </h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div id="organiserFormError" class="alert alert-danger d-none py-2 mb-3"></div>
                 <div class="row g-3">
-
                     <div class="col-12">
-                        <label class="form-label fw-medium">Event Name <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" th:field="*{eventName}"
-                               th:classappend="${#fields.hasErrors('eventName')} ? ' is-invalid'">
-                        <div class="invalid-feedback" th:errors="*{eventName}"></div>
+                        <label class="form-label">Organisation Name <span class="required-star">*</span></label>
+                        <input type="text" class="form-control" id="o_name" placeholder="e.g. Harrow Jain Sangh">
                     </div>
-
                     <div class="col-md-6">
-                        <label class="form-label fw-medium">Start Date <span class="text-danger">*</span></label>
-                        <input type="date" class="form-control" th:field="*{eventDate}"
-                               th:classappend="${#fields.hasErrors('eventDate')} ? ' is-invalid'">
-                        <div class="invalid-feedback" th:errors="*{eventDate}"></div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label fw-medium">End Date</label>
-                        <input type="date" class="form-control" th:field="*{endDate}"
-                               th:classappend="${#fields.hasErrors('endDate')} ? ' is-invalid'">
-                        <div class="invalid-feedback" th:errors="*{endDate}"></div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label fw-medium">Event Type <span class="text-danger">*</span></label>
-                        <select class="form-select" th:field="*{eventType}"
-                                th:classappend="${#fields.hasErrors('eventType')} ? ' is-invalid'">
-                            <option value="">-- Select Type --</option>
+                        <label class="form-label">Organisation Type</label>
+                        <select class="form-select" id="o_type">
+                            <option value="">— Select —</option>
                             <option value="Religious">Religious</option>
                             <option value="Cultural">Cultural</option>
+                            <option value="Charitable">Charitable</option>
                             <option value="Social">Social</option>
-                            <option value="Community">Community</option>
                             <option value="Educational">Educational</option>
                             <option value="Other">Other</option>
                         </select>
-                        <div class="invalid-feedback" th:errors="*{eventType}"></div>
                     </div>
-
                     <div class="col-md-6">
-                        <label class="form-label fw-medium">Status <span class="text-danger">*</span></label>
-                        <select class="form-select" th:field="*{status}"
-                                th:classappend="${#fields.hasErrors('status')} ? ' is-invalid'">
-                            <option value="">-- Select Status --</option>
-                            <option value="Planned">Planned</option>
-                            <option value="Active">Active</option>
-                            <option value="Completed">Completed</option>
-                            <option value="Cancelled">Cancelled</option>
-                        </select>
-                        <div class="invalid-feedback" th:errors="*{status}"></div>
+                        <label class="form-label">Contact Person</label>
+                        <input type="text" class="form-control" id="o_contactPerson" placeholder="Primary contact name">
                     </div>
-
                     <div class="col-12">
-                        <label class="form-label fw-medium">Venue <span class="text-danger">*</span></label>
-                        <select class="form-select" th:field="*{venue}"
-                                th:classappend="${#fields.hasErrors('venue')} ? ' is-invalid'">
-                            <option value="">-- Select Venue --</option>
-                            <option th:each="v : ${venues}"
-                                    th:value="${v.venueName}"
-                                    th:text="${v.venueName} + ' — ' + ${v.city}"></option>
-                        </select>
-                        <div class="invalid-feedback" th:errors="*{venue}"></div>
+                        <label class="form-label">Contact Phone</label>
+                        <div class="input-group">
+                            <span class="input-group-text" style="border-radius:8px 0 0 8px;">
+                                <i class="bi bi-telephone"></i>
+                            </span>
+                            <input type="tel" class="form-control" id="o_contactPhone"
+                                   placeholder="+44 7700 000000" style="border-radius:0 8px 8px 0;">
+                        </div>
                     </div>
-
-                    <div class="col-12">
-                        <label class="form-label fw-medium">Organizer <span class="text-danger">*</span></label>
-                        <select class="form-select" th:field="*{organizerName}"
-                                th:classappend="${#fields.hasErrors('organizerName')} ? ' is-invalid'">
-                            <option value="">-- Select Organizer --</option>
-                            <option th:each="org : ${organizers}"
-                                    th:value="${org.name}"
-                                    th:text="${org.name}"></option>
-                        </select>
-                        <div class="invalid-feedback" th:errors="*{organizerName}"></div>
-                    </div>
-
-                    <div class="col-12"><hr class="my-1"><p class="fw-medium mb-2 text-secondary" style="font-size:0.82rem;">Contact Members</p></div>
-
-                    <div class="col-md-6">
-                        <label class="form-label fw-medium">Contact Member 1 — Name <span class="text-danger">*</span></label>
-                        <select class="form-select" th:field="*{contactMember1Name}"
-                                th:classappend="${#fields.hasErrors('contactMember1Name')} ? ' is-invalid'">
-                            <option value="">-- Select Member --</option>
-                            <option th:each="m : ${members}"
-                                    th:value="${m.firstName + ' ' + m.lastName}"
-                                    th:text="${m.firstName + ' ' + m.lastName}"></option>
-                        </select>
-                        <div class="invalid-feedback" th:errors="*{contactMember1Name}"></div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label fw-medium">Contact Member 1 — Phone <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" th:field="*{contactMember1Phone}"
-                               th:classappend="${#fields.hasErrors('contactMember1Phone')} ? ' is-invalid'">
-                        <div class="invalid-feedback" th:errors="*{contactMember1Phone}"></div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label fw-medium">Contact Member 2 — Name <span class="text-danger">*</span></label>
-                        <select class="form-select" th:field="*{contactMember2Name}"
-                                th:classappend="${#fields.hasErrors('contactMember2Name')} ? ' is-invalid'">
-                            <option value="">-- Select Member --</option>
-                            <option th:each="m : ${members}"
-                                    th:value="${m.firstName + ' ' + m.lastName}"
-                                    th:text="${m.firstName + ' ' + m.lastName}"></option>
-                        </select>
-                        <div class="invalid-feedback" th:errors="*{contactMember2Name}"></div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label fw-medium">Contact Member 2 — Phone <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" th:field="*{contactMember2Phone}"
-                               th:classappend="${#fields.hasErrors('contactMember2Phone')} ? ' is-invalid'">
-                        <div class="invalid-feedback" th:errors="*{contactMember2Phone}"></div>
-                    </div>
-
-                    <div class="col-12">
-                        <hr class="my-1">
-                        <p class="fw-medium mb-2 text-secondary" style="font-size:0.82rem;">
-                            <i class="bi bi-ticket-perforated me-1"></i>Entry Ticket Charges
-                            <span class="text-muted fw-normal">(leave blank if free entry)</span>
-                        </p>
-                    </div>
-
-                    <div class="col-md-4">
-                        <label class="form-label fw-medium">Adult (£)</label>
-                        <input type="number" class="form-control" th:field="*{ticketAdult}"
-                               min="0" step="1" placeholder="0"
-                               th:classappend="${#fields.hasErrors('ticketAdult')} ? ' is-invalid'">
-                        <div class="invalid-feedback" th:errors="*{ticketAdult}"></div>
-                    </div>
-
-                    <div class="col-md-4">
-                        <label class="form-label fw-medium">Younger (£)</label>
-                        <input type="number" class="form-control" th:field="*{ticketYounger}"
-                               min="0" step="1" placeholder="0"
-                               th:classappend="${#fields.hasErrors('ticketYounger')} ? ' is-invalid'">
-                        <div class="invalid-feedback" th:errors="*{ticketYounger}"></div>
-                    </div>
-
-                    <div class="col-md-4">
-                        <label class="form-label fw-medium">Child (£)</label>
-                        <input type="number" class="form-control" th:field="*{ticketChild}"
-                               min="0" step="1" placeholder="0"
-                               th:classappend="${#fields.hasErrors('ticketChild')} ? ' is-invalid'">
-                        <div class="form-text">Child entry can be free (0).</div>
-                        <div class="invalid-feedback" th:errors="*{ticketChild}"></div>
-                    </div>
-
-                    <div class="col-12">
-                        <label class="form-label fw-medium">Description</label>
-                        <textarea class="form-control" th:field="*{description}" rows="3"
-                                  th:classappend="${#fields.hasErrors('description')} ? ' is-invalid'"></textarea>
-                        <div class="invalid-feedback" th:errors="*{description}"></div>
-                    </div>
-
                 </div>
-
-                <div class="d-flex gap-2 mt-4">
-                    <button type="submit" class="btn btn-primary px-4">
-                        <i class="bi bi-check-lg me-1"></i>Save
-                    </button>
-                    <a th:href="@{/events}" class="btn btn-outline-secondary px-4">Cancel</a>
-                </div>
-
-            </form>
+            </div>
+            <div class="modal-footer border-0 px-4 pb-4 pt-0 gap-2">
+                <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn px-4 text-white" id="saveOrganiserBtn"
+                        style="background:#0f766e;" onclick="saveOrganiserQuick()">
+                    <i class="bi bi-check-lg me-1"></i>Save &amp; Select
+                </button>
+            </div>
         </div>
     </div>
 </div>
+
+<!-- ══ Add Venue Modal ══ -->
+<div class="modal fade" id="addVenueModal" tabindex="-1" aria-labelledby="addVenueModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:520px;">
+        <div class="modal-content border-0" style="border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.18);">
+            <div class="modal-header modal-header-venue py-3 px-4">
+                <h6 class="modal-title fw-bold text-white mb-0" id="addVenueModalLabel">
+                    <i class="bi bi-geo-alt-fill me-2"></i>Add New Venue
+                </h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div id="venueFormError" class="alert alert-danger d-none py-2 mb-3"></div>
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label">Venue Name <span class="required-star">*</span></label>
+                        <input type="text" class="form-control" id="v_venueName" placeholder="e.g. Harrow Jain Centre">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Address <span class="required-star">*</span></label>
+                        <input type="text" class="form-control" id="v_address" placeholder="Street address">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">City <span class="required-star">*</span></label>
+                        <input type="text" class="form-control" id="v_city" placeholder="e.g. Harrow">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">State / County <span class="required-star">*</span></label>
+                        <input type="text" class="form-control" id="v_state" placeholder="e.g. Greater London">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Venue Type <span class="required-star">*</span></label>
+                        <select class="form-select" id="v_venueType">
+                            <option value="">— Select —</option>
+                            <option value="Hall">Hall</option>
+                            <option value="Temple">Temple</option>
+                            <option value="Community Centre">Community Centre</option>
+                            <option value="School">School</option>
+                            <option value="Hotel">Hotel</option>
+                            <option value="Outdoor">Outdoor</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Capacity</label>
+                        <input type="number" class="form-control" id="v_capacity" min="1" placeholder="e.g. 200">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 px-4 pb-4 pt-0 gap-2">
+                <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary px-4" id="saveVenueBtn" onclick="saveVenueQuick()">
+                    <i class="bi bi-check-lg me-1"></i>Save &amp; Select
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+</div>
+
+<th:block layout:fragment="page-scripts">
+<script>
+function saveOrganiserQuick() {
+    var name   = document.getElementById('o_name').value.trim();
+    var type   = document.getElementById('o_type').value;
+    var person = document.getElementById('o_contactPerson').value.trim();
+    var phone  = document.getElementById('o_contactPhone').value.trim();
+    var errEl  = document.getElementById('organiserFormError');
+
+    errEl.classList.add('d-none');
+    if (!name) {
+        errEl.textContent = 'Organisation name is required.';
+        errEl.classList.remove('d-none');
+        return;
+    }
+
+    var btn = document.getElementById('saveOrganiserBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Saving…';
+
+    var params = new URLSearchParams({ name: name });
+    if (type)   params.append('organizationType', type);
+    if (person) params.append('contactPerson', person);
+    if (phone)  params.append('contactPhone', phone);
+
+    fetch('/supportive/quick-add', { method: 'POST', body: params })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            var sel = document.getElementById('organiserSelect');
+            var opt = document.createElement('option');
+            opt.value    = data.name;
+            opt.text     = data.name;
+            opt.selected = true;
+            sel.appendChild(opt);
+            bootstrap.Modal.getInstance(document.getElementById('addOrganiserModal')).hide();
+            ['o_name','o_contactPerson','o_contactPhone'].forEach(function(id) {
+                document.getElementById(id).value = '';
+            });
+            document.getElementById('o_type').value = '';
+        })
+        .catch(function() {
+            errEl.textContent = 'Failed to save organiser. Please try again.';
+            errEl.classList.remove('d-none');
+        })
+        .finally(function() {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Save & Select';
+        });
+}
+
+function saveVenueQuick() {
+    var name    = document.getElementById('v_venueName').value.trim();
+    var address = document.getElementById('v_address').value.trim();
+    var city    = document.getElementById('v_city').value.trim();
+    var state   = document.getElementById('v_state').value.trim();
+    var type    = document.getElementById('v_venueType').value;
+    var cap     = document.getElementById('v_capacity').value;
+    var errEl   = document.getElementById('venueFormError');
+
+    errEl.classList.add('d-none');
+    if (!name || !address || !city || !state || !type) {
+        errEl.textContent = 'Please fill in all required fields.';
+        errEl.classList.remove('d-none');
+        return;
+    }
+
+    var btn = document.getElementById('saveVenueBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Saving…';
+
+    var params = new URLSearchParams({
+        venueName: name, address: address, city: city,
+        state: state, venueType: type
+    });
+    if (cap) params.append('capacity', cap);
+
+    fetch('/venues/quick-add', { method: 'POST', body: params })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            var sel = document.getElementById('venueSelect');
+            var opt = document.createElement('option');
+            opt.value = data.venueName;
+            opt.text  = data.label;
+            opt.selected = true;
+            sel.appendChild(opt);
+            bootstrap.Modal.getInstance(document.getElementById('addVenueModal')).hide();
+            ['v_venueName','v_address','v_city','v_state','v_capacity'].forEach(function(id) {
+                document.getElementById(id).value = '';
+            });
+            document.getElementById('v_venueType').value = '';
+        })
+        .catch(function() {
+            errEl.textContent = 'Failed to save venue. Please try again.';
+            errEl.classList.remove('d-none');
+        })
+        .finally(function() {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Save & Select';
+        });
+}
+</script>
+</th:block>
+
 </body>
 </html>

@@ -2,149 +2,262 @@
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout/base}">
-<head><title>Add / Edit Rehearsal</title></head>
+<head><title>Rehearsal</title></head>
 <body>
-
 <th:block layout:fragment="page-title"
-          th:text="${item.id == null ? 'Add' : 'Edit'} + ' Rehearsal'">Rehearsal</th:block>
-
+          th:text="${item.id == null ? 'Add Rehearsal' : 'Edit Rehearsal'}">Rehearsal</th:block>
 <div layout:fragment="content">
-    <div class="card shadow-sm border-0" style="max-width:680px;">
-        <div class="card-header bg-white border-bottom fw-semibold"
-             th:text="${item.id == null ? 'Add New Rehearsal' : 'Edit Rehearsal'}"></div>
-        <div class="card-body">
-            <form th:action="${item.id == null ? '/rehearsals' : '/rehearsals/' + item.id}"
-                  th:object="${item}" method="post">
+<style>
+.rh-form-card{border-radius:16px;border:0;box-shadow:0 4px 24px rgba(0,0,0,0.07);}
+.rh-form-card .card-header{border-radius:16px 16px 0 0;padding:20px 28px;border-bottom:1px solid #e9d5ff;background:#fff;}
+.section-card{border-radius:12px;border:1.5px solid #e0e7ff;background:#fafbff;padding:20px 24px;margin-bottom:1.25rem;}
+.section-title{font-size:.7rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#6366f1;margin-bottom:14px;display:flex;align-items:center;gap:7px;}
+.form-label{font-size:.82rem;font-weight:600;color:#374151;margin-bottom:5px;}
+.form-control,.form-select{border-radius:9px;border:1.5px solid #e5e7eb;font-size:.86rem;padding:9px 13px;transition:border-color .18s,box-shadow .18s;}
+.form-control:focus,.form-select:focus{border-color:#8b5cf6;box-shadow:0 0 0 3px rgba(139,92,246,.12);outline:none;}
+.st-chip{display:inline-flex;align-items:center;gap:6px;border-radius:20px;padding:7px 18px;font-size:.8rem;font-weight:600;border:1.5px solid #e5e7eb;background:#fff;color:#475569;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.st-chip:hover{border-color:#8b5cf6;color:#8b5cf6;}
+.st-chip.sel-Scheduled{background:#dbeafe;border-color:#3b82f6;color:#1e40af;}
+.st-chip.sel-Completed{background:#dcfce7;border-color:#059669;color:#166534;}
+.st-chip.sel-Cancelled{background:#fee2e2;border-color:#ef4444;color:#991b1b;}
+.st-chip.sel-Postponed{background:#fef3c7;border-color:#d97706;color:#92400e;}
+.member-section{border-radius:12px;border:1.5px solid #e9d5ff;background:#faf5ff;padding:18px 20px;}
+.member-row-item{background:#fff;border:1.5px solid #e5e7eb;border-radius:9px;padding:8px 12px;display:flex;align-items:center;gap:10px;transition:border-color .15s;}
+.member-row-item:hover{border-color:#c4b5fd;}
+.req-star{color:#ef4444;}
+.duration-badge{display:inline-flex;align-items:center;gap:5px;background:#ede9fe;color:#6d28d9;border-radius:8px;padding:4px 12px;font-size:.78rem;font-weight:700;}
+</style>
 
-                <div class="row g-3">
+<div style="max-width:740px;">
+<div class="card rh-form-card">
 
-                    <div class="col-12">
-                        <label class="form-label fw-medium">Activity <span class="text-danger">*</span></label>
-                        <select class="form-select" th:field="*{activityId}"
-                                th:classappend="${#fields.hasErrors('activityId')} ? ' is-invalid'">
-                            <option value="">-- Select Activity --</option>
-                            <option th:each="a : ${activities}"
-                                    th:value="${a.id}"
-                                    th:text="${a.activityName} + ' [' + ${a.activityCategory.categoryName} + ']'"></option>
-                        </select>
-                        <div class="invalid-feedback" th:errors="*{activityId}"></div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label fw-medium">Rehearsal Date <span class="text-danger">*</span></label>
-                        <input type="date" class="form-control" th:field="*{rehearsalDate}"
-                               th:classappend="${#fields.hasErrors('rehearsalDate')} ? ' is-invalid'">
-                        <div class="invalid-feedback" th:errors="*{rehearsalDate}"></div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label fw-medium">Status <span class="text-danger">*</span></label>
-                        <select class="form-select" th:field="*{status}"
-                                th:classappend="${#fields.hasErrors('status')} ? ' is-invalid'">
-                            <option value="">-- Select Status --</option>
-                            <option value="Scheduled">Scheduled</option>
-                            <option value="Completed">Completed</option>
-                            <option value="Cancelled">Cancelled</option>
-                            <option value="Postponed">Postponed</option>
-                        </select>
-                        <div class="invalid-feedback" th:errors="*{status}"></div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label fw-medium">Start Time</label>
-                        <input type="time" class="form-control" th:field="*{startTime}">
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label fw-medium">End Time</label>
-                        <input type="time" class="form-control" th:field="*{endTime}">
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label fw-medium">Venue</label>
-                        <input type="text" class="form-control" th:field="*{venue}"
-                               th:classappend="${#fields.hasErrors('venue')} ? ' is-invalid'">
-                        <div class="invalid-feedback" th:errors="*{venue}"></div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label fw-medium">Conducted By <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" th:field="*{conductedBy}"
-                               th:classappend="${#fields.hasErrors('conductedBy')} ? ' is-invalid'"
-                               placeholder="Enter name" required>
-                        <div class="invalid-feedback" th:errors="*{conductedBy}"></div>
-                    </div>
-
-                    <div class="col-12">
-                        <label class="form-label fw-medium">Notes</label>
-                        <textarea class="form-control" th:field="*{notes}" rows="2"
-                                  th:classappend="${#fields.hasErrors('notes')} ? ' is-invalid'"></textarea>
-                        <div class="invalid-feedback" th:errors="*{notes}"></div>
-                    </div>
-
-                    <!-- ── Members & Roles ── -->
-                    <div class="col-12">
-                        <div class="p-3 rounded-3" style="background:#f8faff;border:1px solid #e0e7ff;">
-                            <div class="d-flex align-items-center justify-content-between mb-3">
-                                <div>
-                                    <span class="fw-semibold" style="font-size:0.9rem;color:#1e1b4b;">
-                                        <i class="bi bi-people-fill text-primary me-2"></i>Members &amp; Roles
-                                    </span>
-                                    <div class="text-muted" style="font-size:0.75rem;">Add members attending this rehearsal.</div>
-                                </div>
-                                <button type="button" class="btn btn-primary btn-sm px-3" onclick="addMemberRow()">
-                                    <i class="bi bi-person-plus-fill me-1"></i>Add Member
-                                </button>
-                            </div>
-                            <div id="memberRows" class="d-flex flex-column gap-2"></div>
-                        </div>
-
-                        <!-- Hidden member options for JS -->
-                        <select id="memberSrc" style="display:none;">
-                            <option value="">-- Select Member --</option>
-                            <option th:each="m : ${members}"
-                                    th:value="${m.id}"
-                                    th:text="${m.firstName + ' ' + m.lastName + ' — ' + m.phone}"></option>
-                        </select>
-
-                        <!-- Existing members for edit (passed as JSON-like hidden inputs) -->
-                        <th:block th:if="${existingMembers != null and not #lists.isEmpty(existingMembers)}">
-                            <input type="hidden" id="existingCount" th:value="${#lists.size(existingMembers)}">
-                            <span th:each="em, s : ${existingMembers}"
-                                  th:attr="data-em-member=${em.memberId},data-em-role=${em.role},data-em-idx=${s.index}"
-                                  class="d-none existing-member-data"></span>
-                        </th:block>
-                    </div>
-
-                </div>
-
-                <div th:if="${duplicateError}"
-                     class="mt-3 d-flex align-items-start gap-2 p-2 rounded-2"
-                     style="background:#fef2f2;border:1px solid #fecaca;font-size:0.82rem;color:#dc2626;">
-                    <i class="bi bi-calendar-x-fill flex-shrink-0 mt-1"></i>
-                    <span th:text="${duplicateError}"></span>
-                </div>
-
-                <div class="d-flex gap-2 mt-4">
-                    <button type="submit" class="btn btn-primary px-4">
-                        <i class="bi bi-check-lg me-1"></i>Save
-                    </button>
-                    <a th:href="@{/rehearsals}" class="btn btn-outline-secondary px-4">Cancel</a>
-                </div>
-
-            </form>
+    <!-- Header -->
+    <div class="card-header d-flex align-items-center gap-3">
+        <div style="width:46px;height:46px;border-radius:12px;background:linear-gradient(135deg,#8b5cf6,#6366f1);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(139,92,246,.3);">
+            <i class="bi bi-clock-history text-white fs-5"></i>
+        </div>
+        <div>
+            <div class="fw-bold" style="color:#1e1b4b;font-size:1rem;"
+                 th:text="${item.id == null ? (moreSession ? 'Add More Session' : 'Add New Rehearsal') : 'Edit Rehearsal'}"></div>
+            <div class="text-muted" style="font-size:.75rem;"
+                 th:text="${moreSession} ? 'Pre-filled from last session — update date, time or venue as needed' : 'Schedule a rehearsal session for a community activity'"></div>
+        </div>
+        <div th:if="${item.id != null}" class="ms-auto">
+            <span class="badge rounded-pill" style="background:#ede9fe;color:#6d28d9;font-size:.72rem;padding:5px 12px;">
+                <i class="bi bi-pencil-fill me-1"></i>Editing
+            </span>
         </div>
     </div>
+
+    <div class="card-body p-4">
+    <form th:action="${item.id == null ? '/rehearsals' : '/rehearsals/' + item.id}"
+          th:object="${item}" method="post">
+
+        <!-- Activity & Status -->
+        <div class="section-card">
+            <div class="section-title"><i class="bi bi-list-task"></i>Activity &amp; Status</div>
+            <div class="row g-3">
+                <div class="col-12">
+                    <label class="form-label">Activity <span class="req-star">*</span></label>
+                    <select class="form-select" th:field="*{activityId}"
+                            th:classappend="${#fields.hasErrors('activityId')} ? ' is-invalid'">
+                        <option value="">— Select Activity —</option>
+                        <option th:each="a : ${activities}"
+                                th:value="${a.id}"
+                                th:text="${a.activityName + ' [' + a.activityCategory.categoryName + ']'}"></option>
+                    </select>
+                    <div class="invalid-feedback" th:errors="*{activityId}"></div>
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Status <span class="req-star">*</span></label>
+                    <div class="d-flex gap-2 flex-wrap mt-1">
+                        <span th:each="s : ${ {'Scheduled','Completed','Cancelled','Postponed'} }"
+                              th:class="${item.status == s} ? 'st-chip sel-' + ${s} : 'st-chip'"
+                              th:attr="data-val=${s}"
+                              th:text="${s}"
+                              onclick="selectStatus(this)"></span>
+                    </div>
+                    <select th:field="*{status}" id="statusSelect" style="display:none;"
+                            th:classappend="${#fields.hasErrors('status')} ? ' is-invalid'">
+                        <option value="">— Select —</option>
+                        <option value="Scheduled">Scheduled</option>
+                        <option value="Completed">Completed</option>
+                        <option value="Cancelled">Cancelled</option>
+                        <option value="Postponed">Postponed</option>
+                    </select>
+                    <div class="invalid-feedback d-block" th:errors="*{status}"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Date & Time -->
+        <div class="section-card">
+            <div class="section-title"><i class="bi bi-calendar3"></i>Date &amp; Time</div>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Rehearsal Date <span class="req-star">*</span></label>
+                    <input type="date" class="form-control" th:field="*{rehearsalDate}"
+                           th:classappend="${#fields.hasErrors('rehearsalDate')} ? ' is-invalid'"
+                           onchange="calcDuration()">
+                    <div class="invalid-feedback" th:errors="*{rehearsalDate}"></div>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Start Time</label>
+                    <input type="time" class="form-control" th:field="*{startTime}" oninput="calcDuration()">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">End Time</label>
+                    <input type="time" class="form-control" th:field="*{endTime}" oninput="calcDuration()">
+                </div>
+            </div>
+            <div class="mt-3" id="durationWrap" style="display:none;">
+                <span class="duration-badge"><i class="bi bi-stopwatch"></i><span id="durationText"></span></span>
+            </div>
+        </div>
+
+        <!-- Location & Conductor -->
+        <div class="section-card">
+            <div class="section-title"><i class="bi bi-geo-alt"></i>Location &amp; Conductor</div>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Venue</label>
+                    <div class="input-group">
+                        <span class="input-group-text" style="border-radius:9px 0 0 9px;border:1.5px solid #e5e7eb;border-right:0;background:#f8f7ff;color:#8b5cf6;">
+                            <i class="bi bi-geo-alt-fill"></i>
+                        </span>
+                        <input type="text" class="form-control" th:field="*{venue}"
+                               placeholder="Hall, room or address"
+                               th:classappend="${#fields.hasErrors('venue')} ? ' is-invalid'"
+                               style="border-radius:0 9px 9px 0;">
+                    </div>
+                    <div class="invalid-feedback d-block" th:errors="*{venue}"></div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Conducted By <span class="req-star">*</span></label>
+                    <div class="input-group">
+                        <span class="input-group-text" style="border-radius:9px 0 0 9px;border:1.5px solid #e5e7eb;border-right:0;background:#f8f7ff;color:#8b5cf6;">
+                            <i class="bi bi-person-fill"></i>
+                        </span>
+                        <input type="text" class="form-control" th:field="*{conductedBy}"
+                               placeholder="Instructor or leader name"
+                               th:classappend="${#fields.hasErrors('conductedBy')} ? ' is-invalid'"
+                               style="border-radius:0 9px 9px 0;">
+                    </div>
+                    <div class="invalid-feedback d-block" th:errors="*{conductedBy}"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Members -->
+        <div class="mb-4">
+            <div class="member-section">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <div>
+                        <div class="fw-bold" style="font-size:.88rem;color:#1e1b4b;">
+                            <i class="bi bi-people-fill me-2" style="color:#8b5cf6;"></i>Members &amp; Roles
+                        </div>
+                        <div class="text-muted" style="font-size:.73rem;margin-top:2px;">Add members attending this rehearsal session</div>
+                    </div>
+                    <button type="button" class="btn btn-sm px-3" onclick="addMemberRow()"
+                            style="border-radius:20px;background:linear-gradient(135deg,#8b5cf6,#6366f1);color:#fff;border:0;font-size:.78rem;font-weight:600;">
+                        <i class="bi bi-person-plus-fill me-1"></i>Add Member
+                    </button>
+                </div>
+                <div id="memberRows" class="d-flex flex-column gap-2"></div>
+                <div class="text-muted text-center py-3" id="noMembersHint" style="font-size:.78rem;">
+                    <i class="bi bi-person-plus d-block mb-1" style="font-size:1.4rem;color:#c4b5fd;"></i>
+                    Click "Add Member" to attach members to this session
+                </div>
+            </div>
+
+            <select id="memberSrc" style="display:none;">
+                <option value="">— Select Member —</option>
+                <option th:each="m : ${members}"
+                        th:value="${m.id}"
+                        th:text="${m.firstName + ' ' + m.lastName}"></option>
+            </select>
+
+            <th:block th:if="${existingMembers != null and not #lists.isEmpty(existingMembers)}">
+                <input type="hidden" id="existingCount" th:value="${#lists.size(existingMembers)}">
+                <span th:each="em, s : ${existingMembers}"
+                      th:attr="data-em-member=${em.memberId},data-em-role=${em.role},data-em-idx=${s.index}"
+                      class="d-none existing-member-data"></span>
+            </th:block>
+        </div>
+
+        <!-- Notes -->
+        <div class="mb-4">
+            <label class="form-label">Notes</label>
+            <textarea class="form-control" th:field="*{notes}" rows="2"
+                      placeholder="Any notes about this rehearsal session…"
+                      style="border-radius:9px;resize:none;"
+                      th:classappend="${#fields.hasErrors('notes')} ? ' is-invalid'"></textarea>
+            <div class="invalid-feedback" th:errors="*{notes}"></div>
+        </div>
+
+        <div th:if="${duplicateError}"
+             class="mb-3 d-flex align-items-start gap-2 p-3 rounded-3"
+             style="background:#fef2f2;border:1.5px solid #fecaca;font-size:.82rem;color:#dc2626;">
+            <i class="bi bi-exclamation-triangle-fill flex-shrink-0 mt-1"></i>
+            <span th:text="${duplicateError}"></span>
+        </div>
+
+        <!-- Actions -->
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary px-5"
+                    style="border-radius:10px;background:linear-gradient(135deg,#8b5cf6,#6366f1);border:0;box-shadow:0 4px 12px rgba(139,92,246,.3);">
+                <i class="bi bi-check-lg me-1"></i>Save Rehearsal
+            </button>
+            <a th:href="@{/rehearsals}" class="btn btn-outline-secondary px-4" style="border-radius:10px;">Cancel</a>
+        </div>
+
+    </form>
+    </div>
 </div>
+</div>
+</div>
+
 <th:block layout:fragment="page-scripts">
 <script>
+function selectStatus(chip) {
+    document.querySelectorAll('.st-chip').forEach(c => {
+        c.className = 'st-chip';
+    });
+    chip.className = 'st-chip sel-' + chip.dataset.val;
+    document.getElementById('statusSelect').value = chip.dataset.val;
+}
+
+function calcDuration() {
+    var s = document.querySelector('[name="startTime"]').value;
+    var e = document.querySelector('[name="endTime"]').value;
+    var wrap = document.getElementById('durationWrap');
+    if (s && e) {
+        var sm = parseInt(s.split(':')[0])*60 + parseInt(s.split(':')[1]);
+        var em = parseInt(e.split(':')[0])*60 + parseInt(e.split(':')[1]);
+        var diff = em - sm;
+        if (diff > 0) {
+            var h = Math.floor(diff/60), m = diff%60;
+            document.getElementById('durationText').textContent =
+                (h > 0 ? h + 'h ' : '') + (m > 0 ? m + 'min' : '') + ' duration';
+            wrap.style.display = '';
+            return;
+        }
+    }
+    wrap.style.display = 'none';
+}
+
 (function () {
     var roles = ['Participant','Lead','Co-Lead','Coordinator','Observer','Support'];
 
     function buildRoleOptions(selected) {
         return roles.map(function(r) {
-            return '<option value="' + r + '"' + (r === selected ? ' selected' : '') + '>' + r + '</option>';
+            return '<option value="' + r + '"' + (r === (selected||'Participant') ? ' selected' : '') + '>' + r + '</option>';
         }).join('');
+    }
+
+    function updateHint() {
+        var hint = document.getElementById('noMembersHint');
+        if (hint) hint.style.display = document.getElementById('memberRows').children.length === 0 ? '' : 'none';
     }
 
     window.addMemberRow = function (preselectedMemberId, preselectedRole) {
@@ -155,43 +268,36 @@
 
         var options = src.innerHTML;
         if (preselectedMemberId) {
-            options = options.replace(
-                'value="' + preselectedMemberId + '"',
-                'value="' + preselectedMemberId + '" selected'
-            );
+            options = options.replace('value="' + preselectedMemberId + '"', 'value="' + preselectedMemberId + '" selected');
         }
 
         var div = document.createElement('div');
-        div.className = 'd-flex align-items-center gap-2 p-2 rounded-2';
-        div.style.background = '#fff';
-        div.style.border = '1px solid #e5e7eb';
+        div.className = 'member-row-item';
         div.innerHTML =
-            '<span class="badge rounded-pill bg-primary bg-opacity-75 flex-shrink-0" style="min-width:26px;text-align:center;">' + rowNum + '</span>' +
-            '<select name="memberIds" class="form-select form-select-sm flex-grow-1">' + options + '</select>' +
-            '<select name="memberRoles" class="form-select form-select-sm" style="max-width:160px;">' +
-              buildRoleOptions(preselectedRole || 'Participant') +
-            '</select>' +
-            '<button type="button" class="btn btn-sm btn-outline-danger px-2 flex-shrink-0" onclick="removeRow(this)">' +
+            '<span class="badge rounded-pill flex-shrink-0" style="background:#ede9fe;color:#6d28d9;min-width:26px;text-align:center;">' + rowNum + '</span>' +
+            '<select name="memberIds" class="form-select form-select-sm flex-grow-1" style="border-radius:8px;">' + options + '</select>' +
+            '<select name="memberRoles" class="form-select form-select-sm flex-shrink-0" style="max-width:150px;border-radius:8px;">' + buildRoleOptions(preselectedRole) + '</select>' +
+            '<button type="button" class="btn btn-sm btn-outline-danger flex-shrink-0 px-2" style="border-radius:8px;" onclick="removeRow(this)">' +
               '<i class="bi bi-x-lg"></i>' +
             '</button>';
         container.appendChild(div);
+        updateHint();
     };
 
     window.removeRow = function (btn) {
-        btn.closest('div[style]').remove();
+        btn.closest('.member-row-item').remove();
         document.querySelectorAll('#memberRows > div').forEach(function(d, i) {
             d.querySelector('.badge').textContent = i + 1;
         });
+        updateHint();
     };
 
-    // Pre-populate existing members on edit
     document.addEventListener('DOMContentLoaded', function () {
-        var existing = document.querySelectorAll('.existing-member-data');
-        if (existing.length > 0) {
-            existing.forEach(function(el) {
-                addMemberRow(el.getAttribute('data-em-member'), el.getAttribute('data-em-role'));
-            });
-        }
+        document.querySelectorAll('.existing-member-data').forEach(function(el) {
+            addMemberRow(el.getAttribute('data-em-member'), el.getAttribute('data-em-role'));
+        });
+        updateHint();
+        calcDuration();
     });
 })();
 </script>

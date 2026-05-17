@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head><title>Hall Registration</title></head>
+<body>
+<th:block layout:fragment="page-title"
+          th:text="${item.id == null ? 'Add Hall Booking' : 'Edit Hall Booking'}">Hall Booking</th:block>
+<div layout:fragment="content">
+<style>
+.hr-form-card{border-radius:16px;border:0;box-shadow:0 4px 24px rgba(0,0,0,0.07);}
+.hr-form-card .card-header{border-radius:16px 16px 0 0;padding:20px 28px;border-bottom:1px solid #e0e7ff;background:#fff;}
+.section-card{border-radius:12px;border:1.5px solid #e0e7ff;background:#fafbff;padding:20px 24px;margin-bottom:1.25rem;}
+.section-title{font-size:.7rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#6366f1;margin-bottom:14px;display:flex;align-items:center;gap:7px;}
+.form-label{font-size:.82rem;font-weight:600;color:#374151;margin-bottom:5px;}
+.form-control,.form-select{border-radius:9px;border:1.5px solid #e5e7eb;font-size:.86rem;padding:9px 13px;transition:border-color .18s,box-shadow .18s;}
+.form-control:focus,.form-select:focus{border-color:#6366f1;box-shadow:0 0 0 3px rgba(99,102,241,.12);outline:none;}
+.duration-badge{display:inline-flex;align-items:center;gap:5px;background:#ede9fe;color:#6d28d9;border-radius:8px;padding:5px 14px;font-size:.82rem;font-weight:700;}
+.amt-input{font-family:monospace;}
+.st-badge-ip{background:#fef3c7;color:#92400e;border-radius:20px;padding:4px 14px;font-size:.78rem;font-weight:700;}
+.st-badge-done{background:#dcfce7;color:#166534;border-radius:20px;padding:4px 14px;font-size:.78rem;font-weight:700;}
+.req-star{color:#ef4444;}
+</style>
+
+<div style="max-width:760px;">
+<div class="card hr-form-card">
+
+    <!-- Header -->
+    <div class="card-header d-flex align-items-center gap-3">
+        <div style="width:46px;height:46px;border-radius:12px;background:linear-gradient(135deg,#1e1b4b,#6366f1);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(30,27,75,.3);">
+            <i class="bi bi-building text-white fs-5"></i>
+        </div>
+        <div>
+            <div class="fw-bold" style="color:#1e1b4b;font-size:1rem;" th:text="${item.id == null ? 'Add Hall Booking' : 'Edit Hall Booking'}"></div>
+            <div class="text-muted" style="font-size:.75rem;">Record a hall hire booking with payment tracking</div>
+        </div>
+        <div th:if="${item.id != null}" class="ms-auto d-flex align-items-center gap-2">
+            <span th:text="${item.bookingStatus}"
+                  th:style="${item.bookingStatus == 'CONFIRMED'} ? 'background:#dcfce7;color:#166534;border-radius:20px;padding:4px 12px;font-size:.72rem;font-weight:700;' :
+                             (${item.bookingStatus == 'REJECTED'} ? 'background:#fee2e2;color:#991b1b;border-radius:20px;padding:4px 12px;font-size:.72rem;font-weight:700;' :
+                             (${item.bookingStatus == 'HOLD'} ? 'background:#fef3c7;color:#92400e;border-radius:20px;padding:4px 12px;font-size:.72rem;font-weight:700;' :
+                             'background:#dbeafe;color:#1e40af;border-radius:20px;padding:4px 12px;font-size:.72rem;font-weight:700;'))"></span>
+            <span th:if="${item.status == 'Completed'}" class="st-badge-done"><i class="bi bi-check-circle-fill me-1"></i>Paid</span>
+            <span th:unless="${item.status == 'Completed'}" class="st-badge-ip"><i class="bi bi-hourglass-split me-1"></i>Payment Pending</span>
+        </div>
+    </div>
+
+    <div class="card-body p-4">
+    <form th:action="${item.id == null ? '/hall-registrations' : '/hall-registrations/' + item.id}"
+          th:object="${item}" method="post">
+
+        <!-- Booking Details -->
+        <div class="section-card">
+            <div class="section-title"><i class="bi bi-person-badge"></i>Booking Details</div>
+            <div class="row g-3">
+                <div class="col-md-8">
+                    <label class="form-label">Hall Name</label>
+                    <input type="text" class="form-control" th:field="*{hallName}" placeholder="e.g. Main Hall, Banquet Hall, Community Centre">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Booking Status</label>
+                    <select class="form-select" th:field="*{bookingStatus}">
+                        <option value="INITIAL">INITIAL</option>
+                        <option value="INPROGRESS">INPROGRESS</option>
+                        <option value="HOLD">HOLD</option>
+                        <option value="REJECTED">REJECTED</option>
+                        <option value="CONFIRMED">CONFIRMED</option>
+                    </select>
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Event <span class="text-muted" style="font-weight:400;">(optional)</span></label>
+                    <select class="form-select" name="eventId">
+                        <option value="">— No linked event —</option>
+                        <option th:each="e : ${events}"
+                                th:value="${e.id}"
+                                th:text="${e.eventName}"
+                                th:selected="${item.event != null and item.event.id == e.id}"></option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Booked By <span class="req-star">*</span></label>
+                    <input type="text" class="form-control" th:field="*{bookedBy}" placeholder="Full name"
+                           th:classappend="${#fields.hasErrors('bookedBy')} ? ' is-invalid'">
+                    <div class="invalid-feedback" th:errors="*{bookedBy}"></div>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Phone</label>
+                    <input type="text" class="form-control" th:field="*{phone}" placeholder="07xxx">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-control" th:field="*{email}" placeholder="email@example.com">
+                </div>
+            </div>
+        </div>
+
+        <!-- Bank Details -->
+        <div class="section-card">
+            <div class="section-title"><i class="bi bi-bank"></i>Bank / Payment Details</div>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Sort Code</label>
+                    <input type="text" class="form-control" th:field="*{sortCode}" placeholder="12-34-56">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Account Number</label>
+                    <input type="text" class="form-control" th:field="*{accountNumber}" placeholder="12345678">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Payable Name</label>
+                    <input type="text" class="form-control" th:field="*{payableName}" placeholder="Payee name">
+                </div>
+            </div>
+        </div>
+
+        <!-- Hall Schedule -->
+        <div class="section-card">
+            <div class="section-title"><i class="bi bi-calendar3"></i>Hall Hire Schedule</div>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Hire Date <span class="req-star">*</span></label>
+                    <input type="date" class="form-control" th:field="*{hireDate}"
+                           th:classappend="${#fields.hasErrors('hireDate')} ? ' is-invalid'">
+                    <div class="invalid-feedback" th:errors="*{hireDate}"></div>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">From Time</label>
+                    <input type="time" class="form-control" th:field="*{fromTime}" oninput="calcHours()">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Till Time</label>
+                    <input type="time" class="form-control" th:field="*{tillTime}" oninput="calcHours()">
+                </div>
+            </div>
+            <div class="mt-3" id="durationWrap" style="display:none;">
+                <span class="duration-badge"><i class="bi bi-stopwatch"></i><span id="durationText"></span></span>
+            </div>
+        </div>
+
+        <!-- Charges -->
+        <div class="section-card">
+            <div class="section-title"><i class="bi bi-currency-pound"></i>Hall Charges</div>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Hall Charges (£)</label>
+                    <div class="input-group">
+                        <span class="input-group-text" style="border-radius:9px 0 0 9px;border:1.5px solid #e5e7eb;border-right:0;background:#f8f7ff;color:#6366f1;font-weight:700;">£</span>
+                        <input type="number" class="form-control amt-input" th:field="*{hallCharges}"
+                               min="0" step="0.01" placeholder="0.00" oninput="calcRemaining()"
+                               style="border-radius:0 9px 9px 0;">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Initial Deposit (£)</label>
+                    <div class="input-group">
+                        <span class="input-group-text" style="border-radius:9px 0 0 9px;border:1.5px solid #e5e7eb;border-right:0;background:#f0fdf4;color:#059669;font-weight:700;">£</span>
+                        <input type="number" class="form-control amt-input" th:field="*{initialDeposit}"
+                               min="0" step="0.01" placeholder="0.00" oninput="calcRemaining()"
+                               style="border-radius:0 9px 9px 0;">
+                    </div>
+                </div>
+                <!-- Remaining (shown on edit with instalments) -->
+                <div th:if="${item.id != null}" class="col-12">
+                    <div class="row g-2">
+                        <div class="col-4">
+                            <div class="text-center p-2 rounded-3" style="background:#f0fdf4;border:1.5px solid #bbf7d0;">
+                                <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;color:#059669;">Total Paid</div>
+                                <div style="font-family:monospace;font-weight:800;color:#166534;font-size:.95rem;"
+                                     th:text="${totalPaid != null ? '£' + #numbers.formatDecimal(totalPaid,1,2) : '£0.00'}"></div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="text-center p-2 rounded-3" style="background:#fef2f2;border:1.5px solid #fecaca;">
+                                <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;color:#dc2626;">Remaining</div>
+                                <div style="font-family:monospace;font-weight:800;color:#991b1b;font-size:.95rem;"
+                                     th:text="${remaining != null ? '£' + #numbers.formatDecimal(remaining,1,2) : '—'}"></div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="text-center p-2 rounded-3" style="background:#f8f7ff;border:1.5px solid #e0e7ff;">
+                                <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;color:#6366f1;">Status</div>
+                                <div style="font-size:.82rem;font-weight:800;margin-top:4px;">
+                                    <span th:if="${item.status == 'Completed'}" style="color:#166534;">Completed</span>
+                                    <span th:unless="${item.status == 'Completed'}" style="color:#92400e;">In Progress</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="mb-4">
+            <label class="form-label">Notes</label>
+            <textarea class="form-control" th:field="*{notes}" rows="2"
+                      placeholder="Any additional notes…" style="border-radius:9px;resize:none;"></textarea>
+        </div>
+
+        <!-- Actions -->
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary px-5" style="border-radius:10px;background:linear-gradient(135deg,#1e1b4b,#6366f1);border:0;">
+                <i class="bi bi-check-lg me-1"></i>Save Booking
+            </button>
+            <a th:href="@{/hall-registrations}" class="btn btn-outline-secondary px-4" style="border-radius:10px;">Cancel</a>
+        </div>
+
+    </form>
+
+    <!-- Partial Payments (edit only) -->
+    <div th:if="${item.id != null}" class="mt-4" style="border:1.5px solid #d1fae5;border-radius:12px;padding:20px 22px;background:#fafffe;">
+        <div style="font-size:.7rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#059669;margin-bottom:14px;display:flex;align-items:center;gap:7px;">
+            <i class="bi bi-cash-coin"></i>Partial Payments
+        </div>
+
+        <!-- History -->
+        <div th:if="${instalments != null and not #lists.isEmpty(instalments)}" class="mb-3">
+            <table class="table table-sm mb-0" style="font-size:.8rem;border-radius:8px;overflow:hidden;">
+                <thead style="background:#ecfdf5;">
+                    <tr>
+                        <th style="font-size:.68rem;font-weight:700;text-transform:uppercase;color:#059669;padding:7px 10px;">#</th>
+                        <th style="font-size:.68rem;font-weight:700;text-transform:uppercase;color:#059669;padding:7px 10px;">Date</th>
+                        <th style="font-size:.68rem;font-weight:700;text-transform:uppercase;color:#059669;padding:7px 10px;">Mode</th>
+                        <th style="font-size:.68rem;font-weight:700;text-transform:uppercase;color:#059669;padding:7px 10px;">Notes</th>
+                        <th style="font-size:.68rem;font-weight:700;text-transform:uppercase;color:#059669;padding:7px 10px;text-align:right;">Amount</th>
+                        <th style="padding:7px 10px;"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="ins, s : ${instalments}" style="border-color:#d1fae5;">
+                        <td style="padding:7px 10px;color:#64748b;" th:text="${s.count}"></td>
+                        <td style="padding:7px 10px;font-weight:600;" th:text="${#temporals.format(ins.paymentDate,'dd MMM yyyy')}"></td>
+                        <td style="padding:7px 10px;"><span style="background:#f1f5f9;border-radius:6px;padding:2px 8px;font-size:.72rem;font-weight:600;" th:text="${ins.paymentMode}"></span></td>
+                        <td style="padding:7px 10px;color:#64748b;" th:text="${ins.notes != null ? ins.notes : '—'}"></td>
+                        <td style="padding:7px 10px;text-align:right;font-family:monospace;font-weight:700;color:#166534;" th:text="${'£' + #numbers.formatDecimal(ins.amount,1,2)}"></td>
+                        <td style="padding:7px 10px;">
+                            <form th:action="@{/hall-registrations/instalments/{id}/delete(id=${ins.id})}" method="post" class="d-inline"
+                                  onsubmit="return confirm('Remove this payment?')">
+                                <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-1" style="border-radius:6px;font-size:.72rem;">
+                                    <i class="bi bi-trash-fill"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div th:unless="${instalments != null and not #lists.isEmpty(instalments)}"
+             class="text-center text-muted py-2 mb-3" style="font-size:.78rem;">
+            <i class="bi bi-clock-history me-1"></i>No partial payments recorded yet
+        </div>
+
+        <!-- Add Payment -->
+        <div style="background:#f0fdf4;border-radius:10px;border:1.5px solid #bbf7d0;padding:18px 20px;">
+            <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#059669;margin-bottom:14px;">
+                <i class="bi bi-plus-circle-fill me-1"></i>Add Payment
+            </div>
+            <form th:action="@{/hall-registrations/{id}/pay(id=${item.id})}" method="post">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label" style="font-size:.8rem;font-weight:600;color:#374151;">Amount (£) <span style="color:#ef4444;">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text" style="background:#dcfce7;border:1.5px solid #bbf7d0;border-right:0;color:#166534;font-weight:700;border-radius:9px 0 0 9px;">£</span>
+                            <input type="number" name="amount" class="form-control" min="0.01" step="0.01" placeholder="0.00" required
+                                   style="border:1.5px solid #bbf7d0;border-left:0;border-radius:0 9px 9px 0;font-family:monospace;">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" style="font-size:.8rem;font-weight:600;color:#374151;">Payment Date <span style="color:#ef4444;">*</span></label>
+                        <input type="date" name="paymentDate" class="form-control" required
+                               style="border:1.5px solid #bbf7d0;border-radius:9px;">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" style="font-size:.8rem;font-weight:600;color:#374151;">Payment Mode <span style="color:#ef4444;">*</span></label>
+                        <select name="paymentMode" class="form-select" required style="border:1.5px solid #bbf7d0;border-radius:9px;">
+                            <option value="">— Select Mode —</option>
+                            <option value="Cash">Cash</option>
+                            <option value="Bank Transfer">Bank Transfer</option>
+                            <option value="Cheque">Cheque</option>
+                            <option value="Online">Online</option>
+                            <option value="Card">Card</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" style="font-size:.8rem;font-weight:600;color:#374151;">Notes / Reference</label>
+                        <input type="text" name="notes" class="form-control" placeholder="Cheque no., ref…"
+                               style="border:1.5px solid #bbf7d0;border-radius:9px;">
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <button type="submit" class="btn btn-success px-4" style="border-radius:9px;font-weight:600;">
+                        <i class="bi bi-plus-lg me-1"></i>Add Payment
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    </div>
+</div>
+</div>
+</div>
+
+<th:block layout:fragment="page-scripts">
+<script>
+function calcHours() {
+    var s = document.querySelector('[name="fromTime"]').value;
+    var e = document.querySelector('[name="tillTime"]').value;
+    var wrap = document.getElementById('durationWrap');
+    if (s && e) {
+        var sm = parseInt(s.split(':')[0])*60 + parseInt(s.split(':')[1]);
+        var em = parseInt(e.split(':')[0])*60 + parseInt(e.split(':')[1]);
+        var diff = em - sm;
+        if (diff > 0) {
+            var h = Math.floor(diff/60), m = diff%60;
+            document.getElementById('durationText').textContent =
+                (h > 0 ? h + ' hour' + (h > 1 ? 's' : '') + (m > 0 ? ' ' : '') : '') +
+                (m > 0 ? m + ' min' : '');
+            wrap.style.display = '';
+            return;
+        }
+    }
+    wrap.style.display = 'none';
+}
+function calcRemaining() {
+    var charges = parseFloat(document.querySelector('[name="hallCharges"]').value) || 0;
+    var deposit = parseFloat(document.querySelector('[name="initialDeposit"]').value) || 0;
+}
+window.addEventListener('load', function() { calcHours(); calcRemaining(); });
+</script>
+</th:block>
+</body>
+</html>

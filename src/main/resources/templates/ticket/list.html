@@ -2,133 +2,324 @@
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout/base}">
-<head><title>Event Ticket Payments</title></head>
-<body>
+<head>
+<title>Ticket Payments</title>
+<style>
+    /* Stats */
+    .stat-card { border:none; border-radius:14px; padding:18px 20px; box-shadow:0 2px 12px rgba(0,0,0,0.06); display:flex; align-items:center; gap:14px; transition:transform 0.15s,box-shadow 0.15s; }
+    .stat-card:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,0,0,0.1); }
+    .stat-icon { width:48px; height:48px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.25rem; flex-shrink:0; }
+    .stat-label { font-size:0.7rem; font-weight:700; letter-spacing:0.5px; text-transform:uppercase; color:#94a3b8; }
+    .stat-value { font-size:1.65rem; font-weight:800; line-height:1.1; }
 
-<th:block layout:fragment="page-title">Event Ticket Payments</th:block>
+    /* Filter bar */
+    .filter-card { border:none; border-radius:14px; box-shadow:0 2px 12px rgba(0,0,0,0.06); }
+    .filter-label { font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.4px; color:#6b7280; margin-bottom:5px; }
+    .status-pill { display:inline-flex; align-items:center; gap:6px; border-radius:20px; padding:5px 16px; font-size:0.78rem; font-weight:600; border:1.5px solid #e5e7eb; background:#fff; color:#475569; cursor:pointer; text-decoration:none; transition:all 0.15s; }
+    .status-pill:hover { border-color:#6366f1; color:#6366f1; text-decoration:none; }
+    .status-pill.active-all     { background:#1e1b4b; border-color:#1e1b4b; color:#fff; }
+    .status-pill.active-pending { background:#d97706; border-color:#d97706; color:#fff; }
+    .status-pill.active-accepted{ background:#059669; border-color:#059669; color:#fff; }
+    .status-pill.active-rejected{ background:#dc2626; border-color:#dc2626; color:#fff; }
+
+    /* Table */
+    .tk-table th { font-size:0.7rem; font-weight:700; letter-spacing:0.6px; text-transform:uppercase; color:#6366f1; padding:12px 14px; background:#f8f7ff; border-bottom:2px solid #e0e7ff; white-space:nowrap; }
+    .tk-table td { padding:13px 14px; vertical-align:middle; border-color:#f1f5f9; }
+    .tk-row { transition:background 0.1s; }
+    .tk-row:hover { background:#fafafa; }
+    .tk-row.status-Pending  { border-left:3px solid #f59e0b; }
+    .tk-row.status-Accepted { border-left:3px solid #059669; }
+    .tk-row.status-Rejected { border-left:3px solid #ef4444; }
+
+    /* Member avatar */
+    .member-avatar { width:36px; height:36px; border-radius:10px; background:linear-gradient(135deg,#6366f1,#8b5cf6); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:0.78rem; flex-shrink:0; }
+    .member-name { font-weight:600; font-size:0.88rem; color:#1e1b4b; }
+    .member-sub  { font-size:0.72rem; color:#94a3b8; }
+
+    /* Attendee chips */
+    .att-chip { display:inline-flex; align-items:center; gap:3px; background:#f1f5f9; border-radius:6px; padding:2px 8px; font-size:0.72rem; font-weight:600; color:#475569; margin-right:3px; }
+    .att-chip i { font-size:0.65rem; color:#94a3b8; }
+
+    /* Status badge */
+    .status-tag { display:inline-flex; align-items:center; gap:5px; border-radius:20px; padding:3px 12px; font-size:0.72rem; font-weight:700; white-space:nowrap; }
+    .status-tag.Accepted { background:#dcfce7; color:#166534; }
+    .status-tag.Pending  { background:#fef3c7; color:#92400e; }
+    .status-tag.Rejected { background:#fee2e2; color:#991b1b; }
+
+    /* Action buttons */
+    .btn-accept { background:#059669; border:none; color:#fff; border-radius:8px; padding:5px 14px; font-size:0.78rem; font-weight:600; transition:background 0.15s; }
+    .btn-accept:hover { background:#047857; color:#fff; }
+    .btn-reject { background:transparent; border:1.5px solid #fca5a5; color:#ef4444; border-radius:8px; padding:5px 12px; font-size:0.78rem; font-weight:600; transition:all 0.15s; }
+    .btn-reject:hover { background:#ef4444; color:#fff; border-color:#ef4444; }
+
+    /* Amount */
+    .amount-cell { font-family:monospace; font-weight:700; font-size:0.9rem; color:#1e1b4b; }
+
+    /* Result count badge */
+    .result-badge { background:#eef2ff; color:#4f46e5; border-radius:20px; padding:3px 12px; font-size:0.75rem; font-weight:700; }
+
+    /* Search box */
+    .search-wrap { position:relative; }
+    .search-wrap i { position:absolute; left:11px; top:50%; transform:translateY(-50%); color:#94a3b8; font-size:0.82rem; }
+    .search-box { border-radius:20px; border:1.5px solid #e5e7eb; padding:7px 14px 7px 32px; font-size:0.84rem; }
+    .search-box:focus { border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,0.1); outline:none; }
+</style>
+</head>
+<body>
+<th:block layout:fragment="page-title">Ticket Payments</th:block>
 
 <div layout:fragment="content">
 
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="fw-semibold mb-0">Event Ticket Payments</h5>
-        <span class="badge rounded-pill px-3 py-2"
-              style="background:#eef2ff;color:#4f46e5;font-size:0.78rem;"
-              th:text="${#lists.size(tickets)} + ' record' + (${#lists.size(tickets)} != 1 ? 's' : '')"></span>
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
+        <div>
+            <h5 class="fw-bold mb-0" style="color:#1e1b4b;">Ticket Payments</h5>
+            <p class="text-muted mb-0" style="font-size:0.78rem;">Manage member event ticket registrations</p>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="stat-card" style="background:#fff;">
+                <div class="stat-icon" style="background:#eef2ff;"><i class="bi bi-ticket-perforated-fill" style="color:#6366f1;"></i></div>
+                <div>
+                    <div class="stat-label">Total Tickets</div>
+                    <div class="stat-value" style="color:#1e1b4b;" th:text="${grandTotal}">0</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card" style="background:#fffbeb;">
+                <div class="stat-icon" style="background:#fef3c7;"><i class="bi bi-hourglass-split" style="color:#d97706;"></i></div>
+                <div>
+                    <div class="stat-label">Pending</div>
+                    <div class="stat-value" style="color:#d97706;" th:text="${totalPending}">0</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card" style="background:#f0fdf4;">
+                <div class="stat-icon" style="background:#dcfce7;"><i class="bi bi-check-circle-fill" style="color:#059669;"></i></div>
+                <div>
+                    <div class="stat-label">Accepted</div>
+                    <div class="stat-value" style="color:#059669;" th:text="${totalAccepted}">0</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card" style="background:#f0fdf4;">
+                <div class="stat-icon" style="background:#bbf7d0;"><i class="bi bi-currency-pound" style="color:#059669;"></i></div>
+                <div>
+                    <div class="stat-label">Revenue (Accepted)</div>
+                    <div class="stat-value" style="color:#059669;font-size:1.35rem;"
+                         th:text="'£' + ${totalRevenue}">£0</div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Filters -->
-    <div class="card shadow-sm border-0 mb-3" style="border-radius:12px;">
+    <div class="filter-card card mb-4">
         <div class="card-body px-4 py-3">
-            <form method="get" th:action="@{/ticket-payments}" class="row g-2 align-items-end">
-                <div class="col-md-5">
-                    <label class="form-label fw-medium" style="font-size:0.82rem;">Filter by Event</label>
-                    <select name="eventId" class="form-select form-select-sm">
-                        <option value="">— All Events —</option>
-                        <option th:each="ev : ${events}"
-                                th:value="${ev.id}"
-                                th:text="${ev.eventName} + ' (' + ${ev.status} + ')'"
-                                th:selected="${selectedEventId != null and selectedEventId == ev.id}"></option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-medium" style="font-size:0.82rem;">Filter by Status</label>
-                    <select name="status" class="form-select form-select-sm">
-                        <option value="">— All Statuses —</option>
-                        <option value="Pending"  th:selected="${selectedStatus == 'Pending'}">Pending</option>
-                        <option value="Accepted" th:selected="${selectedStatus == 'Accepted'}">Accepted</option>
-                        <option value="Rejected" th:selected="${selectedStatus == 'Rejected'}">Rejected</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary btn-sm w-100">
-                        <i class="bi bi-funnel me-1"></i>Apply
-                    </button>
-                </div>
-                <div class="col-md-2">
-                    <a th:href="@{/ticket-payments}" class="btn btn-outline-secondary btn-sm w-100">
-                        <i class="bi bi-x me-1"></i>Clear
-                    </a>
+            <form method="get" th:action="@{/ticket-payments}">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-5">
+                        <div class="filter-label"><i class="bi bi-calendar3 me-1"></i>Event</div>
+                        <select name="eventId" class="form-select form-select-sm" style="border-radius:8px;">
+                            <option value="">— All Events —</option>
+                            <option th:each="ev : ${events}"
+                                    th:value="${ev.id}"
+                                    th:text="${ev.eventName} + ' (' + ${ev.status} + ')'"
+                                    th:selected="${selectedEventId != null and selectedEventId == ev.id}"></option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="filter-label"><i class="bi bi-funnel me-1"></i>Status</div>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <a th:href="@{/ticket-payments(eventId=${selectedEventId})}"
+                               th:class="${selectedStatus == null} ? 'status-pill active-all' : 'status-pill'">All</a>
+                            <a th:href="@{/ticket-payments(eventId=${selectedEventId}, status='Pending')}"
+                               th:class="${selectedStatus == 'Pending'} ? 'status-pill active-pending' : 'status-pill'">
+                                Pending</a>
+                            <a th:href="@{/ticket-payments(eventId=${selectedEventId}, status='Accepted')}"
+                               th:class="${selectedStatus == 'Accepted'} ? 'status-pill active-accepted' : 'status-pill'">
+                                Accepted</a>
+                            <a th:href="@{/ticket-payments(eventId=${selectedEventId}, status='Rejected')}"
+                               th:class="${selectedStatus == 'Rejected'} ? 'status-pill active-rejected' : 'status-pill'">
+                                Rejected</a>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="filter-label"><i class="bi bi-search me-1"></i>Quick Search</div>
+                        <div class="search-wrap">
+                            <i class="bi bi-search"></i>
+                            <input type="text" class="search-box form-control form-control-sm"
+                                   id="tkSearch" placeholder="Member or event name…"
+                                   oninput="searchRows(this.value)">
+                        </div>
+                    </div>
+                    <div class="col-12 d-flex align-items-center gap-2 pt-1">
+                        <button type="submit" class="btn btn-primary btn-sm px-3">
+                            <i class="bi bi-funnel me-1"></i>Apply Filter
+                        </button>
+                        <a th:href="@{/ticket-payments}" class="btn btn-outline-secondary btn-sm px-3">
+                            <i class="bi bi-x me-1"></i>Clear
+                        </a>
+                        <span class="ms-auto result-badge"
+                              th:text="${#lists.size(tickets)} + ' result' + (${#lists.size(tickets)} != 1 ? 's' : '')"></span>
+                    </div>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- Table -->
-    <div class="card shadow-sm border-0">
-        <div class="card-body p-0">
-            <table class="table table-hover mb-0">
-                <thead class="table-dark">
+    <div class="card border-0 shadow-sm" style="border-radius:14px;overflow:hidden;">
+        <div class="table-responsive">
+            <table class="table tk-table mb-0" id="tkTable">
+                <thead>
                     <tr>
-                        <th>#</th>
+                        <th style="width:36px;">#</th>
                         <th>Member</th>
                         <th>Event</th>
-                        <th class="text-center">Adults</th>
-                        <th class="text-center">Younger</th>
-                        <th class="text-center">Children</th>
-                        <th class="text-end">Total (£)</th>
+                        <th>Attendees</th>
+                        <th class="text-end">Total</th>
                         <th>Status</th>
                         <th>Submitted</th>
                         <th class="text-end">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr th:each="t, stat : ${tickets}">
-                        <td class="text-muted" th:text="${stat.count}"></td>
+                    <tr th:each="t, stat : ${tickets}"
+                        th:class="'tk-row status-' + ${t.status}"
+                        th:attr="data-search=${(t.member.firstName + ' ' + t.member.lastName + ' ' + t.event.eventName).toLowerCase()}">
+
+                        <td class="text-muted fw-medium" th:text="${stat.count}"></td>
+
+                        <!-- Member -->
                         <td>
-                            <div class="fw-medium" th:text="${t.member.firstName + ' ' + t.member.lastName}"></div>
-                            <div class="text-muted" style="font-size:0.73rem;"
-                                 th:text="${t.member.email != null ? t.member.email : t.member.phone}"></div>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="member-avatar"
+                                     th:text="${#strings.substring(t.member.firstName,0,1) + #strings.substring(t.member.lastName,0,1)}"></div>
+                                <div>
+                                    <div class="member-name" th:text="${t.member.firstName + ' ' + t.member.lastName}"></div>
+                                    <div class="member-sub"
+                                         th:text="${t.member.email != null ? t.member.email : t.member.phone}"></div>
+                                </div>
+                            </div>
                         </td>
+
+                        <!-- Event -->
                         <td>
-                            <div class="fw-medium" th:text="${t.event.eventName}"></div>
-                            <div class="text-muted" style="font-size:0.73rem;"
-                                 th:text="${#temporals.format(t.event.eventDate,'dd-MMM-yyyy')}"></div>
+                            <div class="fw-semibold" style="font-size:0.85rem;color:#1e1b4b;"
+                                 th:text="${t.event.eventName}"></div>
+                            <div class="text-muted" style="font-size:0.72rem;">
+                                <i class="bi bi-calendar3 me-1"></i>
+                                <span th:text="${#temporals.format(t.event.eventDate,'dd MMM yyyy')}"></span>
+                            </div>
                         </td>
-                        <td class="text-center" th:text="${t.adultCount}"></td>
-                        <td class="text-center" th:text="${t.youngerCount}"></td>
-                        <td class="text-center" th:text="${t.childCount}"></td>
-                        <td class="text-end fw-semibold" th:text="${t.totalAmount}"></td>
+
+                        <!-- Attendees -->
                         <td>
-                            <span th:with="s=${t.status}"
-                                  th:class="${s == 'Accepted'} ? 'badge bg-success' :
-                                            (${s == 'Rejected'} ? 'badge bg-danger' : 'badge bg-warning text-dark')"
-                                  th:text="${s}"></span>
+                            <span th:if="${t.adultCount > 0}" class="att-chip">
+                                <i class="bi bi-person-fill"></i>
+                                <span th:text="${t.adultCount}"></span> Adult
+                            </span>
+                            <span th:if="${t.youngerCount > 0}" class="att-chip">
+                                <i class="bi bi-person"></i>
+                                <span th:text="${t.youngerCount}"></span> Youth
+                            </span>
+                            <span th:if="${t.childCount > 0}" class="att-chip">
+                                <i class="bi bi-emoji-smile"></i>
+                                <span th:text="${t.childCount}"></span> Child
+                            </span>
                         </td>
-                        <td style="font-size:0.78rem;color:#64748b;"
-                            th:text="${#temporals.format(t.createdAt,'dd-MMM-yyyy')}"></td>
+
+                        <!-- Total -->
                         <td class="text-end">
+                            <span class="amount-cell">£<span th:text="${t.totalAmount}"></span></span>
+                        </td>
+
+                        <!-- Status -->
+                        <td>
+                            <span th:class="'status-tag ' + ${t.status}">
+                                <i th:class="${t.status == 'Accepted' ? 'bi bi-check-circle-fill' : (t.status == 'Rejected' ? 'bi bi-x-circle-fill' : 'bi bi-hourglass-split')}"
+                                   style="font-size:0.65rem;"></i>
+                                <span th:text="${t.status}"></span>
+                            </span>
+                        </td>
+
+                        <!-- Submitted -->
+                        <td style="font-size:0.78rem;color:#64748b;white-space:nowrap;">
+                            <i class="bi bi-clock me-1" style="font-size:0.7rem;"></i>
+                            <span th:text="${#temporals.format(t.createdAt,'dd MMM yyyy')}"></span>
+                        </td>
+
+                        <!-- Actions -->
+                        <td class="text-end" style="white-space:nowrap;">
                             <form th:if="${t.status == 'Pending'}"
                                   th:action="@{/ticket-payments/{id}/approve(id=${t.id})}" method="post"
                                   class="d-inline">
-                                <button type="submit" class="btn btn-sm btn-success">
+                                <button type="submit" class="btn-accept">
                                     <i class="bi bi-check-lg me-1"></i>Accept
                                 </button>
                             </form>
                             <form th:if="${t.status == 'Pending'}"
                                   th:action="@{/ticket-payments/{id}/reject(id=${t.id})}" method="post"
-                                  class="d-inline" data-confirm="Reject this registration?">
-                                <button type="submit" class="btn btn-sm btn-outline-danger ms-1">
-                                    <i class="bi bi-x-lg me-1"></i>Reject
+                                  class="d-inline ms-1" onsubmit="return confirm('Reject this registration?')">
+                                <button type="submit" class="btn-reject">
+                                    <i class="bi bi-x-lg"></i>
                                 </button>
                             </form>
-                            <span th:unless="${t.status == 'Pending'}"
-                                  class="text-muted" style="font-size:0.78rem;">—</span>
+                            <span th:unless="${t.status == 'Pending'}" class="text-muted" style="font-size:0.78rem;">—</span>
                         </td>
+
                     </tr>
+
                     <tr th:if="${#lists.isEmpty(tickets)}">
-                        <td colspan="10" class="text-center text-muted py-4">No records found.</td>
+                        <td colspan="8" class="text-center py-5">
+                            <i class="bi bi-ticket-perforated d-block mb-2" style="font-size:2.5rem;color:#c7d2fe;"></i>
+                            <div class="fw-semibold text-muted">No ticket records found</div>
+                            <p class="text-muted small mb-0">Try adjusting your filters</p>
+                        </td>
                     </tr>
                 </tbody>
             </table>
         </div>
     </div>
 
-    <!-- Totals summary -->
-    <div th:if="${not #lists.isEmpty(tickets)}" class="mt-3 text-end text-muted" style="font-size:0.82rem;">
-        Total amount shown:
-        <strong style="color:#1e293b;">£<span th:text="${totalShown}"></span></strong>
+    <!-- Footer total -->
+    <div th:if="${not #lists.isEmpty(tickets)}"
+         class="d-flex justify-content-between align-items-center mt-3 px-1">
+        <span class="text-muted" style="font-size:0.78rem;">
+            Showing <strong th:text="${#lists.size(tickets)}"></strong>
+            <span th:if="${selectedEventId != null or selectedStatus != null}"> filtered</span>
+            record(s)
+        </span>
+        <div style="font-size:0.85rem;">
+            <span class="text-muted">Shown total:</span>
+            <strong style="color:#1e1b4b;font-family:monospace;font-size:0.95rem;">
+                £<span th:text="${totalShown}"></span>
+            </strong>
+        </div>
     </div>
 
 </div>
+
+<th:block layout:fragment="page-scripts">
+<script>
+function searchRows(q) {
+    q = q.toLowerCase();
+    var visible = 0;
+    document.querySelectorAll('#tkTable tbody tr.tk-row').forEach(function(row) {
+        var show = !q || row.dataset.search.includes(q);
+        row.style.display = show ? '' : 'none';
+        if (show) visible++;
+    });
+}
+</script>
+</th:block>
+
 </body>
 </html>
