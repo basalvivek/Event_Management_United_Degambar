@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout/base}">
@@ -200,7 +200,7 @@
                         <!-- Member since -->
                         <td class="date-cell">
                             <i class="bi bi-calendar3 me-1" style="font-size:0.72rem;"></i>
-                            <span th:text="${#temporals.format(item.membershipDate,'dd MMM yyyy')}"></span>
+                            <span th:text="${#temporals.format(item.membershipDate,'dd/MM/yyyy')}"></span>
                         </td>
 
                         <!-- Status -->

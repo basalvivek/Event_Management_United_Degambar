@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout/base}">
@@ -133,7 +133,7 @@
                                     <span th:unless="${r.paymentMode != null}" class="text-muted">—</span>
                                 </td>
                                 <td class="text-muted"
-                                    th:text="${r.paymentDate != null ? #temporals.format(r.paymentDate,'dd MMM yyyy') : '—'}"></td>
+                                    th:text="${r.paymentDate != null ? #temporals.format(r.paymentDate,'dd/MM/yyyy') : '—'}"></td>
                                 <td class="text-end amount-col"
                                     th:text="${r.committedAmount != null ? '£' + #numbers.formatDecimal(r.committedAmount,1,2) : '—'}"></td>
                                 <td class="text-end amount-col" style="color:#059669;"

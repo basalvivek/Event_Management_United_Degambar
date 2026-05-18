@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout/base}">
@@ -99,7 +99,7 @@
                                      data-venue=${ev.venue},
                                      data-type=${ev.eventType},
                                      data-desc=${ev.description}"
-                            th:text="${ev.eventName + ' (' + #temporals.format(ev.eventDate,'dd MMM yyyy') + ')'}"></option>
+                            th:text="${ev.eventName + ' (' + #temporals.format(ev.eventDate,'dd/MM/yyyy') + ')'}"></option>
                 </select>
             </div>
 

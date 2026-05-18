@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout/base}">
@@ -223,7 +223,7 @@
                 <tbody>
                     <tr th:each="ins, s : ${instalments}" style="border-color:#bbf7d0;">
                         <td style="padding:8px 12px;color:#64748b;" th:text="${s.count}"></td>
-                        <td style="padding:8px 12px;font-weight:600;color:#1e1b4b;" th:text="${#temporals.format(ins.paymentDate,'dd MMM yyyy')}"></td>
+                        <td style="padding:8px 12px;font-weight:600;color:#1e1b4b;" th:text="${#temporals.format(ins.paymentDate,'dd/MM/yyyy')}"></td>
                         <td style="padding:8px 12px;"><span style="background:#f1f5f9;border-radius:6px;padding:2px 9px;font-size:.72rem;font-weight:600;" th:text="${ins.paymentMode}"></span></td>
                         <td style="padding:8px 12px;color:#64748b;" th:text="${ins.notes != null ? ins.notes : '—'}"></td>
                         <td style="padding:8px 12px;text-align:right;font-family:monospace;font-weight:700;color:#166534;" th:text="${'£' + #numbers.formatDecimal(ins.amount,1,2)}"></td>

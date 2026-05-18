@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout/base}">
@@ -254,7 +254,7 @@
                                 </span>
                             </td>
                             <td style="color:#64748b;font-size:0.82rem;"
-                                th:text="${#temporals.format(a.assignedDate,'dd MMM yyyy')}"></td>
+                                th:text="${#temporals.format(a.assignedDate,'dd/MM/yyyy')}"></td>
                             <td>
                                 <span th:class="'st-chip st-' + ${a.status.replace(' ','-')}"
                                       th:text="${a.status}"></span>

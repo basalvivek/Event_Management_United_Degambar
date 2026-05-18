@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout/base}">
@@ -225,10 +225,10 @@
                         <td style="padding:14px 16px;">
                             <div class="date-cell">
                                 <i class="bi bi-calendar3 me-1" style="color:#6366f1;"></i>
-                                <span th:text="${#temporals.format(item.eventDate, 'dd MMM yyyy')}"></span>
+                                <span th:text="${#temporals.format(item.eventDate, 'dd/MM/yyyy')}"></span>
                             </div>
                             <div class="date-sub" th:if="${item.endDate != null}">
-                                until <span th:text="${#temporals.format(item.endDate, 'dd MMM yyyy')}"></span>
+                                until <span th:text="${#temporals.format(item.endDate, 'dd/MM/yyyy')}"></span>
                             </div>
                         </td>
 

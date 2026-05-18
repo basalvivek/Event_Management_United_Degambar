@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout/base}">
@@ -41,7 +41,7 @@
                         <td class="px-3 text-muted" th:text="${item.phone}"></td>
                         <td class="px-3 text-muted" th:text="${item.city}"></td>
                         <td class="px-3 text-muted"
-                            th:text="${#temporals.format(item.createdAt, 'dd MMM yyyy')}"></td>
+                            th:text="${#temporals.format(item.createdAt, 'dd/MM/yyyy')}"></td>
                         <td class="px-3">
                             <span class="badge rounded-pill"
                                   style="background:rgba(234,179,8,0.12);color:#a16207;font-size:0.72rem;"

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout/base}">
@@ -88,7 +88,7 @@
                             <option value="">— Select an Event —</option>
                             <option th:each="e : ${events}"
                                     th:value="${e.id}"
-                                    th:text="${e.eventName} + '  ·  ' + ${#temporals.format(e.eventDate,'dd MMM yyyy')}"></option>
+                                    th:text="${e.eventName} + '  ·  ' + ${#temporals.format(e.eventDate,'dd/MM/yyyy')}"></option>
                         </select>
                         <div th:if="${#lists.isEmpty(events)}"
                              class="alert alert-warning d-flex align-items-center gap-2 mt-2 py-2 mb-0" style="font-size:0.82rem;border-radius:8px;">
@@ -155,7 +155,7 @@
                 <div class="fw-bold" style="color:#0c4a6e;" th:text="${item.event.eventName}"></div>
                 <div style="font-size:0.76rem;color:#0369a1;">
                     <i class="bi bi-calendar3 me-1"></i>
-                    <span th:text="${#temporals.format(item.event.eventDate,'dd MMM yyyy')}"></span>
+                    <span th:text="${#temporals.format(item.event.eventDate,'dd/MM/yyyy')}"></span>
                     <span class="mx-2">·</span>
                     <i class="bi bi-geo-alt me-1"></i>
                     <span th:text="${item.event.venue}"></span>
@@ -178,7 +178,7 @@
                             <option value="">— Select Event —</option>
                             <option th:each="e : ${events}"
                                     th:value="${e.id}"
-                                    th:text="${e.eventName} + '  ·  ' + ${#temporals.format(e.eventDate,'dd-MMM-yyyy')} + '  [' + ${e.status} + ']'"></option>
+                                    th:text="${e.eventName} + '  ·  ' + ${#temporals.format(e.eventDate,'dd/MM/yyyy')} + '  [' + ${e.status} + ']'"></option>
                         </select>
                         <div class="invalid-feedback" th:errors="*{eventId}"></div>
                     </div>

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout/base}">
@@ -38,10 +38,10 @@
                                   th:class="'badge ' + ${bg}"
                                   th:text="${item.type}"></span>
                         </td>
-                        <td th:text="${#temporals.format(item.publishedDate,'dd MMM yyyy')}"></td>
+                        <td th:text="${#temporals.format(item.publishedDate,'dd/MM/yyyy')}"></td>
                         <td>
                             <span th:if="${item.expiryDate != null}"
-                                  th:text="${#temporals.format(item.expiryDate,'dd MMM yyyy')}"
+                                  th:text="${#temporals.format(item.expiryDate,'dd/MM/yyyy')}"
                                   th:class="${item.expiryDate.isBefore(today)} ? 'text-danger small' : 'small'"></span>
                             <span th:if="${item.expiryDate == null}" class="text-muted small">No expiry</span>
                         </td>

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout/base}">
@@ -73,10 +73,10 @@
                     <td>
                         <div style="font-size:.8rem;">
                             <i class="bi bi-calendar3 me-1" style="color:#94a3b8;font-size:.72rem;"></i>
-                            <span th:text="${item.startDate != null ? #temporals.format(item.startDate,'dd MMM yyyy') : '—'}"></span>
+                            <span th:text="${item.startDate != null ? #temporals.format(item.startDate,'dd/MM/yyyy') : '—'}"></span>
                         </div>
                         <div th:if="${item.endDate != null}" style="font-size:.72rem;color:#94a3b8;">
-                            to <span th:text="${#temporals.format(item.endDate,'dd MMM yyyy')}"></span>
+                            to <span th:text="${#temporals.format(item.endDate,'dd/MM/yyyy')}"></span>
                         </div>
                     </td>
                     <td>

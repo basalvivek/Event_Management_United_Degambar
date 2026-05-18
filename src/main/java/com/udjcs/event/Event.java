@@ -55,14 +55,12 @@ public class Event extends BaseEntity {
     @Column(name = "contact_member1_phone", nullable = false, length = 20)
     private String contactMember1Phone;
 
-    @NotBlank
     @Size(max = 100)
-    @Column(name = "contact_member2_name", nullable = false, length = 100)
+    @Column(name = "contact_member2_name", length = 100)
     private String contactMember2Name;
 
-    @NotBlank
     @Size(max = 20)
-    @Column(name = "contact_member2_phone", nullable = false, length = 20)
+    @Column(name = "contact_member2_phone", length = 20)
     private String contactMember2Phone;
 
     @NotBlank

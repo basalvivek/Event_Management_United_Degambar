@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout/base}">
@@ -21,7 +21,7 @@
                 <div class="col-md-4">
                     <div class="text-muted" style="font-size:0.72rem;text-transform:uppercase;letter-spacing:1px;">Date</div>
                     <div class="fw-semibold"
-                         th:text="${#temporals.format(rehearsal.rehearsalDate,'dd MMM yyyy')}"></div>
+                         th:text="${#temporals.format(rehearsal.rehearsalDate,'dd/MM/yyyy')}"></div>
                 </div>
                 <div class="col-md-4">
                     <div class="text-muted" style="font-size:0.72rem;text-transform:uppercase;letter-spacing:1px;">Conducted By</div>

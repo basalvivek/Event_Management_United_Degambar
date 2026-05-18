@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout/portal-base}">
@@ -369,7 +369,7 @@
                                              th:text="${ev.eventName}"></div>
                                         <div style="font-size:0.73rem;color:#64748b;">
                                             <i class="bi bi-calendar3 me-1"></i>
-                                            <span th:text="${#temporals.format(ev.eventDate,'dd-MMM-yyyy')}"></span>
+                                            <span th:text="${#temporals.format(ev.eventDate,'dd/MM/yyyy')}"></span>
                                         </div>
                                     </div>
                                     <!-- Feedback button -->
@@ -745,10 +745,10 @@
                                            th:text="${ann.message}"></p>
                                         <div style="font-size:0.71rem;color:#94a3b8;">
                                             <i class="bi bi-clock me-1"></i>
-                                            <span th:text="${#temporals.format(ann.publishedDate,'dd MMM yyyy')}"></span>
+                                            <span th:text="${#temporals.format(ann.publishedDate,'dd/MM/yyyy')}"></span>
                                             <span th:if="${ann.expiryDate != null}"
                                                   style="margin-left:10px;">
-                                                <i class="bi bi-calendar-x me-1"></i>Expires <span th:text="${#temporals.format(ann.expiryDate,'dd MMM yyyy')}"></span>
+                                                <i class="bi bi-calendar-x me-1"></i>Expires <span th:text="${#temporals.format(ann.expiryDate,'dd/MM/yyyy')}"></span>
                                             </span>
                                         </div>
                                     </div>

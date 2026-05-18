@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout/base}">
@@ -110,7 +110,7 @@
                             <span th:unless="${row.overallRating != null}" class="text-muted">—</span>
                         </td>
                         <td style="font-size:.8rem;font-weight:600;color:#374151;"
-                            th:text="${row.paymentDate != null ? #temporals.format(row.paymentDate,'dd MMM yyyy') : '—'}"></td>
+                            th:text="${row.paymentDate != null ? #temporals.format(row.paymentDate,'dd/MM/yyyy') : '—'}"></td>
                         <td>
                             <span th:if="${row.paymentMode != null and row.paymentMode != '—'}"
                                   class="badge bg-light text-dark border" th:text="${row.paymentMode}"></span>

@@ -1,6 +1,5 @@
 package com.udjcs.event;
 
-import com.udjcs.member.MemberService;
 import com.udjcs.supportive.SupportiveOrganizationService;
 import com.udjcs.venue.VenueService;
 import jakarta.validation.Valid;
@@ -17,14 +16,12 @@ public class EventController {
     private final EventService service;
     private final SupportiveOrganizationService supportiveService;
     private final VenueService venueService;
-    private final MemberService memberService;
 
     public EventController(EventService service, SupportiveOrganizationService supportiveService,
-                           VenueService venueService, MemberService memberService) {
+                           VenueService venueService) {
         this.service = service;
         this.supportiveService = supportiveService;
         this.venueService = venueService;
-        this.memberService = memberService;
     }
 
     @GetMapping
@@ -38,7 +35,7 @@ public class EventController {
         model.addAttribute("item", new Event());
         model.addAttribute("organizers", supportiveService.findAll());
         model.addAttribute("venues", venueService.findAll());
-        model.addAttribute("members", memberService.findAll());
+
         return "event/form";
     }
 
@@ -50,7 +47,7 @@ public class EventController {
         if (result.hasErrors()) {
             model.addAttribute("organizers", supportiveService.findAll());
             model.addAttribute("venues", venueService.findAll());
-        model.addAttribute("members", memberService.findAll());
+
             return "event/form";
         }
         service.save(event);
@@ -68,7 +65,7 @@ public class EventController {
         model.addAttribute("item", service.findById(id));
         model.addAttribute("organizers", supportiveService.findAll());
         model.addAttribute("venues", venueService.findAll());
-        model.addAttribute("members", memberService.findAll());
+
         return "event/form";
     }
 
@@ -81,7 +78,7 @@ public class EventController {
         if (result.hasErrors()) {
             model.addAttribute("organizers", supportiveService.findAll());
             model.addAttribute("venues", venueService.findAll());
-        model.addAttribute("members", memberService.findAll());
+
             return "event/form";
         }
         event.setId(id);

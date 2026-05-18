@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
+<html lang="en-GB" xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
 <head>
     <meta charset="UTF-8">
@@ -341,6 +341,66 @@
 
     document.addEventListener('DOMContentLoaded', function () {
         modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+
+        /* ── Force DD/MM/YYYY on all date inputs with calendar picker ── */
+        document.querySelectorAll('input[type="date"]').forEach(function(orig) {
+            var parent = orig.parentNode;
+
+            var txt = document.createElement('input');
+            txt.type = 'text';
+            txt.placeholder = 'dd/mm/yyyy';
+            txt.className = orig.className;
+            txt.style.borderRadius = '8px 0 0 8px';
+            txt.style.borderRight = '0';
+            if (orig.readOnly) txt.readOnly = true;
+            if (orig.classList.contains('is-invalid')) txt.classList.add('is-invalid');
+            if (orig.value) {
+                var p0 = orig.value.split('-');
+                if (p0.length === 3) txt.value = p0[2] + '/' + p0[1] + '/' + p0[0];
+            }
+
+            var calBtn = document.createElement('button');
+            calBtn.type = 'button';
+            calBtn.className = 'btn btn-outline-secondary';
+            calBtn.style.borderRadius = '0 8px 8px 0';
+            calBtn.innerHTML = '<i class="bi bi-calendar3" style="font-size:.85rem;"></i>';
+            if (orig.readOnly) calBtn.disabled = true;
+
+            var grp = document.createElement('div');
+            grp.className = 'input-group';
+
+            /* hide orig visually but NOT display:none so showPicker() works */
+            orig.style.cssText = 'position:absolute;opacity:0;width:0;height:0;border:0;padding:0;overflow:hidden;pointer-events:none;';
+
+            function syncToOrig() {
+                var v = txt.value.trim();
+                var pts = v.split('/');
+                if (pts.length === 3 && pts[2].length === 4) {
+                    orig.value = pts[2] + '-' + pts[1].padStart(2,'0') + '-' + pts[0].padStart(2,'0');
+                } else { orig.value = ''; }
+            }
+            txt.addEventListener('input', syncToOrig);
+            txt.addEventListener('blur', syncToOrig);
+
+            orig.addEventListener('change', function() {
+                if (orig.value) {
+                    var p = orig.value.split('-');
+                    if (p.length === 3) txt.value = p[2] + '/' + p[1] + '/' + p[0];
+                }
+            });
+
+            calBtn.addEventListener('click', function() {
+                orig.style.width = '1px';
+                orig.style.height = '1px';
+                try { orig.showPicker(); } catch(e) { orig.click(); }
+                setTimeout(function() { orig.style.width = '0'; orig.style.height = '0'; }, 300);
+            });
+
+            parent.insertBefore(grp, orig);
+            grp.appendChild(txt);
+            grp.appendChild(calBtn);
+            grp.appendChild(orig);
+        });
 
         document.addEventListener('submit', function (e) {
             var form = e.target;

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout/base}">
@@ -103,7 +103,7 @@
                         </td>
                         <td style="font-size:.8rem;">
                             <i class="bi bi-calendar3 me-1" style="color:#94a3b8;font-size:.72rem;"></i>
-                            <span th:text="${row.hireDate != null ? #temporals.format(row.hireDate,'dd MMM yyyy') : '—'}"></span>
+                            <span th:text="${row.hireDate != null ? #temporals.format(row.hireDate,'dd/MM/yyyy') : '—'}"></span>
                         </td>
                         <td style="font-size:.8rem;color:#64748b;">
                             <span th:if="${row.fromTime != null}" th:text="${row.fromTime}"></span>
@@ -114,7 +114,7 @@
                         <td class="amt" style="color:#1e1b4b;"
                             th:text="${row.hallCharges != null ? '£' + #numbers.formatDecimal(row.hallCharges,1,2) : '—'}"></td>
                         <td style="font-size:.8rem;font-weight:600;color:#374151;"
-                            th:text="${row.paymentDate != null ? #temporals.format(row.paymentDate,'dd MMM yyyy') : '—'}"></td>
+                            th:text="${row.paymentDate != null ? #temporals.format(row.paymentDate,'dd/MM/yyyy') : '—'}"></td>
                         <td>
                             <span th:if="${row.paymentMode != null and row.paymentMode != '—'}"
                                   class="badge bg-light text-dark border" th:text="${row.paymentMode}"></span>

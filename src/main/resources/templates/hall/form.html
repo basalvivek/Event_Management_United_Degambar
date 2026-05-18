@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout/base}">
@@ -242,7 +242,7 @@
                     <tr th:if="${item.initialDeposit != null and item.initialDeposit > 0}" style="border-color:#d1fae5;background:#f0fdf4;">
                         <td style="padding:7px 10px;color:#64748b;">—</td>
                         <td style="padding:7px 10px;font-weight:600;color:#64748b;"
-                            th:text="${item.hireDate != null ? #temporals.format(item.hireDate,'dd MMM yyyy') : '—'}"></td>
+                            th:text="${item.hireDate != null ? #temporals.format(item.hireDate,'dd/MM/yyyy') : '—'}"></td>
                         <td style="padding:7px 10px;">
                             <span style="background:#dcfce7;color:#166534;border-radius:6px;padding:2px 8px;font-size:.72rem;font-weight:600;">Initial Deposit</span>
                         </td>
@@ -256,7 +256,7 @@
                     <!-- Instalment rows -->
                     <tr th:each="ins, s : ${instalments}" style="border-color:#d1fae5;">
                         <td style="padding:7px 10px;color:#64748b;" th:text="${s.count}"></td>
-                        <td style="padding:7px 10px;font-weight:600;" th:text="${#temporals.format(ins.paymentDate,'dd MMM yyyy')}"></td>
+                        <td style="padding:7px 10px;font-weight:600;" th:text="${#temporals.format(ins.paymentDate,'dd/MM/yyyy')}"></td>
                         <td style="padding:7px 10px;"><span style="background:#f1f5f9;border-radius:6px;padding:2px 8px;font-size:.72rem;font-weight:600;" th:text="${ins.paymentMode}"></span></td>
                         <td style="padding:7px 10px;color:#64748b;" th:text="${ins.notes != null ? ins.notes : '—'}"></td>
                         <td style="padding:7px 10px;text-align:right;font-family:monospace;font-weight:700;color:#166534;" th:text="${'£' + #numbers.formatDecimal(ins.amount,1,2)}"></td>

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout/base}">
@@ -88,7 +88,7 @@
         <div class="text-end">
             <div class="receipt-title">DONATION RECEIPT</div>
             <div class="inv-no mt-2" th:text="${invoiceNumber}"></div>
-            <div class="info-sub mt-2">Date: <strong th:text="${#temporals.format(invoiceDate,'dd MMM yyyy')}"></strong></div>
+            <div class="info-sub mt-2">Date: <strong th:text="${#temporals.format(invoiceDate,'dd/MM/yyyy')}"></strong></div>
         </div>
     </div>
 
@@ -152,7 +152,7 @@
         <tbody>
             <tr th:each="ins, s : ${instalments}">
                 <td th:text="${s.count}" style="color:#9ca3af;"></td>
-                <td th:text="${#temporals.format(ins.paymentDate,'dd MMM yyyy')}"></td>
+                <td th:text="${#temporals.format(ins.paymentDate,'dd/MM/yyyy')}"></td>
                 <td><span style="background:#f1f5f9;border-radius:5px;padding:2px 8px;font-size:.75rem;font-weight:600;" th:text="${ins.paymentMode}"></span></td>
                 <td style="color:#6b7280;" th:text="${ins.notes != null ? ins.notes : '—'}"></td>
                 <td class="r" style="color:#166534;" th:text="${'£' + #numbers.formatDecimal(ins.amount,1,2)}"></td>
@@ -178,7 +178,7 @@
         <tbody>
             <tr>
                 <td style="color:#9ca3af;">1</td>
-                <td th:text="${directPaymentDate != null ? #temporals.format(directPaymentDate,'dd MMM yyyy') : '—'}"></td>
+                <td th:text="${directPaymentDate != null ? #temporals.format(directPaymentDate,'dd/MM/yyyy') : '—'}"></td>
                 <td><span style="background:#f1f5f9;border-radius:5px;padding:2px 8px;font-size:.75rem;font-weight:600;" th:text="${directPaymentMode != null ? directPaymentMode : '—'}"></span></td>
                 <td style="color:#6b7280;" th:text="${remark != null ? remark : '—'}"></td>
                 <td class="r" style="color:#166534;" th:text="${paidAmount != null ? '£' + #numbers.formatDecimal(paidAmount,1,2) : '—'}"></td>

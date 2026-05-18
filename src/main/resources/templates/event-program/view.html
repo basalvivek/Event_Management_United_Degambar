@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout/base}">
@@ -24,9 +24,9 @@
                         <div class="d-flex align-items-center gap-3 mt-1 flex-wrap">
                             <span class="text-muted" style="font-size:0.8rem;">
                                 <i class="bi bi-calendar3 me-1"></i>
-                                <span th:text="${#temporals.format(event.eventDate,'dd-MMM-yyyy')}"></span>
+                                <span th:text="${#temporals.format(event.eventDate,'dd/MM/yyyy')}"></span>
                                 <span th:if="${event.endDate != null}"
-                                      th:text="' – ' + ${#temporals.format(event.endDate,'dd-MMM-yyyy')}"></span>
+                                      th:text="' – ' + ${#temporals.format(event.endDate,'dd/MM/yyyy')}"></span>
                             </span>
                             <span class="text-muted" style="font-size:0.8rem;">
                                 <i class="bi bi-geo-alt me-1"></i>

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout/base}">
@@ -81,7 +81,7 @@
                     <td>
                         <div style="font-size:.8rem;">
                             <i class="bi bi-calendar3 me-1" style="color:#94a3b8;font-size:.72rem;"></i>
-                            <span th:text="${#temporals.format(item.progressDate,'dd MMM yyyy')}"></span>
+                            <span th:text="${#temporals.format(item.progressDate,'dd/MM/yyyy')}"></span>
                         </div>
                     </td>
                     <td>

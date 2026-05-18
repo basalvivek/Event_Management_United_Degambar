@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout/base}">
@@ -67,10 +67,14 @@
             <div class="row g-3">
                 <div class="col-md-7">
                     <label class="form-label">Organisation Name <span class="req-star" th:if="${!locked}">*</span></label>
-                    <input type="text" class="form-control" th:field="*{sponsorOrgName}"
-                           placeholder="e.g. ABC Foundation"
-                           th:readonly="${locked}"
-                           th:classappend="${locked} ? ' bg-light text-muted' : (${#fields.hasErrors('sponsorOrgName')} ? ' is-invalid' : '')">
+                    <select th:if="${!locked}" class="form-select" th:field="*{sponsorOrgName}"
+                            th:classappend="${#fields.hasErrors('sponsorOrgName')} ? ' is-invalid'">
+                        <option value="">— Select Sponsor —</option>
+                        <option th:each="sp : ${individualSponsors}"
+                                th:value="${sp.name}" th:text="${sp.name}"></option>
+                    </select>
+                    <input th:if="${locked}" type="text" class="form-control bg-light text-muted"
+                           th:field="*{sponsorOrgName}" th:readonly="true">
                     <div class="invalid-feedback" th:errors="*{sponsorOrgName}"></div>
                 </div>
                 <div class="col-md-5">
@@ -244,7 +248,7 @@
                 <tbody>
                     <tr th:each="ins, s : ${instalments}" style="border-color:#d1fae5;">
                         <td style="padding:7px 10px;color:#64748b;" th:text="${s.count}"></td>
-                        <td style="padding:7px 10px;font-weight:600;" th:text="${#temporals.format(ins.paymentDate,'dd MMM yyyy')}"></td>
+                        <td style="padding:7px 10px;font-weight:600;" th:text="${#temporals.format(ins.paymentDate,'dd/MM/yyyy')}"></td>
                         <td style="padding:7px 10px;"><span style="background:#f1f5f9;border-radius:6px;padding:2px 8px;font-size:.72rem;font-weight:600;" th:text="${ins.paymentMode}"></span></td>
                         <td style="padding:7px 10px;color:#64748b;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" th:text="${ins.notes != null ? ins.notes : '—'}"></td>
                         <td style="padding:7px 10px;text-align:right;font-family:monospace;font-weight:700;color:#166534;" th:text="${'£' + #numbers.formatDecimal(ins.amount,1,2)}"></td>

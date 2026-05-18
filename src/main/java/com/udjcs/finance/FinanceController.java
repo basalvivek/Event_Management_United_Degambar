@@ -115,6 +115,7 @@ public class FinanceController {
     public String newSponsor(Model model) {
         model.addAttribute("item", new SponsorDonation());
         model.addAttribute("locked", false);
+        model.addAttribute("individualSponsors", supportiveOrgRepo.findByOrganizationTypeOrderByNameAsc("Individual Sponsor"));
         return "finance/sponsor-form";
     }
 
@@ -122,7 +123,7 @@ public class FinanceController {
     @PostMapping("/sponsors")
     public String createSponsor(@ModelAttribute("item") @Valid SponsorDonation s,
                                  BindingResult result, Model model, RedirectAttributes attrs) {
-        if (result.hasErrors()) { model.addAttribute("locked", false); return "finance/sponsor-form"; }
+        if (result.hasErrors()) { model.addAttribute("locked", false); model.addAttribute("individualSponsors", supportiveOrgRepo.findByOrganizationTypeOrderByNameAsc("Individual Sponsor")); return "finance/sponsor-form"; }
         sponsorRepo.save(s);
         if (s.getDonatedAmount() != null && s.getDonatedAmount().compareTo(BigDecimal.ZERO) > 0) {
             // Record initial payment as an instalment so future sum queries stay consistent
@@ -153,6 +154,7 @@ public class FinanceController {
         model.addAttribute("instalments", insts);
         model.addAttribute("newInstalment", new PaymentInstalment());
         model.addAttribute("locked", !insts.isEmpty());
+        model.addAttribute("individualSponsors", supportiveOrgRepo.findByOrganizationTypeOrderByNameAsc("Individual Sponsor"));
         return "finance/sponsor-form";
     }
 
@@ -212,7 +214,7 @@ public class FinanceController {
     @GetMapping("/org-donations/new")
     public String newOrgDonation(@RequestParam(required = false) String type, Model model) {
         model.addAttribute("item", new Payment());
-        model.addAttribute("supportiveOrgs", supportiveOrgRepo.findAll(Sort.by("name")));
+        model.addAttribute("supportiveOrgs", supportiveOrgRepo.findByOrganizationTypeNotOrderByNameAsc("Individual Sponsor"));
         model.addAttribute("members", memberRepo.findAll(Sort.by("firstName", "lastName")));
         model.addAttribute("donorType", "member".equals(type) ? "member" : "org");
         model.addAttribute("locked", false);
@@ -225,7 +227,7 @@ public class FinanceController {
                                      BindingResult result, Model model,
                                      RedirectAttributes attrs) {
         if (result.hasErrors()) {
-            model.addAttribute("supportiveOrgs", supportiveOrgRepo.findAll(Sort.by("name")));
+            model.addAttribute("supportiveOrgs", supportiveOrgRepo.findByOrganizationTypeNotOrderByNameAsc("Individual Sponsor"));
             model.addAttribute("members", memberRepo.findAll(Sort.by("firstName", "lastName")));
             model.addAttribute("donorType", p.getMemberId() != null ? "member" : "org");
             model.addAttribute("locked", false);
@@ -267,7 +269,7 @@ public class FinanceController {
                 .orElseThrow(() -> new IllegalArgumentException("Not found: " + id));
         java.util.List<PaymentInstalment> insts = instalmentRepo.findBySourceTypeAndSourceIdOrderByPaymentDateAsc("OrgMember", id);
         model.addAttribute("item", p);
-        model.addAttribute("supportiveOrgs", supportiveOrgRepo.findAll(Sort.by("name")));
+        model.addAttribute("supportiveOrgs", supportiveOrgRepo.findByOrganizationTypeNotOrderByNameAsc("Individual Sponsor"));
         model.addAttribute("members", memberRepo.findAll(Sort.by("firstName", "lastName")));
         model.addAttribute("donorType", p.getMember() != null ? "member" : "org");
         model.addAttribute("instalments", insts);
@@ -356,7 +358,7 @@ public class FinanceController {
                                      BindingResult result, Model model,
                                      RedirectAttributes attrs) {
         if (result.hasErrors()) {
-            model.addAttribute("supportiveOrgs", supportiveOrgRepo.findAll(Sort.by("name")));
+            model.addAttribute("supportiveOrgs", supportiveOrgRepo.findByOrganizationTypeNotOrderByNameAsc("Individual Sponsor"));
             model.addAttribute("members", memberRepo.findAll(Sort.by("firstName", "lastName")));
             model.addAttribute("donorType", p.getMemberId() != null ? "member" : "org");
             model.addAttribute("locked", false);
