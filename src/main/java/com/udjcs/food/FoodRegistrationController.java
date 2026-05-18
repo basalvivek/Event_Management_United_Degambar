@@ -1,5 +1,6 @@
 package com.udjcs.food;
 
+import com.udjcs.event.EventRepository;
 import com.udjcs.finance.PaymentInstalment;
 import com.udjcs.finance.PaymentInstalmentRepository;
 import com.udjcs.payable.PayableTransaction;
@@ -25,26 +26,129 @@ public class FoodRegistrationController {
     private final FoodItemRepository foodItemRepo;
     private final PaymentInstalmentRepository instalmentRepo;
     private final PayableTransactionRepository payableRepo;
+    private final EventRepository eventRepo;
 
     public FoodRegistrationController(FoodRegistrationRepository repo,
                                        FoodItemRepository foodItemRepo,
                                        PaymentInstalmentRepository instalmentRepo,
-                                       PayableTransactionRepository payableRepo) {
+                                       PayableTransactionRepository payableRepo,
+                                       EventRepository eventRepo) {
         this.repo          = repo;
         this.foodItemRepo  = foodItemRepo;
         this.instalmentRepo = instalmentRepo;
         this.payableRepo   = payableRepo;
+        this.eventRepo     = eventRepo;
     }
 
     @GetMapping
     public String list(Model model) {
-        model.addAttribute("items", repo.findAllOrdered());
+        List<FoodRegistration> registrations = repo.findAllOrdered();
+        List<FoodPaymentRow> rows = new ArrayList<>();
+
+        for (FoodRegistration f : registrations) {
+            List<PaymentInstalment> insts = instalmentRepo
+                    .findBySourceTypeAndSourceIdOrderByPaymentDateAsc("Food", f.getId());
+            BigDecimal fullAmt = f.getFullAmount() != null ? f.getFullAmount() : BigDecimal.ZERO;
+            String eventName = f.getEvent() != null ? f.getEvent().getEventName() : "— No Event —";
+
+            if (insts.isEmpty()) {
+                FoodPaymentRow row = new FoodPaymentRow();
+                row.setRegistrationId(f.getId());
+                row.setEventName(eventName);
+                row.setVendorName(f.getVendorName());
+                row.setPostcode(f.getPostcode());
+                row.setHeadCount(f.getTotalExpectedHeadCount());
+                row.setFinalPricePerPlate(f.getFinalPricePerPlate());
+                row.setFullAmount(fullAmt);
+                row.setOverallRating(f.getOverallFoodRating());
+                row.setFoodSelectionStatus(f.getFoodSelectionStatus());
+                row.setPaymentStatus(f.getPaymentStatus());
+                row.setPaymentDate(null);
+                row.setPaymentMode("—");
+                BigDecimal dep = f.getDepositAmount() != null ? f.getDepositAmount() : BigDecimal.ZERO;
+                row.setAmountPaid(dep);
+                row.setRemaining(fullAmt.subtract(dep).max(BigDecimal.ZERO));
+                row.setNotes(f.getNotes());
+                rows.add(row);
+            } else {
+                BigDecimal running = BigDecimal.ZERO;
+
+                // Initial deposit row (first, before instalments)
+                BigDecimal deposit = f.getDepositAmount() != null ? f.getDepositAmount() : BigDecimal.ZERO;
+                if (deposit.compareTo(BigDecimal.ZERO) > 0) {
+                    running = running.add(deposit);
+                    FoodPaymentRow depRow = new FoodPaymentRow();
+                    depRow.setRegistrationId(f.getId());
+                    depRow.setEventName(eventName);
+                    depRow.setVendorName(f.getVendorName());
+                    depRow.setPostcode(f.getPostcode());
+                    depRow.setHeadCount(f.getTotalExpectedHeadCount());
+                    depRow.setFinalPricePerPlate(f.getFinalPricePerPlate());
+                    depRow.setFullAmount(fullAmt);
+                    depRow.setOverallRating(f.getOverallFoodRating());
+                    depRow.setFoodSelectionStatus(f.getFoodSelectionStatus());
+                    depRow.setPaymentStatus(f.getPaymentStatus());
+                    depRow.setPaymentDate(null);
+                    depRow.setPaymentMode("Initial Deposit");
+                    depRow.setAmountPaid(deposit);
+                    depRow.setRemaining(fullAmt.subtract(running).max(BigDecimal.ZERO));
+                    depRow.setNotes("Paid at registration");
+                    rows.add(depRow);
+                }
+
+                for (PaymentInstalment inst : insts) {
+                    running = running.add(inst.getAmount());
+                    FoodPaymentRow row = new FoodPaymentRow();
+                    row.setRegistrationId(f.getId());
+                    row.setEventName(eventName);
+                    row.setVendorName(f.getVendorName());
+                    row.setPostcode(f.getPostcode());
+                    row.setHeadCount(f.getTotalExpectedHeadCount());
+                    row.setFinalPricePerPlate(f.getFinalPricePerPlate());
+                    row.setFullAmount(fullAmt);
+                    row.setOverallRating(f.getOverallFoodRating());
+                    row.setFoodSelectionStatus(f.getFoodSelectionStatus());
+                    row.setPaymentStatus(f.getPaymentStatus());
+                    row.setPaymentDate(inst.getPaymentDate());
+                    row.setPaymentMode(inst.getPaymentMode());
+                    row.setAmountPaid(inst.getAmount());
+                    row.setRemaining(fullAmt.subtract(running).max(BigDecimal.ZERO));
+                    row.setNotes(inst.getNotes());
+                    rows.add(row);
+                }
+            }
+        }
+
+        // Sort: event name ASC (no event last), then vendor ASC, then payment date DESC
+        rows.sort((a, b) -> {
+            String ea = "— No Event —".equals(a.getEventName()) ? "￿" : a.getEventName();
+            String eb = "— No Event —".equals(b.getEventName()) ? "￿" : b.getEventName();
+            int cmp = ea.compareToIgnoreCase(eb);
+            if (cmp != 0) return cmp;
+            cmp = a.getVendorName().compareToIgnoreCase(b.getVendorName());
+            if (cmp != 0) return cmp;
+            java.time.LocalDate da = a.getPaymentDate() != null ? a.getPaymentDate() : java.time.LocalDate.MIN;
+            java.time.LocalDate db = b.getPaymentDate() != null ? b.getPaymentDate() : java.time.LocalDate.MIN;
+            return db.compareTo(da);
+        });
+
+        // Compute group-start indices by event name
+        java.util.Set<Integer> groupStarts = new java.util.HashSet<>();
+        String prev = null;
+        for (int i = 0; i < rows.size(); i++) {
+            String key = rows.get(i).getEventName().toLowerCase();
+            if (!key.equals(prev)) { groupStarts.add(i); prev = key; }
+        }
+
+        model.addAttribute("rows", rows);
+        model.addAttribute("groupStarts", groupStarts);
         return "food/list";
     }
 
     @GetMapping("/new")
     public String showCreateForm(Model model) {
         model.addAttribute("item", new FoodRegistration());
+        model.addAttribute("events", eventRepo.findAll(org.springframework.data.domain.Sort.by("eventName")));
         return "food/form";
     }
 
@@ -64,7 +168,11 @@ public class FoodRegistrationController {
                          @RequestParam(value = "member3Rating", required = false) Integer m3r,
                          @RequestParam(value = "member4Rating", required = false) Integer m4r,
                          Model model, RedirectAttributes attrs) {
-        if (result.hasErrors()) return "food/form";
+        if (result.hasErrors()) {
+            model.addAttribute("events", eventRepo.findAll(org.springframework.data.domain.Sort.by("eventName")));
+            return "food/form";
+        }
+        wireEvent(f);
         applyMemberPanel(f, m1n, m2n, m3n, m4n, m1r, m2r, m3r, m4r);
         computeDerived(f);
         f.getFoodItems().clear();
@@ -78,7 +186,9 @@ public class FoodRegistrationController {
     public String showEditForm(@PathVariable Long id, Model model) {
         FoodRegistration f = repo.findByIdWithItems(id)
                 .orElseThrow(() -> new IllegalArgumentException("Not found: " + id));
+        if (f.getEvent() != null) f.setEventId(f.getEvent().getId());
         model.addAttribute("item", f);
+        model.addAttribute("events", eventRepo.findAll(org.springframework.data.domain.Sort.by("eventName")));
         List<PaymentInstalment> instalments = instalmentRepo
                 .findBySourceTypeAndSourceIdOrderByPaymentDateAsc("Food", id);
         BigDecimal instSum   = instalmentRepo.sumBySourceTypeAndSourceId("Food", id);
@@ -108,11 +218,13 @@ public class FoodRegistrationController {
                          @RequestParam(value = "member4Rating", required = false) Integer m4r,
                          Model model, RedirectAttributes attrs) {
         if (result.hasErrors()) {
+            model.addAttribute("events", eventRepo.findAll(org.springframework.data.domain.Sort.by("eventName")));
             model.addAttribute("instalments", instalmentRepo.findBySourceTypeAndSourceIdOrderByPaymentDateAsc("Food", id));
             model.addAttribute("totalPaid", BigDecimal.ZERO);
             return "food/form";
         }
         f.setId(id);
+        wireEvent(f);
         applyMemberPanel(f, m1n, m2n, m3n, m4n, m1r, m2r, m3r, m4r);
         BigDecimal instSum = instalmentRepo.sumBySourceTypeAndSourceId("Food", id);
         computeDerived(f);
@@ -177,6 +289,14 @@ public class FoodRegistrationController {
         repo.deleteById(id);
         attrs.addFlashAttribute("success", "Food registration deleted.");
         return "redirect:/food-registrations";
+    }
+
+    private void wireEvent(FoodRegistration f) {
+        if (f.getEventId() != null) {
+            eventRepo.findById(f.getEventId()).ifPresent(f::setEvent);
+        } else {
+            f.setEvent(null);
+        }
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────

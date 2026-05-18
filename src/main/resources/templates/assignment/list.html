@@ -7,134 +7,324 @@
 <th:block layout:fragment="page-title">Assign Activities</th:block>
 <div layout:fragment="content">
 <style>
-.as-table th{font-size:.7rem;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:#6366f1;padding:11px 14px;background:#f8f7ff;border-bottom:2px solid #e0e7ff;}
-.as-table td{padding:12px 14px;vertical-align:middle;border-color:#f1f5f9;}
-.as-row{cursor:pointer;transition:background .1s;}
-.as-row:hover{background:#fafafe;}
-.as-row.has-lead{border-left:3px solid #6366f1;}
-.as-row.no-lead{border-left:3px solid #f59e0b;}
-.cat-badge{display:inline-flex;align-items:center;gap:4px;border-radius:20px;padding:2px 10px;font-size:.7rem;font-weight:700;background:#eef2ff;color:#4f46e5;}
-.member-count{display:inline-flex;align-items:center;gap:5px;border-radius:20px;padding:3px 12px;font-size:.72rem;font-weight:700;background:#dbeafe;color:#1e40af;}
-.role-lead{display:inline-flex;align-items:center;border-radius:20px;padding:2px 10px;font-size:.68rem;font-weight:700;background:#fef3c7;color:#92400e;}
-.role-member{display:inline-flex;align-items:center;border-radius:20px;padding:2px 10px;font-size:.68rem;font-weight:700;background:#f1f5f9;color:#475569;}
-.ms-st-In-Progress{background:#dbeafe;color:#1e40af;}
-.ms-st-Completed{background:#dcfce7;color:#166534;}
-.ms-st-Dropped{background:#fee2e2;color:#991b1b;}
-.ms-st-Pending{background:#ede9fe;color:#5b21b6;}
-.ms-tag{display:inline-flex;align-items:center;border-radius:20px;padding:2px 10px;font-size:.68rem;font-weight:700;}
-.inner-table th{font-size:.68rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:#6366f1;padding:7px 10px;background:#eef2ff;border-bottom:2px solid #c7d2fe;}
-.inner-table td{padding:8px 10px;font-size:.82rem;border-color:#e0e7ff;}
-.sw{position:relative;}.sw i{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:.8rem;}
-.sb{border-radius:20px;border:1.5px solid #e5e7eb;padding:6px 14px 6px 32px;font-size:.84rem;width:220px;}
-.sb:focus{border-color:#6366f1;box-shadow:0 0 0 3px rgba(99,102,241,.1);outline:none;}
+:root { --ac:#4f46e5; --ac-light:#818cf8; --ac-bg:#eef2ff; }
+
+/* Stats */
+.stat-card { background:#fff; border-radius:14px; padding:18px 20px; border:1.5px solid #e2e8f0; box-shadow:0 2px 12px rgba(0,0,0,0.05); }
+.stat-icon  { width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; flex-shrink:0; }
+.stat-label { font-size:0.68rem; font-weight:700; text-transform:uppercase; letter-spacing:0.6px; color:#94a3b8; margin-bottom:2px; }
+.stat-value { font-size:1.55rem; font-weight:800; color:#1e293b; line-height:1.1; }
+
+/* Filter + search */
+.fp { border-radius:20px; padding:5px 14px; font-size:0.78rem; font-weight:600; border:1.5px solid #e2e8f0; background:#fff; color:#64748b; cursor:pointer; transition:all 0.15s; display:inline-flex; align-items:center; gap:5px; }
+.fp:hover { border-color:var(--ac-light); color:var(--ac); }
+.fp.fa    { background:#1e1b4b; border-color:#1e1b4b; color:#fff; }
+.sw { position:relative; }
+.sw i { position:absolute; left:12px; top:50%; transform:translateY(-50%); color:#94a3b8; font-size:0.8rem; }
+.sb { border-radius:20px; border:1.5px solid #e2e8f0; padding:7px 14px 7px 34px; font-size:0.84rem; width:230px; transition:border-color 0.15s,box-shadow 0.15s; }
+.sb:focus { border-color:var(--ac); box-shadow:0 0 0 3px rgba(79,70,229,0.1); outline:none; }
+
+/* Activity group card */
+.act-group { border-radius:14px; border:1.5px solid #e2e8f0; overflow:hidden; margin-bottom:10px; box-shadow:0 1px 6px rgba(0,0,0,0.04); transition:box-shadow 0.15s; }
+.act-group:hover { box-shadow:0 4px 20px rgba(0,0,0,0.08); }
+.act-group.has-lead { border-left:4px solid var(--ac); }
+.act-group.no-lead  { border-left:4px solid #f59e0b; }
+
+.act-header { background:#fff; padding:14px 18px; display:flex; align-items:center; gap:12px; }
+.act-num    { width:30px; height:30px; border-radius:8px; background:var(--ac-bg); color:var(--ac); font-size:0.72rem; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.act-name   { font-weight:700; font-size:0.9rem; color:#1e293b; }
+.act-sub    { font-size:0.71rem; color:#94a3b8; margin-top:2px; display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+
+.cat-badge    { display:inline-flex; align-items:center; gap:4px; border-radius:20px; padding:2px 10px; font-size:0.67rem; font-weight:700; background:var(--ac-bg); color:var(--ac); }
+.member-count { display:inline-flex; align-items:center; gap:4px; border-radius:20px; padding:3px 11px; font-size:0.7rem; font-weight:700; background:#dbeafe; color:#1e40af; }
+.lead-pill    { display:inline-flex; align-items:center; gap:4px; border-radius:20px; padding:3px 10px; font-size:0.67rem; font-weight:700; background:#eef2ff; color:#3730a3; }
+.no-lead-pill { display:inline-flex; align-items:center; gap:4px; border-radius:20px; padding:3px 10px; font-size:0.67rem; font-weight:700; background:#fef3c7; color:#92400e; }
+
+/* Status dots */
+.sdot { width:7px; height:7px; border-radius:50%; display:inline-block; }
+.sdot-Assigned    { background:#818cf8; }
+.sdot-In-Progress { background:#3b82f6; }
+.sdot-Completed   { background:#4ade80; }
+.sdot-Dropped     { background:#f87171; }
+
+/* ── Two action buttons ── */
+.btn-add-member {
+    border-radius:9px; background:var(--ac); color:#fff; border:0;
+    font-size:0.76rem; font-weight:600; padding:7px 14px;
+    white-space:nowrap; transition:opacity 0.15s;
+}
+.btn-add-member:hover { opacity:0.88; color:#fff; }
+.btn-view-members {
+    border-radius:9px; background:#f8f9ff; color:var(--ac);
+    border:1.5px solid #c7d2fe; font-size:0.76rem; font-weight:600;
+    padding:7px 14px; white-space:nowrap; transition:all 0.15s;
+    display:inline-flex; align-items:center; gap:6px;
+}
+.btn-view-members:hover { background:var(--ac-bg); }
+.btn-view-members .chevron { font-size:0.68rem; transition:transform 0.2s; }
+.btn-view-members.open .chevron { transform:rotate(180deg); }
+
+/* Inner detail panel */
+.act-detail { background:#f8f9ff; border-top:1.5px solid #e0e7ff; }
+.inner-table th { font-size:0.67rem; font-weight:700; letter-spacing:0.5px; text-transform:uppercase; color:var(--ac); padding:9px 14px; background:#eef2ff; border-bottom:2px solid #c7d2fe; }
+.inner-table td { padding:10px 14px; font-size:0.82rem; border-color:#e0e7ff; vertical-align:middle; }
+.inner-table tr:last-child td { border-bottom:0; }
+
+/* Member avatar */
+.m-avatar { width:30px; height:30px; border-radius:8px; flex-shrink:0; background:linear-gradient(135deg,#4f46e5,#7c3aed); display:flex; align-items:center; justify-content:center; color:#fff; font-size:0.62rem; font-weight:800; }
+
+/* Role badges */
+.role-badge  { display:inline-flex; align-items:center; gap:4px; border-radius:20px; padding:3px 10px; font-size:0.68rem; font-weight:700; }
+.role-Lead        { background:#fef3c7; color:#92400e; }
+.role-Co-Lead     { background:#fed7aa; color:#9a3412; }
+.role-Coordinator { background:#dbeafe; color:#1e40af; }
+.role-Volunteer   { background:#f1f5f9; color:#475569; }
+.role-Support     { background:#dcfce7; color:#166534; }
+.role-Other       { background:#f5f3ff; color:#5b21b6; }
+
+/* Status chips */
+.st-chip { display:inline-flex; align-items:center; border-radius:20px; padding:3px 10px; font-size:0.68rem; font-weight:700; }
+.st-Assigned    { background:#eef2ff; color:#3730a3; }
+.st-In-Progress { background:#dbeafe; color:#1e40af; }
+.st-Completed   { background:#dcfce7; color:#166534; }
+.st-Dropped     { background:#fee2e2; color:#991b1b; }
 </style>
 
+<!-- Header -->
 <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
     <div>
         <h5 class="fw-bold mb-0" style="color:#1e1b4b;">Assign Activities</h5>
-        <p class="text-muted mb-0" style="font-size:.78rem;">Manage member assignments to community activities</p>
+        <p class="text-muted mb-0" style="font-size:0.78rem;">Manage member assignments across community activities</p>
     </div>
-    <a th:href="@{/assignments/new}" class="btn btn-primary"><i class="bi bi-person-plus-fill me-1"></i>Add Assignment</a>
+    <a th:href="@{/assignments/new}" class="btn btn-primary px-4"
+       style="border-radius:10px;background:linear-gradient(135deg,#1e1b4b,#4f46e5);border:0;box-shadow:0 4px 12px rgba(79,70,229,0.3);">
+        <i class="bi bi-person-plus-fill me-2"></i>Add Assignment
+    </a>
 </div>
 
-<div class="d-flex justify-content-end mb-3">
-    <div class="sw"><i class="bi bi-search"></i><input type="text" class="sb form-control" id="asSearch" placeholder="Search activity…" oninput="assearch(this.value)"></div>
-</div>
-
-<div th:if="${groups == null or groups.isEmpty()}" class="card border-0 shadow-sm" style="border-radius:14px;">
-    <div class="card-body text-center py-5">
-        <i class="bi bi-person-lines-fill d-block mb-2" style="font-size:2.5rem;color:#c7d2fe;"></i>
-        <div class="fw-semibold text-muted">No assignments yet</div>
+<!-- Stats -->
+<div class="row g-3 mb-4" th:unless="${groups == null or groups.isEmpty()}">
+    <div class="col-6 col-md-3">
+        <div class="stat-card d-flex align-items-center gap-3">
+            <div class="stat-icon" style="background:#eef2ff;color:#4f46e5;"><i class="bi bi-list-task"></i></div>
+            <div><div class="stat-label">Activities</div><div class="stat-value" th:text="${groups.size()}">0</div></div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card d-flex align-items-center gap-3">
+            <div class="stat-icon" style="background:#dbeafe;color:#1e40af;"><i class="bi bi-people-fill"></i></div>
+            <div><div class="stat-label">Members Assigned</div><div class="stat-value" th:text="${totalAssignments}">0</div></div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card d-flex align-items-center gap-3">
+            <div class="stat-icon" style="background:#fef3c7;color:#d97706;"><i class="bi bi-star-fill"></i></div>
+            <div><div class="stat-label">With Lead</div><div class="stat-value" th:text="${activitiesWithLead}">0</div></div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card d-flex align-items-center gap-3">
+            <div class="stat-icon" style="background:#fef3c7;color:#d97706;"><i class="bi bi-exclamation-circle-fill"></i></div>
+            <div><div class="stat-label">No Lead</div><div class="stat-value" style="color:#d97706;" th:text="${groups.size() - activitiesWithLead}">0</div></div>
+        </div>
     </div>
 </div>
 
-<div th:unless="${groups == null or groups.isEmpty()}" class="card border-0 shadow-sm" style="border-radius:14px;overflow:hidden;">
-    <div class="table-responsive">
-        <table class="table as-table mb-0" id="asTable">
-            <thead><tr>
-                <th style="width:36px;">#</th>
-                <th>Activity</th>
-                <th>Category</th>
-                <th>Lead</th>
-                <th>Members</th>
-                <th class="text-end" style="padding-right:16px;">Actions</th>
-            </tr></thead>
-            <tbody>
-                <th:block th:each="entry, stat : ${groups}"
-                          th:with="assignments=${entry.value}, activity=${entry.value[0].activity}, leads=${entry.value.?[role == 'Lead']}">
-                    <tr th:class="'as-row ' + (${not #lists.isEmpty(leads)} ? 'has-lead' : 'no-lead')"
+<!-- Filter + Search -->
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2"
+     th:unless="${groups == null or groups.isEmpty()}">
+    <div class="d-flex gap-2 flex-wrap">
+        <span class="fp fa" onclick="asfilter('all',this)">All</span>
+        <span class="fp" onclick="asfilter('lead',this)">
+            <i class="bi bi-star-fill" style="font-size:0.65rem;color:#d97706;"></i>Has Lead
+        </span>
+        <span class="fp" onclick="asfilter('nolead',this)">
+            <i class="bi bi-exclamation-circle" style="font-size:0.65rem;color:#f59e0b;"></i>No Lead
+        </span>
+    </div>
+    <div class="sw">
+        <i class="bi bi-search"></i>
+        <input type="text" class="sb form-control" id="asSearch" placeholder="Search activity…" oninput="assearch(this.value)">
+    </div>
+</div>
+
+<!-- Empty state -->
+<div th:if="${groups == null or groups.isEmpty()}" class="text-center py-5">
+    <div style="width:80px;height:80px;border-radius:24px;background:#eef2ff;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+        <i class="bi bi-person-lines-fill" style="font-size:2rem;color:#818cf8;"></i>
+    </div>
+    <h6 class="fw-bold text-muted mb-1">No assignments yet</h6>
+    <p class="text-muted small mb-4">Start by assigning members to activities.</p>
+    <a th:href="@{/assignments/new}" class="btn btn-primary px-4" style="border-radius:10px;">
+        <i class="bi bi-person-plus-fill me-2"></i>Add First Assignment
+    </a>
+</div>
+
+<!-- Activity groups -->
+<div id="actGroups">
+<th:block th:each="entry, stat : ${groups}"
+          th:with="assignments=${entry.value}, activity=${entry.value[0].activity}">
+
+    <!-- Compute lead outside complex th:with -->
+    <div th:with="leadList=${entry.value.?[role == 'Lead']}"
+         th:class="'act-group ' + (${#lists.isEmpty(leadList)} ? 'no-lead' : 'has-lead')"
+         th:attr="data-q=${activity.activityName.toLowerCase()},
+                  data-lead=${#lists.isEmpty(leadList) ? 'no' : 'yes'}">
+
+        <!-- ── Activity header row ── -->
+        <div class="act-header">
+            <div class="act-num" th:text="${stat.count}"></div>
+
+            <div class="flex-grow-1">
+                <div class="act-name" th:text="${activity.activityName}"></div>
+                <div class="act-sub">
+                    <span class="cat-badge">
+                        <i class="bi bi-tag" style="font-size:0.6rem;"></i>
+                        <span th:text="${activity.activityCategory.categoryName}"></span>
+                    </span>
+                    <!-- Status dots -->
+                    <span th:each="a : ${assignments}"
+                          th:class="'sdot sdot-' + ${a.status.replace(' ','-')}"
+                          th:title="${a.member.firstName + ' — ' + a.status}"></span>
+                    <!-- Lead name or warning -->
+                    <span th:if="${not #lists.isEmpty(leadList)}" class="lead-pill">
+                        <i class="bi bi-star-fill" style="font-size:0.6rem;color:#f59e0b;"></i>
+                        <span th:text="${leadList[0].member.firstName + ' ' + leadList[0].member.lastName}"></span>
+                    </span>
+                    <span th:if="${#lists.isEmpty(leadList)}" class="no-lead-pill">
+                        <i class="bi bi-exclamation-circle" style="font-size:0.6rem;"></i> No Lead
+                    </span>
+                    <span class="member-count">
+                        <i class="bi bi-people-fill"></i>
+                        <span th:text="${#lists.size(assignments)}"></span>
+                    </span>
+                </div>
+            </div>
+
+            <!-- ── TWO BUTTONS ── -->
+            <div class="d-flex align-items-center gap-2 ms-2">
+                <!-- Button 1: Add Member -->
+                <a th:href="@{/assignments/new(activityId=${entry.key})}"
+                   class="btn btn-add-member">
+                    <i class="bi bi-person-plus-fill me-1"></i>Add Member
+                </a>
+
+                <!-- Button 2: View Members (expand/collapse) -->
+                <button type="button"
+                        class="btn btn-view-members"
                         data-bs-toggle="collapse"
-                        th:attr="data-q=${activity.activityName.toLowerCase()}, data-bs-target='#m-' + ${entry.key}">
-                        <td class="text-muted fw-medium" th:text="${stat.count}"></td>
-                        <td>
-                            <div class="fw-semibold" style="font-size:.88rem;color:#1e1b4b;" th:text="${activity.activityName}"></div>
-                            <div style="font-size:.7rem;color:#94a3b8;margin-top:2px;"><i class="bi bi-chevron-down me-1"></i>Click to view members</div>
-                        </td>
-                        <td><span class="cat-badge" th:text="${activity.activityCategory.categoryName}"></span></td>
-                        <td>
-                            <span th:if="${not #lists.isEmpty(leads)}" class="fw-semibold" style="font-size:.84rem;color:#1e1b4b;">
-                                <i class="bi bi-person-fill me-1" style="color:#6366f1;"></i>
-                                <span th:text="${leads[0].member.firstName + ' ' + leads[0].member.lastName}"></span>
-                            </span>
-                            <span th:unless="${not #lists.isEmpty(leads)}" class="text-muted" style="font-size:.8rem;">No lead assigned</span>
-                        </td>
-                        <td><span class="member-count"><i class="bi bi-people-fill"></i><span th:text="${#lists.size(assignments)}"></span></span></td>
-                        <td class="text-end" style="padding-right:16px;">
-                            <a th:href="@{/assignments/new(activityId=${entry.key})}" class="btn btn-sm btn-primary" onclick="event.stopPropagation()">
-                                <i class="bi bi-person-plus-fill me-1"></i>Add Member
-                            </a>
-                        </td>
-                    </tr>
-                    <tr class="as-detail">
-                        <td colspan="6" class="p-0 border-0">
-                            <div class="collapse" th:id="'m-' + ${entry.key}">
-                                <div class="px-3 py-3" style="background:#f5f7ff;border-top:1px solid #e0e7ff;">
-                                    <table class="table inner-table mb-0" style="border-radius:8px;overflow:hidden;">
-                                        <thead><tr>
-                                            <th>Member</th>
-                                            <th>Role</th>
-                                            <th>Assigned Date</th>
-                                            <th>Status</th>
-                                            <th class="text-end" style="padding-right:12px;">Actions</th>
-                                        </tr></thead>
-                                        <tbody>
-                                            <tr th:each="a : ${entry.value}">
-                                                <td>
-                                                    <div class="d-flex align-items-center gap-2">
-                                                        <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;color:#fff;font-size:.65rem;font-weight:700;flex-shrink:0;"
-                                                             th:text="${#strings.substring(a.member.firstName,0,1) + #strings.substring(a.member.lastName,0,1)}"></div>
-                                                        <span class="fw-semibold" th:text="${a.member.firstName + ' ' + a.member.lastName}"></span>
-                                                    </div>
-                                                </td>
-                                                <td>
-                                                    <span th:if="${a.role == 'Lead'}" class="role-lead"><i class="bi bi-star-fill me-1" style="font-size:.6rem;"></i>Lead</span>
-                                                    <span th:unless="${a.role == 'Lead'}" class="role-member" th:text="${a.role}"></span>
-                                                </td>
-                                                <td style="color:#64748b;" th:text="${#temporals.format(a.assignedDate,'dd MMM yyyy')}"></td>
-                                                <td>
-                                                    <span th:class="'ms-tag ms-st-' + ${a.status.replace(' ','-')}" th:text="${a.status}"></span>
-                                                </td>
-                                                <td class="text-end" style="padding-right:12px;">
-                                                    <a th:href="@{/assignments/{id}/edit(id=${a.id})}" class="btn btn-sm btn-outline-warning me-1"><i class="bi bi-pencil-fill"></i></a>
-                                                    <form th:action="@{/assignments/{id}/delete(id=${a.id})}" method="post" class="d-inline" onsubmit="return confirm('Remove this member assignment?')">
-                                                        <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash-fill"></i></button>
-                                                    </form>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
+                        th:attr="data-bs-target='#m-' + ${entry.key}"
+                        th:id="'btn-' + ${entry.key}"
+                        onclick="toggleView(this)">
+                    <i class="bi bi-people me-1"></i>View Members
+                    <i class="bi bi-chevron-down chevron"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- ── Collapsible member detail ── -->
+        <div class="collapse act-detail" th:id="'m-' + ${entry.key}">
+            <div class="px-3 py-3">
+                <table class="table inner-table mb-0" style="border-radius:10px;overflow:hidden;border:1px solid #e0e7ff;">
+                    <thead><tr>
+                        <th>Member</th>
+                        <th>Role</th>
+                        <th>Assigned Date</th>
+                        <th>Status</th>
+                        <th>Notes</th>
+                        <th class="text-end" style="padding-right:14px;">Actions</th>
+                    </tr></thead>
+                    <tbody>
+                        <tr th:each="a : ${assignments}" style="background:#fff;">
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="m-avatar"
+                                         th:text="${#strings.substring(a.member.firstName,0,1) + #strings.substring(a.member.lastName,0,1)}"></div>
+                                    <div>
+                                        <div class="fw-semibold" style="font-size:0.84rem;color:#1e293b;"
+                                             th:text="${a.member.firstName + ' ' + a.member.lastName}"></div>
+                                        <div style="font-size:0.7rem;color:#94a3b8;" th:text="${a.member.phone}"></div>
+                                    </div>
                                 </div>
-                            </div>
-                        </td>
-                    </tr>
-                </th:block>
-                <tr id="asEmpty" style="display:none;"><td colspan="6" class="text-center py-4 text-muted">No records match</td></tr>
-            </tbody>
-        </table>
-    </div>
+                            </td>
+                            <td>
+                                <span th:class="'role-badge role-' + ${a.role.replace(' ','-')}">
+                                    <i class="bi bi-star-fill" th:if="${a.role == 'Lead'}" style="font-size:0.6rem;color:#d97706;"></i>
+                                    <span th:text="${a.role}"></span>
+                                </span>
+                            </td>
+                            <td style="color:#64748b;font-size:0.82rem;"
+                                th:text="${#temporals.format(a.assignedDate,'dd MMM yyyy')}"></td>
+                            <td>
+                                <span th:class="'st-chip st-' + ${a.status.replace(' ','-')}"
+                                      th:text="${a.status}"></span>
+                            </td>
+                            <td style="font-size:0.76rem;color:#94a3b8;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"
+                                th:text="${a.notes != null ? a.notes : '—'}"></td>
+                            <td class="text-end" style="padding-right:14px;white-space:nowrap;">
+                                <a th:href="@{/assignments/{id}/edit(id=${a.id})}"
+                                   class="btn btn-sm btn-outline-warning me-1">
+                                    <i class="bi bi-pencil-fill"></i>
+                                </a>
+                                <form th:action="@{/assignments/{id}/delete(id=${a.id})}" method="post" class="d-inline"
+                                      data-confirm="Remove this member assignment?">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-trash-fill"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div><!-- /act-group -->
+</th:block>
 </div>
+
+<div id="asEmpty" style="display:none;" class="text-center py-4 text-muted">
+    <i class="bi bi-search d-block mb-2" style="font-size:1.5rem;opacity:0.35;"></i>No activities match
+</div>
+
 </div>
 <th:block layout:fragment="page-scripts"><script>
-function assearch(q){q=q.toLowerCase();var rows=document.querySelectorAll('#asTable tbody tr.as-row'),v=0;rows.forEach(r=>{var ok=!q||r.dataset.q.includes(q);r.style.display=ok?'':'none';var nxt=r.nextElementSibling;if(nxt&&nxt.classList.contains('as-detail'))nxt.style.display=ok?'':'none';if(ok)v++;});document.getElementById('asEmpty').style.display=v===0&&rows.length>0?'':'none';}
+// ── View button chevron toggle ──
+function toggleView(btn) {
+    btn.classList.toggle('open');
+    var label = btn.querySelector('i.bi-people') || btn;
+    // Optional: update label text
+}
+
+// ── Filter by lead status ──
+var activeFilter = 'all';
+function asfilter(type, el) {
+    activeFilter = type;
+    document.querySelectorAll('.fp').forEach(function(b) { b.classList.remove('fa'); });
+    el.classList.add('fa');
+    applyFilters();
+}
+
+// ── Search ──
+function assearch(q) { applyFilters(q); }
+
+function applyFilters(q) {
+    if (q === undefined) q = document.getElementById('asSearch').value;
+    q = q.toLowerCase();
+    var groups = document.querySelectorAll('#actGroups .act-group');
+    var visible = 0;
+    groups.forEach(function(g) {
+        var matchSearch = !q || (g.dataset.q || '').includes(q);
+        var matchFilter =
+            activeFilter === 'all' ||
+            (activeFilter === 'lead'   && g.dataset.lead === 'yes') ||
+            (activeFilter === 'nolead' && g.dataset.lead === 'no');
+        var show = matchSearch && matchFilter;
+        g.style.display = show ? '' : 'none';
+        if (show) visible++;
+    });
+    var empty = document.getElementById('asEmpty');
+    if (empty) empty.style.display = (visible === 0 && groups.length > 0) ? '' : 'none';
+}
 </script></th:block>
 </body></html>

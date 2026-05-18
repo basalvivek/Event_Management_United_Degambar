@@ -1,6 +1,7 @@
 package com.udjcs.food;
 
 import com.udjcs.common.BaseEntity;
+import com.udjcs.event.Event;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -14,6 +15,18 @@ import java.util.List;
 @Entity
 @Table(name = "food_registrations")
 public class FoodRegistration extends BaseEntity {
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "event_id")
+    private Event event;
+
+    @Transient
+    private Long eventId;
+
+    public Event getEvent() { return event; }
+    public void setEvent(Event event) { this.event = event; }
+    public Long getEventId() { return eventId; }
+    public void setEventId(Long eventId) { this.eventId = eventId; }
 
     // Vendor
     @NotBlank(message = "Vendor name is required")

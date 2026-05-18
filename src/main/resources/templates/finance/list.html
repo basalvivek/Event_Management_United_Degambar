@@ -14,6 +14,7 @@
 .stat-card { background:#fff; border-radius:12px; padding:16px 20px; box-shadow:0 2px 12px rgba(0,0,0,0.06); }
 .stat-card .label { font-size:0.72rem; font-weight:700; letter-spacing:0.5px; text-transform:uppercase; color:#94a3b8; }
 .stat-card .value { font-size:1.5rem; font-weight:800; color:#1e1b4b; line-height:1.2; margin-top:4px; }
+.grp-row td { background:linear-gradient(90deg,#eef2ff,#f5f3ff); border-bottom:2px solid #c7d2fe; padding:8px 14px; }
 </style>
 </head>
 <body>
@@ -100,53 +101,71 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr th:each="r : ${records}">
-                            <td>
-                                <span class="src-badge"
-                                      th:style="'background:' + ${r.sourceBadgeColor}"
-                                      th:text="${r.source}">
-                                </span>
-                            </td>
-                            <td class="fw-medium" th:text="${r.orgName}"></td>
-                            <td th:text="${r.personName}"></td>
-                            <td>
-                                <span th:if="${r.paymentMode != null}"
-                                      class="badge bg-light text-dark border"
-                                      th:text="${r.paymentMode}"></span>
-                                <span th:unless="${r.paymentMode != null}" class="text-muted">—</span>
-                            </td>
-                            <td class="text-muted"
-                                th:text="${r.paymentDate != null ? #temporals.format(r.paymentDate,'dd MMM yyyy') : '—'}"></td>
-                            <td class="text-end amount-col"
-                                th:text="${r.committedAmount != null ? '£' + #numbers.formatDecimal(r.committedAmount,1,2) : '—'}"></td>
-                            <td class="text-end amount-col" style="color:#059669;"
-                                th:text="${r.donatedAmount != null ? '£' + #numbers.formatDecimal(r.donatedAmount,1,2) : '—'}"></td>
-                            <td class="text-end amount-col"
-                                th:class="${(r.pendingAmount != null and r.pendingAmount > 0) ? 'text-end amount-col pending-positive' : 'text-end amount-col pending-zero'}"
-                                th:text="${r.pendingAmount != null ? '£' + #numbers.formatDecimal(r.pendingAmount,1,2) : '—'}"></td>
-                            <td>
-                                <span th:if="${r.status != null}"
-                                      th:class="${r.status == 'Accepted' or r.status == 'Received' ? 'badge bg-success' : (r.status == 'Pending' or r.status == 'Partial' ? 'badge bg-warning text-dark' : 'badge bg-secondary')}"
-                                      th:text="${r.status}"></span>
-                            </td>
-                            <td class="text-muted small" style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"
-                                th:text="${r.remark}"></td>
-                            <td class="text-end" style="white-space:nowrap;">
-                                <a th:href="${r.editUrl}" class="btn btn-sm btn-outline-warning me-1">
-                                    <i class="bi bi-pencil"></i>
-                                </a>
-                                <a th:if="${r.source == 'Sponsors'}"
-                                   th:href="@{/finance/sponsors/{id}/invoice(id=${r.sourceId})}"
-                                   class="btn btn-sm btn-outline-secondary" title="Print Invoice" target="_blank">
-                                    <i class="bi bi-printer"></i>
-                                </a>
-                                <a th:if="${r.source == 'Organisation' or r.source == 'Member' or r.source == 'Members'}"
-                                   th:href="@{/finance/org-donations/{id}/invoice(id=${r.sourceId})}"
-                                   class="btn btn-sm btn-outline-secondary" title="Print Invoice" target="_blank">
-                                    <i class="bi bi-printer"></i>
-                                </a>
-                            </td>
-                        </tr>
+                        <th:block th:each="r, stat : ${records}">
+
+                            <!-- Group header when Organisation/Event changes -->
+                            <tr th:if="${groupStarts.contains(stat.index)}" class="grp-row">
+                                <td colspan="11">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span style="width:26px;height:26px;border-radius:7px;background:#4f46e5;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                            <i class="bi bi-building-fill text-white" style="font-size:.65rem;"></i>
+                                        </span>
+                                        <span style="font-weight:700;font-size:.82rem;color:#3730a3;"
+                                              th:text="${(r.orgName != null and !#strings.isEmpty(r.orgName) and r.orgName != '—') ? r.orgName : '— No Organisation / Event —'}"></span>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <!-- Data row -->
+                            <tr>
+                                <td>
+                                    <span class="src-badge"
+                                          th:style="'background:' + ${r.sourceBadgeColor}"
+                                          th:text="${r.source}">
+                                    </span>
+                                </td>
+                                <td class="fw-medium" th:text="${r.orgName}"></td>
+                                <td th:text="${r.personName}"></td>
+                                <td>
+                                    <span th:if="${r.paymentMode != null}"
+                                          class="badge bg-light text-dark border"
+                                          th:text="${r.paymentMode}"></span>
+                                    <span th:unless="${r.paymentMode != null}" class="text-muted">—</span>
+                                </td>
+                                <td class="text-muted"
+                                    th:text="${r.paymentDate != null ? #temporals.format(r.paymentDate,'dd MMM yyyy') : '—'}"></td>
+                                <td class="text-end amount-col"
+                                    th:text="${r.committedAmount != null ? '£' + #numbers.formatDecimal(r.committedAmount,1,2) : '—'}"></td>
+                                <td class="text-end amount-col" style="color:#059669;"
+                                    th:text="${r.donatedAmount != null ? '£' + #numbers.formatDecimal(r.donatedAmount,1,2) : '—'}"></td>
+                                <td class="text-end amount-col"
+                                    th:class="${(r.pendingAmount != null and r.pendingAmount > 0) ? 'text-end amount-col pending-positive' : 'text-end amount-col pending-zero'}"
+                                    th:text="${r.pendingAmount != null ? '£' + #numbers.formatDecimal(r.pendingAmount,1,2) : '—'}"></td>
+                                <td>
+                                    <span th:if="${r.status != null}"
+                                          th:class="${r.status == 'Accepted' or r.status == 'Received' ? 'badge bg-success' : (r.status == 'Pending' or r.status == 'Partial' ? 'badge bg-warning text-dark' : 'badge bg-secondary')}"
+                                          th:text="${r.status}"></span>
+                                </td>
+                                <td class="text-muted small" style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"
+                                    th:text="${r.remark}"></td>
+                                <td class="text-end" style="white-space:nowrap;">
+                                    <a th:href="${r.editUrl}" class="btn btn-sm btn-outline-warning me-1">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a th:if="${r.source == 'Sponsors'}"
+                                       th:href="@{/finance/sponsors/{id}/invoice(id=${r.sourceId})}"
+                                       class="btn btn-sm btn-outline-secondary" title="Print Invoice" target="_blank">
+                                        <i class="bi bi-printer"></i>
+                                    </a>
+                                    <a th:if="${r.source == 'Organisation' or r.source == 'Member' or r.source == 'Members'}"
+                                       th:href="@{/finance/org-donations/{id}/invoice(id=${r.sourceId})}"
+                                       class="btn btn-sm btn-outline-secondary" title="Print Invoice" target="_blank">
+                                        <i class="bi bi-printer"></i>
+                                    </a>
+                                </td>
+                            </tr>
+
+                        </th:block>
                         <tr th:if="${#lists.isEmpty(records)}">
                             <td colspan="11" class="text-center text-muted py-5">
                                 <i class="bi bi-credit-card d-block mb-2" style="font-size:2rem;opacity:0.3;"></i>

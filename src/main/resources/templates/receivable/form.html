@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head><title>Receivable</title></head>
+<body>
+<th:block layout:fragment="page-title"
+          th:text="${item.id == null ? 'Add Receivable' : 'Edit Receivable'}">Receivable</th:block>
+<div layout:fragment="content">
+<style>
+.rv-card{border-radius:16px;border:0;box-shadow:0 4px 24px rgba(0,0,0,0.07);}
+.rv-card .card-header{border-radius:16px 16px 0 0;padding:20px 28px;border-bottom:1px solid #bbf7d0;background:#fff;}
+.sc{border-radius:12px;border:1.5px solid #bbf7d0;background:#f9fffe;padding:20px 24px;margin-bottom:1.25rem;}
+.section-title{font-size:.7rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#059669;margin-bottom:14px;display:flex;align-items:center;gap:7px;}
+.form-label{font-size:.82rem;font-weight:600;color:#374151;margin-bottom:5px;}
+.form-control,.form-select{border-radius:9px;border:1.5px solid #e5e7eb;font-size:.86rem;padding:9px 13px;transition:border-color .18s,box-shadow .18s;}
+.form-control:focus,.form-select:focus{border-color:#059669;box-shadow:0 0 0 3px rgba(5,150,105,.12);outline:none;}
+.fin-tile{border-radius:10px;padding:12px 14px;text-align:center;}
+.req-star{color:#ef4444;}
+</style>
+
+<div style="max-width:740px;">
+<div class="card rv-card">
+
+    <!-- Header -->
+    <div class="card-header d-flex align-items-center gap-3">
+        <div style="width:46px;height:46px;border-radius:12px;background:linear-gradient(135deg,#059669,#10b981);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(5,150,105,.3);">
+            <i class="bi bi-arrow-down-circle-fill text-white fs-5"></i>
+        </div>
+        <div>
+            <div class="fw-bold" style="color:#1e1b4b;font-size:1rem;" th:text="${item.id == null ? 'Add Receivable Transaction' : 'Edit Receivable Transaction'}"></div>
+            <div class="text-muted" style="font-size:.75rem;">Record an incoming receipt — donation, ticket, hall hire or other income</div>
+        </div>
+        <div th:if="${item.id != null}" class="ms-auto">
+            <span th:if="${item.status == 'RECEIVED'}" style="background:#dcfce7;color:#166534;border-radius:20px;padding:4px 12px;font-size:.72rem;font-weight:700;"><i class="bi bi-check-circle-fill me-1"></i>Received</span>
+            <span th:if="${item.status == 'PARTIAL'}"  style="background:#fef3c7;color:#92400e;border-radius:20px;padding:4px 12px;font-size:.72rem;font-weight:700;"><i class="bi bi-hourglass-split me-1"></i>Partial</span>
+            <span th:if="${item.status == 'PENDING'}"  style="background:#eef2ff;color:#4338ca;border-radius:20px;padding:4px 12px;font-size:.72rem;font-weight:700;"><i class="bi bi-clock me-1"></i>Pending</span>
+        </div>
+    </div>
+
+    <div class="card-body p-4">
+
+    <!-- ── Lock notice ── -->
+    <div th:if="${locked}" class="alert d-flex align-items-center gap-3 mb-4"
+         style="border-radius:12px;background:#fefce8;border:1.5px solid #fde68a;color:#92400e;">
+        <i class="bi bi-lock-fill fs-5" style="color:#d97706;flex-shrink:0;"></i>
+        <div>
+            <div style="font-weight:700;font-size:.85rem;">Record locked — receipt already logged</div>
+            <div style="font-size:.76rem;margin-top:1px;">Transaction details cannot be changed once a receipt is recorded. Use <strong>Record Receipt</strong> below to log further partial payments.</div>
+        </div>
+    </div>
+
+    <form th:action="${item.id == null ? '/receivable' : '/receivable/' + item.id}"
+          th:object="${item}" method="post"
+          th:onsubmit="${locked} ? 'return false;' : ''">
+
+        <!-- Income Type & Description -->
+        <div class="sc">
+            <div class="section-title"><i class="bi bi-tag"></i>Income Type</div>
+            <div class="row g-3">
+                <div class="col-md-5">
+                    <label class="form-label">Income Type <span class="req-star" th:if="${!locked}">*</span></label>
+                    <select class="form-select" th:field="*{incomeType}"
+                            th:disabled="${locked}"
+                            th:classappend="${locked} ? ' bg-light text-muted' : (${#fields.hasErrors('incomeType')} ? ' is-invalid' : '')">
+                        <option value="">— Select Type —</option>
+                        <option value="TICKET_PAYMENT">Ticket Payment</option>
+                        <option value="MEMBER_DONATION">Member Donation</option>
+                        <option value="ORG_DONATION">Organisation Donation</option>
+                        <option value="SPONSOR">Sponsor Donation</option>
+                        <option value="INVITATION_REG">Invitation Registration</option>
+                        <option value="HALL_HIRE">Hall Hire Income</option>
+                        <option value="MISCELLANEOUS">Miscellaneous Income</option>
+                        <option value="OTHER">Other</option>
+                    </select>
+                    <div class="invalid-feedback" th:if="${!locked}" th:errors="*{incomeType}"></div>
+                </div>
+                <div class="col-md-7">
+                    <label class="form-label">Name / Description <span class="req-star" th:if="${!locked}">*</span></label>
+                    <input type="text" class="form-control" th:field="*{name}"
+                           placeholder="e.g. Paryushana 2025 ticket sales"
+                           th:readonly="${locked}"
+                           th:classappend="${locked} ? ' bg-light text-muted' : (${#fields.hasErrors('name')} ? ' is-invalid' : '')">
+                    <div class="invalid-feedback" th:if="${!locked}" th:errors="*{name}"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payer Details -->
+        <div class="sc">
+            <div class="section-title"><i class="bi bi-person-badge"></i>Received From</div>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Organisation Name</label>
+                    <input type="text" class="form-control" th:field="*{organisationName}"
+                           placeholder="Organisation or company"
+                           th:readonly="${locked}"
+                           th:classappend="${locked} ? ' bg-light text-muted'">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Received From (Person)</label>
+                    <input type="text" class="form-control" th:field="*{receivedFrom}"
+                           placeholder="Donor / payer name"
+                           th:readonly="${locked}"
+                           th:classappend="${locked} ? ' bg-light text-muted'">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Sort Code</label>
+                    <input type="text" class="form-control" th:field="*{sortCode}" placeholder="12-34-56"
+                           th:readonly="${locked}"
+                           th:classappend="${locked} ? ' bg-light text-muted'">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Account Number</label>
+                    <input type="text" class="form-control" th:field="*{accountNumber}" placeholder="12345678"
+                           th:readonly="${locked}"
+                           th:classappend="${locked} ? ' bg-light text-muted'">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Receipt Date <span class="req-star" th:if="${!locked}">*</span></label>
+                    <input type="date" class="form-control" th:field="*{receiptDate}"
+                           th:readonly="${locked}"
+                           th:classappend="${locked} ? ' bg-light text-muted' : (${#fields.hasErrors('receiptDate')} ? ' is-invalid' : '')">
+                    <div class="invalid-feedback" th:if="${!locked}" th:errors="*{receiptDate}"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Amount -->
+        <div class="sc">
+            <div class="section-title"><i class="bi bi-currency-pound"></i>Amount</div>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Total Amount (£)</label>
+                    <div class="input-group">
+                        <span class="input-group-text" style="border-radius:9px 0 0 9px;border:1.5px solid #e5e7eb;border-right:0;background:#f0fdf4;color:#059669;font-weight:700;">£</span>
+                        <input type="number" class="form-control" th:field="*{totalAmount}" id="totalAmtInput"
+                               min="0" step="0.01" placeholder="0.00" oninput="calcBalance()"
+                               th:readonly="${locked}"
+                               th:classappend="${locked} ? ' bg-light text-muted'"
+                               style="border-radius:0 9px 9px 0;font-family:monospace;">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Amount Received (£)</label>
+                    <div class="input-group">
+                        <span class="input-group-text" style="border-radius:9px 0 0 9px;border:1.5px solid #e5e7eb;border-right:0;background:#dcfce7;color:#166534;font-weight:700;">£</span>
+                        <input type="number" class="form-control" th:field="*{receivedAmount}" id="receivedInput"
+                               min="0" step="0.01" placeholder="0.00" oninput="calcBalance()"
+                               th:readonly="${locked}"
+                               th:classappend="${locked} ? ' bg-light text-muted'"
+                               style="border-radius:0 9px 9px 0;font-family:monospace;">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Balance Outstanding (£)</label>
+                    <div id="balanceDisplay" style="border-radius:9px;border:1.5px solid #fecaca;background:#fef2f2;padding:9px 13px;font-family:monospace;font-weight:800;color:#991b1b;min-height:42px;">£0.00</div>
+                </div>
+                <!-- Edit-mode summary -->
+                <div th:if="${item.id != null}" class="col-12">
+                    <div class="row g-2">
+                        <div class="col-4">
+                            <div class="fin-tile" style="background:#f0fdf4;border:1.5px solid #bbf7d0;">
+                                <div style="font-size:.63rem;font-weight:700;text-transform:uppercase;color:#059669;">Total Received</div>
+                                <div style="font-family:monospace;font-weight:800;color:#166534;" th:text="${totalReceived != null ? '£' + #numbers.formatDecimal(totalReceived,1,2) : '£0.00'}"></div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="fin-tile" style="background:#fef2f2;border:1.5px solid #fecaca;">
+                                <div style="font-size:.63rem;font-weight:700;text-transform:uppercase;color:#dc2626;">Outstanding</div>
+                                <div style="font-family:monospace;font-weight:800;color:#991b1b;" th:text="${balance != null ? '£' + #numbers.formatDecimal(balance,1,2) : '—'}"></div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="fin-tile" style="background:#f0fdf4;border:1.5px solid #bbf7d0;">
+                                <div style="font-size:.63rem;font-weight:700;text-transform:uppercase;color:#059669;">Status</div>
+                                <div style="font-size:.82rem;font-weight:800;margin-top:2px;" th:text="${item.status}"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="mb-4">
+            <label class="form-label">Notes</label>
+            <textarea class="form-control" th:field="*{notes}" rows="2"
+                      placeholder="Reference, cheque no., any notes…"
+                      th:readonly="${locked}"
+                      th:classappend="${locked} ? ' bg-light text-muted'"
+                      style="border-radius:9px;resize:none;"></textarea>
+        </div>
+
+        <div class="d-flex gap-2 mb-4">
+            <button th:if="${!locked}" type="submit" class="btn btn-primary px-5"
+                    style="border-radius:10px;background:linear-gradient(135deg,#059669,#10b981);border:0;box-shadow:0 4px 12px rgba(5,150,105,.3);">
+                <i class="bi bi-check-lg me-1"></i>Save
+            </button>
+            <a th:href="@{/receivable}" class="btn btn-outline-secondary px-4" style="border-radius:10px;">Cancel</a>
+        </div>
+
+    </form>
+
+    <!-- Partial Receipts (edit only) -->
+    <div th:if="${item.id != null}" class="mt-2" style="border:1.5px solid #bbf7d0;border-radius:14px;padding:22px 24px;background:#f9fffe;">
+        <div style="font-size:.7rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#059669;margin-bottom:16px;display:flex;align-items:center;gap:8px;">
+            <i class="bi bi-arrow-down-circle-fill fs-6"></i>Receipts
+        </div>
+
+        <div th:if="${instalments != null and not #lists.isEmpty(instalments)}" class="mb-3">
+            <table class="table table-sm mb-0" style="font-size:.8rem;border-radius:8px;overflow:hidden;">
+                <thead style="background:#dcfce7;">
+                    <tr>
+                        <th style="font-size:.68rem;font-weight:700;text-transform:uppercase;color:#059669;padding:8px 12px;">#</th>
+                        <th style="font-size:.68rem;font-weight:700;text-transform:uppercase;color:#059669;padding:8px 12px;">Date</th>
+                        <th style="font-size:.68rem;font-weight:700;text-transform:uppercase;color:#059669;padding:8px 12px;">Mode</th>
+                        <th style="font-size:.68rem;font-weight:700;text-transform:uppercase;color:#059669;padding:8px 12px;">Notes</th>
+                        <th style="font-size:.68rem;font-weight:700;text-transform:uppercase;color:#059669;padding:8px 12px;text-align:right;">Amount</th>
+                        <th style="padding:8px 12px;"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="ins, s : ${instalments}" style="border-color:#bbf7d0;">
+                        <td style="padding:8px 12px;color:#64748b;" th:text="${s.count}"></td>
+                        <td style="padding:8px 12px;font-weight:600;color:#1e1b4b;" th:text="${#temporals.format(ins.paymentDate,'dd MMM yyyy')}"></td>
+                        <td style="padding:8px 12px;"><span style="background:#f1f5f9;border-radius:6px;padding:2px 9px;font-size:.72rem;font-weight:600;" th:text="${ins.paymentMode}"></span></td>
+                        <td style="padding:8px 12px;color:#64748b;" th:text="${ins.notes != null ? ins.notes : '—'}"></td>
+                        <td style="padding:8px 12px;text-align:right;font-family:monospace;font-weight:700;color:#166534;" th:text="${'£' + #numbers.formatDecimal(ins.amount,1,2)}"></td>
+                        <td style="padding:8px 12px;">
+                            <form th:action="@{/receivable/instalments/{id}/delete(id=${ins.id})}" method="post" class="d-inline"
+                                  onsubmit="return confirm('Remove this receipt?')">
+                                <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-1" style="border-radius:6px;"><i class="bi bi-trash-fill"></i></button>
+                            </form>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div th:unless="${instalments != null and not #lists.isEmpty(instalments)}"
+             class="text-center text-muted py-2 mb-3" style="font-size:.78rem;">
+            <i class="bi bi-clock-history me-1"></i>No partial receipts recorded yet
+        </div>
+
+        <!-- Record Receipt -->
+        <div style="background:#dcfce7;border-radius:10px;border:1.5px solid #86efac;padding:18px 22px;">
+            <div style="font-size:.7rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#166534;margin-bottom:14px;">
+                <i class="bi bi-plus-circle-fill me-1"></i>Record Receipt
+            </div>
+            <form th:action="@{/receivable/{id}/receive(id=${item.id})}" method="post">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label" style="font-size:.8rem;font-weight:600;color:#374151;">Amount (£) <span style="color:#ef4444;">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text" style="background:#bbf7d0;border:1.5px solid #86efac;border-right:0;color:#166534;font-weight:700;border-radius:9px 0 0 9px;">£</span>
+                            <input type="number" name="amount" class="form-control" min="0.01" step="0.01" placeholder="0.00" required
+                                   style="border:1.5px solid #86efac;border-left:0;border-radius:0 9px 9px 0;font-family:monospace;">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" style="font-size:.8rem;font-weight:600;color:#374151;">Receipt Date <span style="color:#ef4444;">*</span></label>
+                        <input type="date" name="paymentDate" class="form-control" required
+                               style="border:1.5px solid #86efac;border-radius:9px;">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" style="font-size:.8rem;font-weight:600;color:#374151;">Mode <span style="color:#ef4444;">*</span></label>
+                        <select name="paymentMode" class="form-select" required style="border:1.5px solid #86efac;border-radius:9px;">
+                            <option value="">— Select —</option>
+                            <option value="Cash">Cash</option>
+                            <option value="Bank Transfer">Bank Transfer</option>
+                            <option value="Cheque">Cheque</option>
+                            <option value="Online">Online</option>
+                            <option value="Card">Card</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" style="font-size:.8rem;font-weight:600;color:#374151;">Notes</label>
+                        <input type="text" name="notes" class="form-control" placeholder="Ref, cheque no…"
+                               style="border:1.5px solid #86efac;border-radius:9px;">
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <button type="submit" class="btn px-5"
+                            style="border-radius:9px;font-weight:600;background:#059669;color:#fff;border:0;box-shadow:0 3px 10px rgba(5,150,105,.25);">
+                        <i class="bi bi-arrow-down-circle me-1"></i>Record Receipt
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    </div>
+</div>
+</div>
+</div>
+
+<th:block layout:fragment="page-scripts">
+<script>
+function calcBalance() {
+    var total    = parseFloat(document.getElementById('totalAmtInput').value)  || 0;
+    var received = parseFloat(document.getElementById('receivedInput').value)  || 0;
+    var bal = total - received;
+    var el = document.getElementById('balanceDisplay');
+    el.textContent = '£' + Math.abs(bal).toFixed(2) + (bal < 0 ? ' (over)' : '');
+    el.style.color       = bal <= 0 ? '#64748b' : '#991b1b';
+    el.style.borderColor = bal <= 0 ? '#e5e7eb' : '#fecaca';
+    el.style.background  = bal <= 0 ? '#f8fafc' : '#fef2f2';
+}
+window.addEventListener('load', calcBalance);
+</script>
+</th:block>
+</body>
+</html>

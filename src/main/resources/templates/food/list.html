@@ -20,7 +20,7 @@
 .fs-REJECTED{background:#fee2e2;color:#991b1b;}
 .fs-ACCEPTED{background:#dcfce7;color:#166534;}
 .st-tag{display:inline-flex;align-items:center;border-radius:20px;padding:2px 10px;font-size:.7rem;font-weight:700;}
-.star-row{color:#f59e0b;font-size:.75rem;letter-spacing:1px;}
+.grp-row td{background:linear-gradient(90deg,#eef2ff,#f5f3ff);border-bottom:2px solid #c7d2fe;padding:8px 14px;}
 .fp{border-radius:20px;padding:5px 14px;font-size:.78rem;font-weight:600;border:1.5px solid #e5e7eb;background:#fff;color:#475569;cursor:pointer;transition:all .15s;}
 .fp:hover{border-color:#6366f1;color:#6366f1;}
 .fp.fa{background:#1e1b4b;border-color:#1e1b4b;color:#fff;}
@@ -29,23 +29,26 @@
 .sw{position:relative;}.sw i{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:.8rem;}
 .sb{border-radius:20px;border:1.5px solid #e5e7eb;padding:6px 14px 6px 32px;font-size:.84rem;width:220px;}
 .sb:focus{border-color:#6366f1;box-shadow:0 0 0 3px rgba(99,102,241,.1);outline:none;}
+.amt{font-family:monospace;font-weight:700;}
 </style>
 
 <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
     <div>
         <h5 class="fw-bold mb-0" style="color:#1e1b4b;">Food Registration</h5>
-        <p class="text-muted mb-0" style="font-size:.78rem;">Manage food vendor registrations, tasting reviews and payments</p>
+        <p class="text-muted mb-0" style="font-size:.78rem;">Payments grouped by Vendor — each row is an individual payment</p>
     </div>
     <a th:href="@{/food-registrations/new}" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>Add Registration</a>
 </div>
 
 <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
     <div class="d-flex gap-2 flex-wrap">
-        <span class="fp fa" onclick="fdfilter('all',this)">All <span class="ms-1 badge rounded-pill text-bg-dark" style="font-size:.65rem;" th:text="${#lists.size(items)}"></span></span>
+        <span class="fp fa" onclick="fdfilter('all',this)">All <span class="ms-1 badge rounded-pill text-bg-dark" style="font-size:.65rem;" th:text="${#lists.size(rows)}"></span></span>
         <span class="fp fp-ip"   onclick="fdfilter('InProgress',this)"><i class="bi bi-circle-fill me-1" style="font-size:.45rem;color:#d97706;"></i>In Progress</span>
         <span class="fp fp-done" onclick="fdfilter('Completed',this)"><i class="bi bi-circle-fill me-1" style="font-size:.45rem;color:#059669;"></i>Completed</span>
     </div>
-    <div class="sw"><i class="bi bi-search"></i><input type="text" class="sb form-control" id="fdSearch" placeholder="Search vendor…" oninput="fdsearch(this.value)"></div>
+    <div class="sw"><i class="bi bi-search"></i>
+        <input type="text" class="sb form-control" id="fdSearch" placeholder="Search vendor…" oninput="fdsearch(this.value)">
+    </div>
 </div>
 
 <div class="card border-0 shadow-sm" style="border-radius:14px;overflow:hidden;">
@@ -55,42 +58,87 @@
                 <th style="width:36px;">#</th>
                 <th>Vendor</th>
                 <th>Head Count</th>
-                <th>Final Price/Plate</th>
+                <th>Final £/Plate</th>
                 <th>Full Amount</th>
-                <th>Overall Rating</th>
+                <th>Rating</th>
+                <th>Payment Date</th>
+                <th>Mode</th>
+                <th class="text-end">Paid</th>
+                <th class="text-end">Remaining</th>
                 <th>Food Status</th>
                 <th>Payment</th>
+                <th>Notes</th>
                 <th class="text-end" style="padding-right:16px;">Actions</th>
             </tr></thead>
             <tbody>
-                <tr th:each="item, stat : ${items}"
-                    th:class="'fd-row ps-' + ${item.paymentStatus}"
-                    th:attr="data-s=${item.paymentStatus}, data-q=${item.vendorName.toLowerCase()}">
-                    <td class="text-muted fw-medium" th:text="${stat.count}"></td>
-                    <td>
-                        <div class="fw-semibold" style="color:#1e1b4b;" th:text="${item.vendorName}"></div>
-                        <div th:if="${item.postcode != null}" style="font-size:.72rem;color:#94a3b8;"><i class="bi bi-geo-alt me-1"></i><span th:text="${item.postcode}"></span></div>
-                    </td>
-                    <td th:text="${item.totalExpectedHeadCount != null ? item.totalExpectedHeadCount : '—'}"></td>
-                    <td style="font-family:monospace;" th:text="${item.finalPricePerPlate != null ? '£' + #numbers.formatDecimal(item.finalPricePerPlate,1,2) : '—'}"></td>
-                    <td style="font-family:monospace;font-weight:700;color:#1e1b4b;" th:text="${item.fullAmount != null ? '£' + #numbers.formatDecimal(item.fullAmount,1,2) : '—'}"></td>
-                    <td>
-                        <span th:if="${item.overallFoodRating != null}" class="fw-bold" style="color:#f59e0b;">
-                            ★ <span th:text="${item.overallFoodRating}"></span>/5
-                        </span>
-                        <span th:unless="${item.overallFoodRating != null}" class="text-muted">—</span>
-                    </td>
-                    <td><span th:class="'st-tag fs-' + ${item.foodSelectionStatus}" th:text="${item.foodSelectionStatus}"></span></td>
-                    <td><span th:class="'st-tag ps-' + ${item.paymentStatus}" th:text="${item.paymentStatus}"></span></td>
-                    <td class="text-end" style="padding-right:16px;white-space:nowrap;">
-                        <a th:href="@{/food-registrations/{id}/edit(id=${item.id})}" class="btn btn-sm btn-outline-warning me-1"><i class="bi bi-pencil-fill"></i></a>
-                        <form th:action="@{/food-registrations/{id}/delete(id=${item.id})}" method="post" class="d-inline" onsubmit="return confirm('Delete this registration?')">
-                            <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash-fill"></i></button>
-                        </form>
+                <th:block th:each="row, stat : ${rows}">
+
+                    <!-- Event group header -->
+                    <tr th:if="${groupStarts.contains(stat.index)}" class="grp-row"
+                        th:attr="data-grp=${row.eventName}">
+                        <td colspan="14">
+                            <div class="d-flex align-items-center gap-2">
+                                <span style="width:26px;height:26px;border-radius:7px;background:#4f46e5;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                    <i class="bi bi-calendar-event-fill text-white" style="font-size:.65rem;"></i>
+                                </span>
+                                <span style="font-weight:700;font-size:.82rem;color:#3730a3;" th:text="${row.eventName}"></span>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Payment row -->
+                    <tr th:class="'fd-row ps-' + ${row.paymentStatus}"
+                        th:attr="data-s=${row.paymentStatus},
+                                 data-grp=${row.eventName},
+                                 data-q=${(row.vendorName + ' ' + row.eventName + ' ' + (row.postcode != null ? row.postcode : '')).toLowerCase()}">
+                        <td class="text-muted fw-medium" th:text="${stat.count}"></td>
+                        <td>
+                            <div class="fw-semibold" style="color:#1e1b4b;" th:text="${row.vendorName}"></div>
+                            <div th:if="${row.postcode != null}" style="font-size:.72rem;color:#94a3b8;">
+                                <i class="bi bi-geo-alt me-1"></i><span th:text="${row.postcode}"></span>
+                            </div>
+                        </td>
+                        <td th:text="${row.headCount != null ? row.headCount : '—'}"></td>
+                        <td class="amt" style="color:#64748b;"
+                            th:text="${row.finalPricePerPlate != null ? '£' + #numbers.formatDecimal(row.finalPricePerPlate,1,2) : '—'}"></td>
+                        <td class="amt" style="color:#1e1b4b;"
+                            th:text="${row.fullAmount != null ? '£' + #numbers.formatDecimal(row.fullAmount,1,2) : '—'}"></td>
+                        <td>
+                            <span th:if="${row.overallRating != null}" class="fw-bold" style="color:#f59e0b;">
+                                ★ <span th:text="${row.overallRating}"></span>/5
+                            </span>
+                            <span th:unless="${row.overallRating != null}" class="text-muted">—</span>
+                        </td>
+                        <td style="font-size:.8rem;font-weight:600;color:#374151;"
+                            th:text="${row.paymentDate != null ? #temporals.format(row.paymentDate,'dd MMM yyyy') : '—'}"></td>
+                        <td>
+                            <span th:if="${row.paymentMode != null and row.paymentMode != '—'}"
+                                  class="badge bg-light text-dark border" th:text="${row.paymentMode}"></span>
+                            <span th:unless="${row.paymentMode != null and row.paymentMode != '—'}" class="text-muted">—</span>
+                        </td>
+                        <td class="text-end amt" style="color:#059669;"
+                            th:text="${row.amountPaid != null ? '£' + #numbers.formatDecimal(row.amountPaid,1,2) : '—'}"></td>
+                        <td class="text-end amt"
+                            th:style="${row.remaining != null and row.remaining.compareTo(T(java.math.BigDecimal).ZERO) > 0} ? 'color:#dc2626;' : 'color:#94a3b8;'"
+                            th:text="${row.remaining != null ? '£' + #numbers.formatDecimal(row.remaining,1,2) : '—'}"></td>
+                        <td><span th:class="'st-tag fs-' + ${row.foodSelectionStatus}" th:text="${row.foodSelectionStatus}"></span></td>
+                        <td><span th:class="'st-tag ps-' + ${row.paymentStatus}" th:text="${row.paymentStatus}"></span></td>
+                        <td style="font-size:.75rem;color:#64748b;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"
+                            th:text="${row.notes != null ? row.notes : '—'}"></td>
+                        <td class="text-end" style="padding-right:16px;white-space:nowrap;">
+                            <a th:href="@{/food-registrations/{id}/edit(id=${row.registrationId})}" class="btn btn-sm btn-outline-warning me-1"><i class="bi bi-pencil-fill"></i></a>
+                        </td>
+                    </tr>
+
+                </th:block>
+
+                <tr id="fdEmpty" style="display:none;"><td colspan="14" class="text-center py-4 text-muted">No records match</td></tr>
+                <tr th:if="${#lists.isEmpty(rows)}">
+                    <td colspan="14" class="text-center py-5">
+                        <i class="bi bi-cup-hot d-block mb-2" style="font-size:2.5rem;color:#c7d2fe;"></i>
+                        <div class="fw-semibold text-muted">No food registrations yet</div>
                     </td>
                 </tr>
-                <tr id="fdEmpty" style="display:none;"><td colspan="9" class="text-center py-4 text-muted">No records match</td></tr>
-                <tr th:if="${#lists.isEmpty(items)}"><td colspan="9" class="text-center py-5"><i class="bi bi-cup-hot d-block mb-2" style="font-size:2.5rem;color:#c7d2fe;"></i><div class="fw-semibold text-muted">No food registrations yet</div></td></tr>
             </tbody>
         </table>
     </div>
@@ -100,6 +148,20 @@
 var fdf='all';
 function fdfilter(s,p){fdf=s;document.querySelectorAll('.fp').forEach(x=>x.classList.remove('fa'));p.classList.add('fa');fddof();}
 function fdsearch(q){fddof(q);}
-function fddof(q){q=(q!==undefined?q:document.getElementById('fdSearch').value).toLowerCase();var rows=document.querySelectorAll('#fdTable tbody tr.fd-row'),v=0;rows.forEach(r=>{var ok=(fdf==='all'||r.dataset.s===fdf)&&(!q||r.dataset.q.includes(q));r.style.display=ok?'':'none';if(ok)v++;});document.getElementById('fdEmpty').style.display=v===0&&rows.length>0?'':'none';}
+function fddof(q){
+    q=(q!==undefined?q:document.getElementById('fdSearch').value).toLowerCase();
+    var rows=document.querySelectorAll('#fdTable tbody tr.fd-row');
+    var visGrp={};
+    var v=0;
+    rows.forEach(function(r){
+        var ok=(fdf==='all'||r.dataset.s===fdf)&&(!q||r.dataset.q.includes(q));
+        r.style.display=ok?'':'none';
+        if(ok){v++;visGrp[r.dataset.grp]=true;}
+    });
+    document.querySelectorAll('#fdTable tbody tr.grp-row').forEach(function(g){
+        g.style.display=visGrp[g.dataset.grp]?'':'none';
+    });
+    document.getElementById('fdEmpty').style.display=v===0&&rows.length>0?'':'none';
+}
 </script></th:block>
 </body></html>

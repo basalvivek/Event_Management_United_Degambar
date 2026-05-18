@@ -2,221 +2,599 @@
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout/base}">
-<head><title>Add / Edit Member</title></head>
+<head><title>Member</title></head>
 <body>
 
 <th:block layout:fragment="page-title"
-          th:text="${item.id == null ? 'Add' : 'Edit'} + ' Member'">Member</th:block>
+          th:text="${item.id == null ? 'Register Member' : 'Edit Member'}">Member</th:block>
 
 <div layout:fragment="content">
-    <!-- ── Profile Picture (edit only) ── -->
-    <div th:if="${item.id != null}" class="mb-4" style="max-width:760px;">
-        <div class="card shadow-sm border-0">
-            <div class="card-header bg-white border-bottom d-flex align-items-center gap-2 py-3">
-                <i class="bi bi-person-circle text-primary fs-5"></i>
-                <span class="fw-semibold">Profile Photo</span>
-            </div>
-            <div class="card-body d-flex align-items-center gap-4 flex-wrap">
+<style>
+/* ── Variables ── */
+:root {
+    --ac: #4f46e5; --ac-light: #818cf8; --ac-bg: #eef2ff;
+    --ac-dark: #3730a3; --ac-mid: #6366f1;
+    --border: #e2e8f0; --text: #1e293b; --muted: #64748b;
+}
 
-                <!-- Current photo -->
-                <div>
+/* ── Layout ── */
+.mb-canvas { max-width: 860px; }
+
+/* ── Profile hero (edit only) ── */
+.hero-card {
+    border: 0; border-radius: 20px;
+    background: linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #7c3aed 100%);
+    box-shadow: 0 8px 32px rgba(79,70,229,0.28);
+    overflow: hidden;
+    position: relative;
+}
+.hero-card::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+.hero-avatar-wrap {
+    position: relative; flex-shrink: 0;
+}
+.hero-avatar {
+    width: 96px; height: 96px; border-radius: 50%;
+    border: 4px solid rgba(255,255,255,0.35);
+    object-fit: cover;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+}
+.hero-avatar-placeholder {
+    width: 96px; height: 96px; border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+    border: 4px solid rgba(255,255,255,0.25);
+    display: flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(4px);
+}
+.hero-upload-btn {
+    position: absolute; bottom: 0; right: 0;
+    width: 28px; height: 28px; border-radius: 50%;
+    background: #fff; border: 2px solid var(--ac);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    transition: transform 0.15s;
+}
+.hero-upload-btn:hover { transform: scale(1.12); }
+.hero-upload-btn i { font-size: 0.72rem; color: var(--ac); }
+
+.hero-name { color: #fff; font-size: 1.3rem; font-weight: 700; line-height: 1.25; }
+.hero-sub  { color: rgba(255,255,255,0.72); font-size: 0.8rem; margin-top: 3px; }
+.hero-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    border-radius: 20px; padding: 4px 12px;
+    font-size: 0.7rem; font-weight: 700;
+    border: 1.5px solid rgba(255,255,255,0.25);
+    backdrop-filter: blur(4px);
+}
+.badge-active   { background: rgba(16,185,129,0.25); color: #6ee7b7; border-color: rgba(16,185,129,0.35); }
+.badge-inactive { background: rgba(148,163,184,0.25); color: #cbd5e1; border-color: rgba(148,163,184,0.35); }
+.badge-suspended{ background: rgba(239,68,68,0.25);  color: #fca5a5; border-color: rgba(239,68,68,0.35); }
+.badge-approved { background: rgba(34,197,94,0.2);   color: #86efac; border-color: rgba(34,197,94,0.3); }
+.badge-pending  { background: rgba(251,191,36,0.2);  color: #fcd34d; border-color: rgba(251,191,36,0.3); }
+.badge-type     { background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.9); }
+
+/* Photo panel (inside hero) */
+.photo-panel {
+    background: rgba(0,0,0,0.18); border-top: 1px solid rgba(255,255,255,0.1);
+    padding: 14px 24px;
+}
+.photo-panel .form-control, .photo-panel .btn {
+    font-size: 0.8rem;
+}
+
+/* ── Section cards ── */
+.sec-card {
+    border: 1.5px solid var(--border); border-radius: 14px;
+    overflow: hidden; margin-bottom: 1rem;
+    box-shadow: 0 1px 8px rgba(0,0,0,0.04);
+}
+.sec-head {
+    background: #f8fafc; border-bottom: 1.5px solid var(--border);
+    padding: 13px 20px;
+    display: flex; align-items: center; gap: 10px;
+}
+.sec-icon {
+    width: 32px; height: 32px; border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.88rem; flex-shrink: 0;
+}
+.sec-icon.purple { background: #eef2ff; color: var(--ac); }
+.sec-icon.teal   { background: #f0fdfa; color: #0d9488; }
+.sec-icon.amber  { background: #fffbeb; color: #d97706; }
+.sec-icon.rose   { background: #fff1f2; color: #e11d48; }
+.sec-icon.slate  { background: #f1f5f9; color: #475569; }
+.sec-title { font-size: 0.82rem; font-weight: 700; color: var(--text); }
+.sec-sub   { font-size: 0.7rem;  color: var(--muted); margin-left: auto; }
+.sec-body  { padding: 20px; }
+
+/* ── Form inputs ── */
+.form-label {
+    font-size: 0.78rem; font-weight: 600;
+    color: #374151; margin-bottom: 5px;
+}
+.req { color: #ef4444; }
+.form-control, .form-select {
+    border-radius: 9px; border: 1.5px solid var(--border);
+    font-size: 0.86rem; padding: 9px 13px;
+    color: var(--text);
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+.form-control:focus, .form-select:focus {
+    border-color: var(--ac); box-shadow: 0 0 0 3px rgba(79,70,229,0.12); outline: none;
+}
+.form-control.is-invalid, .form-select.is-invalid { border-color: #ef4444; }
+.form-control.is-invalid:focus, .form-select.is-invalid:focus {
+    box-shadow: 0 0 0 3px rgba(239,68,68,0.12);
+}
+.input-group-text {
+    border-radius: 9px 0 0 9px; border: 1.5px solid var(--border); border-right: 0;
+    background: #f8fafc; color: var(--muted); font-size: 0.88rem; padding: 9px 13px;
+}
+.input-group .form-control { border-radius: 0 9px 9px 0; border-left: 0; }
+.input-group .form-control:focus { border-left: 0; }
+.input-group-text.is-invalid-companion { border-color: #ef4444; }
+.form-text { font-size: 0.72rem; color: var(--muted); margin-top: 4px; }
+.invalid-feedback { font-size: 0.72rem; }
+
+/* ── New-member banner ── */
+.new-banner {
+    border-radius: 16px;
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    padding: 22px 28px;
+    color: #fff;
+    margin-bottom: 1.25rem;
+    display: flex; align-items: center; gap: 18px;
+    box-shadow: 0 6px 24px rgba(79,70,229,0.28);
+}
+.new-banner-icon {
+    width: 54px; height: 54px; border-radius: 15px;
+    background: rgba(255,255,255,0.18);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem; flex-shrink: 0;
+}
+
+/* ── Action bar ── */
+.action-bar {
+    background: #fff; border: 1.5px solid var(--border);
+    border-radius: 14px; padding: 16px 20px;
+    display: flex; align-items: center; gap: 10px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+}
+.btn-save {
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--ac), var(--ac-mid));
+    border: 0; color: #fff; font-weight: 600;
+    padding: 10px 28px; font-size: 0.86rem;
+    box-shadow: 0 4px 12px rgba(79,70,229,0.3);
+    transition: opacity 0.15s, transform 0.15s;
+}
+.btn-save:hover { opacity: 0.9; transform: translateY(-1px); color: #fff; }
+.btn-cancel {
+    border-radius: 10px; border: 1.5px solid var(--border);
+    background: #fff; color: var(--muted); font-size: 0.86rem;
+    padding: 10px 22px;
+    transition: border-color 0.15s, color 0.15s;
+}
+.btn-cancel:hover { border-color: var(--ac-light); color: var(--ac); }
+
+/* ── QR code tile ── */
+.qr-tile {
+    border: 1.5px solid var(--border); border-radius: 12px;
+    padding: 14px; text-align: center; background: #fafafa;
+}
+.qr-tile img { width: 96px; height: 96px; border-radius: 8px; }
+
+/* ── Preview ring ── */
+#photoPreview { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; border: 3px solid var(--ac); }
+</style>
+
+<!-- ════════════════════════════════════════════
+     EDIT MODE — Profile hero card
+     ════════════════════════════════════════════ -->
+<div th:if="${item.id != null}" class="mb-canvas mb-4">
+    <div class="hero-card card">
+        <div class="card-body p-4">
+            <div class="d-flex align-items-start gap-4 flex-wrap">
+
+                <!-- Avatar -->
+                <div class="hero-avatar-wrap">
                     <img th:if="${item.profilePicture != null}"
                          th:src="@{/members/{id}/photo(id=${item.id})}"
-                         alt="Profile"
-                         style="width:90px;height:90px;object-fit:cover;border-radius:50%;border:3px solid #dee2e6;">
+                         class="hero-avatar" alt="Profile">
                     <div th:unless="${item.profilePicture != null}"
-                         style="width:90px;height:90px;border-radius:50%;border:2px dashed #ced4da;
-                                background:#f8f9fa;display:flex;align-items:center;justify-content:center;">
-                        <i class="bi bi-person-fill text-muted" style="font-size:2.2rem;"></i>
+                         class="hero-avatar-placeholder">
+                        <i class="bi bi-person-fill text-white" style="font-size:2.4rem;opacity:.7;"></i>
+                    </div>
+                    <!-- Camera icon triggers file input -->
+                    <label for="quickPhotoInput" class="hero-upload-btn" title="Change photo">
+                        <i class="bi bi-camera-fill"></i>
+                    </label>
+                </div>
+
+                <!-- Member info -->
+                <div class="flex-grow-1 position-relative" style="z-index:1;">
+                    <div class="hero-name"
+                         th:text="${item.firstName + ' ' + item.lastName}">Member Name</div>
+                    <div class="hero-sub" th:text="${item.email != null ? item.email : 'No email on record'}"></div>
+                    <div class="d-flex flex-wrap gap-2 mt-3">
+                        <!-- Status badge -->
+                        <span th:class="'hero-badge ' + (${item.status == 'Active'} ? 'badge-active' : (${item.status == 'Suspended'} ? 'badge-suspended' : 'badge-inactive'))">
+                            <i class="bi" th:classappend="${item.status == 'Active'} ? 'bi-check-circle-fill' : (${item.status == 'Suspended'} ? 'bi-slash-circle-fill' : 'bi-pause-circle-fill')"
+                               style="font-size:.65rem;"></i>
+                            <span th:text="${item.status}"></span>
+                        </span>
+                        <!-- Membership type -->
+                        <span class="hero-badge badge-type">
+                            <i class="bi bi-award-fill" style="font-size:.65rem;"></i>
+                            <span th:text="${item.membershipType}"></span>
+                        </span>
+                        <!-- Approval status -->
+                        <span th:class="'hero-badge ' + (${item.approvalStatus == 'Approved'} ? 'badge-approved' : 'badge-pending')">
+                            <i class="bi" th:classappend="${item.approvalStatus == 'Approved'} ? 'bi-patch-check-fill' : 'bi-hourglass-split'"
+                               style="font-size:.65rem;"></i>
+                            <span th:text="${item.approvalStatus}"></span>
+                        </span>
+                        <!-- QR code -->
+                        <span th:if="${item.qrCode != null}" class="hero-badge badge-type">
+                            <i class="bi bi-qr-code" style="font-size:.65rem;"></i> QR Ready
+                        </span>
                     </div>
                 </div>
 
-                <div class="flex-grow-1">
-                    <!-- Upload form -->
-                    <form th:action="@{/members/{id}/photo(id=${item.id})}"
-                          method="post" enctype="multipart/form-data"
-                          class="d-flex align-items-center gap-2 flex-wrap mb-2">
-                        <input type="file" class="form-control form-control-sm" name="photoFile"
-                               accept="image/*" style="max-width:260px;"
-                               onchange="previewPhoto(this)">
-                        <button type="submit" class="btn btn-outline-primary btn-sm px-3">
-                            <i class="bi bi-upload me-1"></i>
-                            <span th:text="${item.profilePicture != null ? 'Replace' : 'Upload'}">Upload</span>
-                        </button>
-                    </form>
-                    <div class="form-text">JPG, PNG, WEBP &nbsp;·&nbsp; Max 2 MB</div>
-
-                    <!-- Remove button -->
-                    <form th:if="${item.profilePicture != null}"
-                          th:action="@{/members/{id}/photo/delete(id=${item.id})}"
-                          method="post" class="d-inline mt-1"
-                          data-confirm='Remove profile photo?'>
-                        <button type="submit" class="btn btn-outline-danger btn-sm">
-                            <i class="bi bi-trash me-1"></i>Remove Photo
-                        </button>
-                    </form>
-                </div>
-
-                <!-- Inline preview -->
-                <div id="photoPreviewWrap" style="display:none;">
-                    <img id="photoPreview" alt="Preview"
-                         style="width:90px;height:90px;object-fit:cover;border-radius:50%;border:3px solid #0d6efd;">
+                <!-- QR code tile (right side) -->
+                <div th:if="${item.qrCode != null}" class="d-none d-md-block" style="z-index:1;">
+                    <div style="background:rgba(255,255,255,0.15);border-radius:12px;padding:10px;text-align:center;backdrop-filter:blur(4px);">
+                        <img th:src="@{/members/{id}/qr(id=${item.id})}"
+                             style="width:72px;height:72px;border-radius:8px;background:#fff;"
+                             alt="QR Code">
+                        <div style="color:rgba(255,255,255,0.65);font-size:.6rem;margin-top:5px;font-weight:600;letter-spacing:.5px;">MEMBER QR</div>
+                    </div>
                 </div>
 
             </div>
         </div>
-    </div>
 
-    <div class="card shadow-sm border-0" style="max-width:760px;">
-        <div class="card-header bg-white border-bottom fw-semibold"
-             th:text="${item.id == null ? 'Register New Member' : 'Edit Member'}"></div>
-        <div class="card-body">
-            <form th:action="${item.id == null ? '/members' : '/members/' + item.id}"
-                  th:object="${item}" method="post">
-
-                <div class="row g-3">
-
-                    <div class="col-md-6">
-                        <label class="form-label fw-medium">First Name <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" th:field="*{firstName}"
-                               th:classappend="${#fields.hasErrors('firstName')} ? ' is-invalid'">
-                        <div class="invalid-feedback" th:errors="*{firstName}"></div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label fw-medium">Last Name <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" th:field="*{lastName}"
-                               th:classappend="${#fields.hasErrors('lastName')} ? ' is-invalid'">
-                        <div class="invalid-feedback" th:errors="*{lastName}"></div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label fw-medium">Phone <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" th:field="*{phone}"
-                               th:classappend="${#fields.hasErrors('phone')} ? ' is-invalid'">
-                        <div class="invalid-feedback" th:errors="*{phone}"></div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label fw-medium">Email</label>
-                        <input type="email" class="form-control" th:field="*{email}"
-                               th:classappend="${#fields.hasErrors('email')} ? ' is-invalid'">
-                        <div class="invalid-feedback" th:errors="*{email}"></div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label fw-medium">Date of Birth</label>
-                        <input type="date" class="form-control" th:field="*{dateOfBirth}"
-                               th:classappend="${#fields.hasErrors('dateOfBirth')} ? ' is-invalid'">
-                        <div class="invalid-feedback" th:errors="*{dateOfBirth}"></div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label fw-medium">Wedding Anniversary</label>
-                        <input type="date" class="form-control" th:field="*{anniversaryDate}"
-                               th:classappend="${#fields.hasErrors('anniversaryDate')} ? ' is-invalid'">
-                        <div class="invalid-feedback" th:errors="*{anniversaryDate}"></div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label fw-medium">Gender <span class="text-danger">*</span></label>
-                        <select class="form-select" th:field="*{gender}"
-                                th:classappend="${#fields.hasErrors('gender')} ? ' is-invalid'">
-                            <option value="">-- Select --</option>
-                            <option value="Male">Male</option>
-                            <option value="Female">Female</option>
-                            <option value="Other">Other</option>
-                        </select>
-                        <div class="invalid-feedback" th:errors="*{gender}"></div>
-                    </div>
-
-                    <div class="col-12">
-                        <label class="form-label fw-medium">Address <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" th:field="*{address}"
-                               th:classappend="${#fields.hasErrors('address')} ? ' is-invalid'">
-                        <div class="invalid-feedback" th:errors="*{address}"></div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label fw-medium">City <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" th:field="*{city}"
-                               th:classappend="${#fields.hasErrors('city')} ? ' is-invalid'">
-                        <div class="invalid-feedback" th:errors="*{city}"></div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label fw-medium">State <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" th:field="*{state}"
-                               th:classappend="${#fields.hasErrors('state')} ? ' is-invalid'">
-                        <div class="invalid-feedback" th:errors="*{state}"></div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label fw-medium">Membership Type <span class="text-danger">*</span></label>
-                        <select class="form-select" th:field="*{membershipType}"
-                                th:classappend="${#fields.hasErrors('membershipType')} ? ' is-invalid'">
-                            <option value="">-- Select --</option>
-                            <option value="General">General</option>
-                            <option value="Life">Life</option>
-                            <option value="Honorary">Honorary</option>
-                            <option value="Student">Student</option>
-                        </select>
-                        <div class="invalid-feedback" th:errors="*{membershipType}"></div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label fw-medium">Membership Date <span class="text-danger">*</span></label>
-                        <input type="date" class="form-control" th:field="*{membershipDate}"
-                               th:classappend="${#fields.hasErrors('membershipDate')} ? ' is-invalid'">
-                        <div class="invalid-feedback" th:errors="*{membershipDate}"></div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label fw-medium">Occupation</label>
-                        <input type="text" class="form-control" th:field="*{occupation}"
-                               th:classappend="${#fields.hasErrors('occupation')} ? ' is-invalid'">
-                        <div class="invalid-feedback" th:errors="*{occupation}"></div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label fw-medium">Status <span class="text-danger">*</span></label>
-                        <select class="form-select" th:field="*{status}"
-                                th:classappend="${#fields.hasErrors('status')} ? ' is-invalid'">
-                            <option value="">-- Select --</option>
-                            <option value="Active">Active</option>
-                            <option value="Inactive">Inactive</option>
-                            <option value="Suspended">Suspended</option>
-                        </select>
-                        <div class="invalid-feedback" th:errors="*{status}"></div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label fw-medium">Portal Password</label>
-                        <input type="text" class="form-control" th:field="*{password}"
-                               placeholder="Set member portal login password">
-                        <div class="form-text">Used for member portal login. Leave blank if not required.</div>
-                    </div>
-
-                    <div class="col-12">
-                        <label class="form-label fw-medium">Notes</label>
-                        <textarea class="form-control" th:field="*{notes}" rows="2"
-                                  th:classappend="${#fields.hasErrors('notes')} ? ' is-invalid'"></textarea>
-                        <div class="invalid-feedback" th:errors="*{notes}"></div>
-                    </div>
-
-                </div>
-
-                <div class="d-flex gap-2 mt-4">
-                    <button type="submit" class="btn btn-primary px-4">
-                        <i class="bi bi-check-lg me-1"></i>Save
+        <!-- Photo management strip -->
+        <div class="photo-panel">
+            <div class="d-flex align-items-center gap-3 flex-wrap">
+                <i class="bi bi-image text-white-50" style="font-size:1rem;"></i>
+                <form th:action="@{/members/{id}/photo(id=${item.id})}"
+                      method="post" enctype="multipart/form-data"
+                      class="d-flex align-items-center gap-2 flex-wrap flex-grow-1">
+                    <input type="file" class="form-control form-control-sm"
+                           name="photoFile" id="quickPhotoInput"
+                           accept="image/*" style="max-width:240px;background:rgba(255,255,255,0.12);border-color:rgba(255,255,255,0.2);color:#fff;"
+                           onchange="previewPhoto(this)">
+                    <button type="submit"
+                            class="btn btn-sm btn-light px-3"
+                            style="border-radius:8px;font-size:.78rem;font-weight:600;">
+                        <i class="bi bi-upload me-1"></i>
+                        <span th:text="${item.profilePicture != null ? 'Replace Photo' : 'Upload Photo'}">Upload</span>
                     </button>
-                    <a th:href="@{/members}" class="btn btn-outline-secondary px-4">Cancel</a>
-                </div>
-
-            </form>
+                    <span id="photoPreviewWrap" style="display:none;">
+                        <img id="photoPreview" alt="Preview">
+                    </span>
+                </form>
+                <form th:if="${item.profilePicture != null}"
+                      th:action="@{/members/{id}/photo/delete(id=${item.id})}"
+                      method="post" class="m-0"
+                      data-confirm="Remove profile photo?">
+                    <button type="submit"
+                            class="btn btn-sm btn-outline-light px-3"
+                            style="border-radius:8px;font-size:.78rem;">
+                        <i class="bi bi-trash me-1"></i>Remove
+                    </button>
+                </form>
+                <span class="ms-auto" style="color:rgba(255,255,255,0.45);font-size:.68rem;">JPG · PNG · WEBP &nbsp;·&nbsp; Max 2 MB</span>
+            </div>
         </div>
     </div>
 </div>
+
+<!-- ════════════════════════════════════════════
+     NEW MODE — Simple banner
+     ════════════════════════════════════════════ -->
+<div th:unless="${item.id != null}" class="mb-canvas mb-4">
+    <div class="new-banner">
+        <div class="new-banner-icon">
+            <i class="bi bi-person-plus-fill"></i>
+        </div>
+        <div>
+            <div style="font-weight:700;font-size:1.05rem;">Register New Member</div>
+            <div style="color:rgba(255,255,255,0.72);font-size:.78rem;margin-top:2px;">
+                Fill in the details below. Fields marked <span style="color:#fbbf24;">*</span> are required.
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     MAIN FORM
+     ════════════════════════════════════════════ -->
+<div class="mb-canvas">
+<form th:action="${item.id == null ? '/members' : '/members/' + item.id}"
+      th:object="${item}" method="post">
+
+    <!-- ── Section 1: Personal Information ── -->
+    <div class="sec-card">
+        <div class="sec-head">
+            <div class="sec-icon purple"><i class="bi bi-person-fill"></i></div>
+            <div>
+                <div class="sec-title">Personal Information</div>
+            </div>
+            <span class="sec-sub">Identity &amp; demographics</span>
+        </div>
+        <div class="sec-body">
+            <div class="row g-3">
+
+                <div class="col-md-6">
+                    <label class="form-label">First Name <span class="req">*</span></label>
+                    <input type="text" class="form-control" th:field="*{firstName}"
+                           placeholder="Enter first name"
+                           th:classappend="${#fields.hasErrors('firstName')} ? ' is-invalid'">
+                    <div class="invalid-feedback" th:errors="*{firstName}"></div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Last Name <span class="req">*</span></label>
+                    <input type="text" class="form-control" th:field="*{lastName}"
+                           placeholder="Enter last name"
+                           th:classappend="${#fields.hasErrors('lastName')} ? ' is-invalid'">
+                    <div class="invalid-feedback" th:errors="*{lastName}"></div>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">Date of Birth</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-cake2"></i></span>
+                        <input type="date" class="form-control" th:field="*{dateOfBirth}"
+                               th:classappend="${#fields.hasErrors('dateOfBirth')} ? ' is-invalid'">
+                    </div>
+                    <div class="invalid-feedback" th:errors="*{dateOfBirth}"></div>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">Wedding Anniversary</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-heart-fill" style="color:#e11d48;font-size:.8rem;"></i></span>
+                        <input type="date" class="form-control" th:field="*{anniversaryDate}"
+                               th:classappend="${#fields.hasErrors('anniversaryDate')} ? ' is-invalid'">
+                    </div>
+                    <div class="invalid-feedback" th:errors="*{anniversaryDate}"></div>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">Gender <span class="req">*</span></label>
+                    <select class="form-select" th:field="*{gender}"
+                            th:classappend="${#fields.hasErrors('gender')} ? ' is-invalid'">
+                        <option value="">— Select —</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <div class="invalid-feedback" th:errors="*{gender}"></div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Occupation</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-briefcase"></i></span>
+                        <input type="text" class="form-control" th:field="*{occupation}"
+                               placeholder="e.g. Doctor, Engineer, Business"
+                               th:classappend="${#fields.hasErrors('occupation')} ? ' is-invalid'">
+                    </div>
+                    <div class="invalid-feedback" th:errors="*{occupation}"></div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Section 2: Contact Information ── -->
+    <div class="sec-card">
+        <div class="sec-head">
+            <div class="sec-icon teal"><i class="bi bi-telephone-fill"></i></div>
+            <div>
+                <div class="sec-title">Contact Information</div>
+            </div>
+            <span class="sec-sub">Phone, email &amp; address</span>
+        </div>
+        <div class="sec-body">
+            <div class="row g-3">
+
+                <div class="col-md-6">
+                    <label class="form-label">Phone <span class="req">*</span></label>
+                    <div class="input-group">
+                        <span class="input-group-text"
+                              th:classappend="${#fields.hasErrors('phone')} ? ' is-invalid-companion'">
+                            <i class="bi bi-phone"></i>
+                        </span>
+                        <input type="text" class="form-control" th:field="*{phone}"
+                               placeholder="+44 7700 000000"
+                               th:classappend="${#fields.hasErrors('phone')} ? ' is-invalid'">
+                    </div>
+                    <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('phone')}"
+                         th:errors="*{phone}"></div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Email</label>
+                    <div class="input-group">
+                        <span class="input-group-text"
+                              th:classappend="${#fields.hasErrors('email')} ? ' is-invalid-companion'">
+                            <i class="bi bi-envelope"></i>
+                        </span>
+                        <input type="email" class="form-control" th:field="*{email}"
+                               placeholder="member@example.com"
+                               th:classappend="${#fields.hasErrors('email')} ? ' is-invalid'">
+                    </div>
+                    <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('email')}"
+                         th:errors="*{email}"></div>
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label">Address <span class="req">*</span></label>
+                    <div class="input-group">
+                        <span class="input-group-text"
+                              th:classappend="${#fields.hasErrors('address')} ? ' is-invalid-companion'">
+                            <i class="bi bi-geo-alt"></i>
+                        </span>
+                        <input type="text" class="form-control" th:field="*{address}"
+                               placeholder="House number, street name…"
+                               th:classappend="${#fields.hasErrors('address')} ? ' is-invalid'">
+                    </div>
+                    <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('address')}"
+                         th:errors="*{address}"></div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">City <span class="req">*</span></label>
+                    <input type="text" class="form-control" th:field="*{city}"
+                           placeholder="e.g. Leicester"
+                           th:classappend="${#fields.hasErrors('city')} ? ' is-invalid'">
+                    <div class="invalid-feedback" th:errors="*{city}"></div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">County / State <span class="req">*</span></label>
+                    <input type="text" class="form-control" th:field="*{state}"
+                           placeholder="e.g. Leicestershire"
+                           th:classappend="${#fields.hasErrors('state')} ? ' is-invalid'">
+                    <div class="invalid-feedback" th:errors="*{state}"></div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Section 3: Membership Details ── -->
+    <div class="sec-card">
+        <div class="sec-head">
+            <div class="sec-icon amber"><i class="bi bi-award-fill"></i></div>
+            <div>
+                <div class="sec-title">Membership Details</div>
+            </div>
+            <span class="sec-sub">Type, status &amp; dates</span>
+        </div>
+        <div class="sec-body">
+            <div class="row g-3">
+
+                <div class="col-md-6">
+                    <label class="form-label">Membership Type <span class="req">*</span></label>
+                    <select class="form-select" th:field="*{membershipType}"
+                            th:classappend="${#fields.hasErrors('membershipType')} ? ' is-invalid'">
+                        <option value="">— Select Type —</option>
+                        <option value="General">General</option>
+                        <option value="Life">Life</option>
+                        <option value="Honorary">Honorary</option>
+                        <option value="Student">Student</option>
+                    </select>
+                    <div class="invalid-feedback" th:errors="*{membershipType}"></div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Membership Date <span class="req">*</span></label>
+                    <div class="input-group">
+                        <span class="input-group-text"
+                              th:classappend="${#fields.hasErrors('membershipDate')} ? ' is-invalid-companion'">
+                            <i class="bi bi-calendar3"></i>
+                        </span>
+                        <input type="date" class="form-control" th:field="*{membershipDate}"
+                               th:classappend="${#fields.hasErrors('membershipDate')} ? ' is-invalid'">
+                    </div>
+                    <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('membershipDate')}"
+                         th:errors="*{membershipDate}"></div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Status <span class="req">*</span></label>
+                    <select class="form-select" th:field="*{status}"
+                            th:classappend="${#fields.hasErrors('status')} ? ' is-invalid'">
+                        <option value="">— Select Status —</option>
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                        <option value="Suspended">Suspended</option>
+                    </select>
+                    <div class="invalid-feedback" th:errors="*{status}"></div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Approval Status</label>
+                    <select class="form-select" th:field="*{approvalStatus}">
+                        <option value="Pending">Pending</option>
+                        <option value="Approved">Approved</option>
+                        <option value="Rejected">Rejected</option>
+                    </select>
+                    <div class="form-text">Controls member portal access approval.</div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Section 4: Portal Access ── -->
+    <div class="sec-card">
+        <div class="sec-head">
+            <div class="sec-icon rose"><i class="bi bi-shield-lock-fill"></i></div>
+            <div>
+                <div class="sec-title">Portal Access</div>
+            </div>
+            <span class="sec-sub">Member login credentials</span>
+        </div>
+        <div class="sec-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Portal Password</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-key"></i></span>
+                        <input type="text" class="form-control" th:field="*{password}"
+                               placeholder="Leave blank to keep existing password">
+                    </div>
+                    <div class="form-text">Used for member portal login. Phone number is the username.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Section 5: Notes ── -->
+    <div class="sec-card">
+        <div class="sec-head">
+            <div class="sec-icon slate"><i class="bi bi-journal-text"></i></div>
+            <div>
+                <div class="sec-title">Notes</div>
+            </div>
+            <span class="sec-sub">Internal remarks</span>
+        </div>
+        <div class="sec-body">
+            <textarea class="form-control" th:field="*{notes}" rows="3"
+                      placeholder="Any notes about this member — committee roles, special circumstances, etc."
+                      style="resize:vertical;"
+                      th:classappend="${#fields.hasErrors('notes')} ? ' is-invalid'"></textarea>
+            <div class="invalid-feedback" th:errors="*{notes}"></div>
+        </div>
+    </div>
+
+    <!-- ── Action bar ── -->
+    <div class="action-bar">
+        <button type="submit" class="btn btn-save">
+            <i class="bi bi-check-lg me-2"></i>
+            <span th:text="${item.id == null ? 'Register Member' : 'Save Changes'}">Save</span>
+        </button>
+        <a th:href="@{/members}" class="btn btn-cancel">
+            <i class="bi bi-x me-1"></i>Cancel
+        </a>
+        <span class="ms-auto text-muted" style="font-size:.72rem;">
+            <i class="bi bi-info-circle me-1"></i>Fields marked <span class="req">*</span> are required
+        </span>
+    </div>
+
+</form>
+</div>
+</div>
+
 <th:block layout:fragment="page-scripts">
 <script>
 function previewPhoto(input) {
@@ -224,7 +602,7 @@ function previewPhoto(input) {
         var reader = new FileReader();
         reader.onload = function(e) {
             document.getElementById('photoPreview').src = e.target.result;
-            document.getElementById('photoPreviewWrap').style.display = 'block';
+            document.getElementById('photoPreviewWrap').style.display = 'inline-block';
         };
         reader.readAsDataURL(input.files[0]);
     }

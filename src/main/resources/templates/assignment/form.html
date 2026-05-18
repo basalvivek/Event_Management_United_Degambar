@@ -2,153 +2,407 @@
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout/base}">
-<head><title>Add / Edit Assignment</title></head>
+<head><title>Assignment</title></head>
 <body>
 
 <th:block layout:fragment="page-title"
-          th:text="${item.id == null ? 'Add' : 'Edit'} + ' Assignment'">Assignment</th:block>
+          th:text="${item.id == null ? 'Add Assignment' : 'Edit Assignment'}">Assignment</th:block>
 
 <div layout:fragment="content">
-    <div class="card shadow-sm border-0" style="max-width:760px;">
-        <div class="card-header bg-white border-bottom fw-semibold"
-             th:text="${item.id == null ? 'Add New Assignment' : 'Edit Assignment'}"></div>
-        <div class="card-body">
-            <form th:action="${item.id == null ? '/assignments' : '/assignments/' + item.id}"
-                  th:object="${item}" method="post">
+<style>
+:root { --ac:#4f46e5; --ac-light:#818cf8; --ac-bg:#eef2ff; }
 
-                <div class="row g-3">
+.as-canvas { max-width: 820px; }
 
-                    <!-- Activity -->
-                    <div class="col-12">
-                        <label class="form-label fw-medium">Activity <span class="text-danger">*</span></label>
-                        <select class="form-select" th:field="*{activityId}"
-                                th:classappend="${#fields.hasErrors('activityId')} ? ' is-invalid'">
-                            <option value="">-- Select Activity --</option>
-                            <option th:each="a : ${activities}"
-                                    th:value="${a.id}"
-                                    th:text="${a.activityName} + ' [' + ${a.activityCategory.categoryName} + ']'"></option>
-                        </select>
-                        <div class="invalid-feedback" th:errors="*{activityId}"></div>
-                    </div>
+/* Hero */
+.as-hero {
+    border-radius: 18px;
+    background: linear-gradient(135deg, #1e1b4b 0%, #4f46e5 55%, #6366f1 100%);
+    padding: 24px 28px;
+    display: flex; align-items: center; gap: 20px;
+    box-shadow: 0 8px 32px rgba(79,70,229,0.28);
+    margin-bottom: 1.25rem;
+    position: relative; overflow: hidden;
+}
+.as-hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/svg%3E");
+}
+.as-hero-icon {
+    width: 58px; height: 58px; border-radius: 15px;
+    background: rgba(255,255,255,0.16); backdrop-filter: blur(4px);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem; flex-shrink: 0;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    position: relative; z-index: 1;
+}
+.as-hero-title { color: #fff; font-weight: 700; font-size: 1.1rem; position: relative; z-index: 1; }
+.as-hero-sub   { color: rgba(255,255,255,0.65); font-size: 0.77rem; margin-top: 3px; position: relative; z-index: 1; }
+.as-status-chip {
+    margin-left: auto; position: relative; z-index: 1;
+    border-radius: 20px; padding: 5px 14px; font-size: 0.72rem; font-weight: 700;
+    border: 1.5px solid rgba(255,255,255,0.25); backdrop-filter: blur(4px);
+}
+.chip-Assigned   { background: rgba(99,102,241,0.3); color: #c7d2fe; }
+.chip-In.Progress{ background: rgba(251,191,36,0.3);  color: #fde68a; }
+.chip-Completed  { background: rgba(34,197,94,0.3);   color: #86efac; }
+.chip-Dropped    { background: rgba(239,68,68,0.3);   color: #fca5a5; }
 
-                    <!-- Assigned Date -->
-                    <div class="col-md-6">
-                        <label class="form-label fw-medium">Assigned Date <span class="text-danger">*</span></label>
+/* Section cards */
+.sec-card { border: 1.5px solid #e2e8f0; border-radius: 14px; overflow: hidden; margin-bottom: 1rem; box-shadow: 0 1px 6px rgba(0,0,0,0.04); }
+.sec-head { background: #f8fafc; border-bottom: 1.5px solid #e2e8f0; padding: 13px 20px; display: flex; align-items: center; gap: 10px; }
+.sec-icon { width: 32px; height: 32px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 0.88rem; flex-shrink: 0; }
+.si-indigo { background:#eef2ff; color:var(--ac); }
+.si-teal   { background:#f0fdfa; color:#0d9488; }
+.si-purple { background:#faf5ff; color:#7c3aed; }
+.si-slate  { background:#f1f5f9; color:#475569; }
+.sec-title { font-size: 0.82rem; font-weight: 700; color: #1e293b; }
+.sec-sub   { font-size: 0.7rem; color: #94a3b8; margin-left: auto; }
+.sec-body  { padding: 20px; }
+
+/* Inputs */
+.form-label { font-size: 0.78rem; font-weight: 600; color: #374151; margin-bottom: 5px; }
+.req { color: #ef4444; }
+.form-control, .form-select {
+    border-radius: 9px; border: 1.5px solid #e2e8f0;
+    font-size: 0.86rem; padding: 9px 13px; color: #1e293b;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+.form-control:focus, .form-select:focus {
+    border-color: var(--ac); box-shadow: 0 0 0 3px rgba(79,70,229,0.12); outline: none;
+}
+.form-control.is-invalid, .form-select.is-invalid { border-color: #ef4444; }
+.input-group-text {
+    border-radius: 9px 0 0 9px; border: 1.5px solid #e2e8f0; border-right: 0;
+    background: #f8fafc; color: #94a3b8; font-size: 0.88rem; padding: 9px 13px;
+}
+.input-group .form-control, .input-group .form-select { border-radius: 0 9px 9px 0; border-left: 0; }
+
+/* Status chip picker */
+.status-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.st-chip {
+    border-radius: 20px; padding: 7px 16px; font-size: 0.78rem; font-weight: 600;
+    border: 1.5px solid #e2e8f0; background: #fff; color: #64748b;
+    cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 6px;
+}
+.st-chip.sel-Assigned    { background: #eef2ff; border-color: #818cf8; color: #3730a3; }
+.st-chip.sel-In.Progress { background: #fefce8; border-color: #fbbf24; color: #92400e; }
+.st-chip.sel-Completed   { background: #f0fdf4; border-color: #4ade80; color: #166534; }
+.st-chip.sel-Dropped     { background: #fef2f2; border-color: #f87171; color: #991b1b; }
+
+/* Role chips */
+.role-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+.role-chip {
+    border-radius: 20px; padding: 5px 13px; font-size: 0.76rem; font-weight: 600;
+    border: 1.5px solid #e2e8f0; background: #fff; color: #64748b;
+    cursor: pointer; transition: all 0.13s;
+}
+.role-chip.sel { background: #1e1b4b; border-color: #1e1b4b; color: #fff; }
+
+/* Member row builder */
+.member-row-card {
+    background: #fff; border: 1.5px solid #e2e8f0; border-radius: 12px;
+    padding: 14px 16px; transition: border-color 0.15s, box-shadow 0.15s;
+}
+.member-row-card:hover { border-color: var(--ac-light); box-shadow: 0 2px 10px rgba(79,70,229,0.08); }
+.row-num {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--ac-bg); color: var(--ac);
+    font-size: 0.72rem; font-weight: 800;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.add-member-btn {
+    border-radius: 10px;
+    background: var(--ac-bg); color: var(--ac);
+    border: 1.5px solid var(--ac-light);
+    font-size: 0.82rem; font-weight: 600;
+    padding: 8px 18px;
+    transition: background 0.15s, color 0.15s;
+}
+.add-member-btn:hover { background: var(--ac); color: #fff; }
+
+/* Action bar */
+.action-bar {
+    background: #fff; border: 1.5px solid #e2e8f0; border-radius: 14px;
+    padding: 16px 20px; display: flex; align-items: center; gap: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+.btn-save {
+    border-radius: 10px;
+    background: linear-gradient(135deg, #1e1b4b, var(--ac));
+    border: 0; color: #fff; font-weight: 600;
+    padding: 10px 28px; font-size: 0.86rem;
+    box-shadow: 0 4px 12px rgba(79,70,229,0.3);
+    transition: opacity 0.15s, transform 0.15s;
+}
+.btn-save:hover { opacity: 0.9; transform: translateY(-1px); color: #fff; }
+.btn-cancel {
+    border-radius: 10px; border: 1.5px solid #e2e8f0;
+    background: #fff; color: #64748b; font-size: 0.86rem; padding: 10px 22px;
+    transition: border-color 0.15s, color 0.15s;
+}
+.btn-cancel:hover { border-color: var(--ac-light); color: var(--ac); }
+</style>
+
+<div class="as-canvas">
+
+<!-- Hero -->
+<div class="as-hero">
+    <div class="as-hero-icon">
+        <i class="bi bi-person-lines-fill text-white"></i>
+    </div>
+    <div>
+        <div class="as-hero-title"
+             th:text="${item.id == null ? 'Assign Members to Activity' : 'Edit Assignment'}"></div>
+        <div class="as-hero-sub"
+             th:text="${item.id == null
+                ? 'Select an activity and assign one or more members with roles'
+                : 'Update member, role, status or notes for this assignment'}"></div>
+    </div>
+    <div th:if="${item.id != null and item.status != null}" class="ms-auto" style="position:relative;z-index:1;">
+        <span th:class="'as-status-chip chip-' + ${item.status}" th:text="${item.status}"></span>
+    </div>
+</div>
+
+<form th:action="${item.id == null ? '/assignments' : '/assignments/' + item.id}"
+      th:object="${item}" method="post">
+
+    <!-- ── Section 1: Activity ── -->
+    <div class="sec-card">
+        <div class="sec-head">
+            <div class="sec-icon si-indigo"><i class="bi bi-list-task"></i></div>
+            <div class="sec-title">Activity</div>
+            <span class="sec-sub">Which activity are members being assigned to?</span>
+        </div>
+        <div class="sec-body">
+            <label class="form-label">Activity <span class="req">*</span></label>
+            <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-bookmark-check"></i></span>
+                <select class="form-select" th:field="*{activityId}"
+                        th:classappend="${#fields.hasErrors('activityId')} ? ' is-invalid'">
+                    <option value="">— Select Activity —</option>
+                    <option th:each="a : ${activities}"
+                            th:value="${a.id}"
+                            th:text="${a.activityName + ' [' + a.activityCategory.categoryName + ']'}"></option>
+                </select>
+            </div>
+            <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('activityId')}"
+                 th:errors="*{activityId}"></div>
+        </div>
+    </div>
+
+    <!-- ── Section 2: Schedule & Status ── -->
+    <div class="sec-card">
+        <div class="sec-head">
+            <div class="sec-icon si-teal"><i class="bi bi-calendar3"></i></div>
+            <div class="sec-title">Schedule &amp; Status</div>
+            <span class="sec-sub">Assignment date and current status</span>
+        </div>
+        <div class="sec-body">
+            <div class="row g-3">
+
+                <div class="col-md-5">
+                    <label class="form-label">Assigned Date <span class="req">*</span></label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-calendar-event"></i></span>
                         <input type="date" class="form-control" th:field="*{assignedDate}"
                                th:classappend="${#fields.hasErrors('assignedDate')} ? ' is-invalid'">
-                        <div class="invalid-feedback" th:errors="*{assignedDate}"></div>
                     </div>
+                    <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('assignedDate')}"
+                         th:errors="*{assignedDate}"></div>
+                </div>
 
-                    <!-- Status -->
-                    <div class="col-md-6">
-                        <label class="form-label fw-medium">Status <span class="text-danger">*</span></label>
-                        <select class="form-select" th:field="*{status}"
-                                th:classappend="${#fields.hasErrors('status')} ? ' is-invalid'">
-                            <option value="">-- Select Status --</option>
-                            <option value="Assigned">Assigned</option>
-                            <option value="In Progress">In Progress</option>
-                            <option value="Completed">Completed</option>
-                            <option value="Dropped">Dropped</option>
-                        </select>
-                        <div class="invalid-feedback" th:errors="*{status}"></div>
+                <div class="col-12">
+                    <label class="form-label">Status <span class="req">*</span></label>
+                    <!-- Hidden select for form submission -->
+                    <select class="form-select d-none" th:field="*{status}" id="statusSelect">
+                        <option value="">— Select —</option>
+                        <option value="Assigned">Assigned</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Completed">Completed</option>
+                        <option value="Dropped">Dropped</option>
+                    </select>
+                    <!-- Chip picker -->
+                    <div class="status-chips" id="statusChips">
+                        <span th:each="s : ${ {'Assigned','In Progress','Completed','Dropped'} }"
+                              th:class="'st-chip' + (${item.status == s} ? ' sel-' + ${s} : '')"
+                              th:attr="data-val=${s}"
+                              th:onclick="'pickStatus(this)'">
+                            <i class="bi"
+                               th:classappend="${s == 'Assigned'} ? 'bi-person-check-fill' :
+                                              (${s == 'In Progress'} ? 'bi-play-circle-fill' :
+                                              (${s == 'Completed'} ? 'bi-check-circle-fill' : 'bi-x-circle-fill'))"
+                               style="font-size:0.72rem;"></i>
+                            <span th:text="${s}"></span>
+                        </span>
                     </div>
+                    <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('status')}"
+                         th:errors="*{status}"></div>
+                </div>
 
-                    <!-- ── CREATE: dynamic multi-member rows ── -->
-                    <div th:if="${item.id == null}" class="col-12">
+            </div>
+        </div>
+    </div>
 
-                        <div class="p-3 rounded-3" style="background:#f8faff;border:1px solid #e0e7ff;">
+    <!-- ── Section 3a: CREATE — multi-member rows ── -->
+    <div th:if="${item.id == null}" class="sec-card">
+        <div class="sec-head">
+            <div class="sec-icon si-purple"><i class="bi bi-people-fill"></i></div>
+            <div class="sec-title">Members &amp; Roles</div>
+            <span class="sec-sub">Add one or more members</span>
+        </div>
+        <div class="sec-body">
 
-                            <div class="d-flex align-items-center justify-content-between mb-3">
-                                <div>
-                                    <span class="fw-semibold" style="font-size:0.9rem;color:#1e1b4b;">
-                                        <i class="bi bi-people-fill text-primary me-2"></i>Members &amp; Roles
-                                    </span>
-                                    <span class="text-danger ms-1">*</span>
-                                    <div class="text-muted" style="font-size:0.75rem;">Add one or more members and assign a role to each.</div>
-                                </div>
-                                <button type="button" class="btn btn-primary btn-sm px-3"
-                                        onclick="addMemberRow()">
-                                    <i class="bi bi-person-plus-fill me-1"></i>Add Member
-                                </button>
-                            </div>
+            <!-- Duplicate error banner -->
+            <div th:if="${duplicateError}"
+                 class="alert d-flex align-items-center gap-2 mb-3 py-2"
+                 style="border-radius:10px;background:#fef2f2;border:1.5px solid #fecaca;color:#dc2626;font-size:0.82rem;">
+                <i class="bi bi-person-x-fill flex-shrink-0"></i>
+                <span th:text="${duplicateError}"></span>
+            </div>
 
-                            <div id="memberRows" class="d-flex flex-column gap-2"></div>
+            <!-- Member row container -->
+            <div id="memberRows" class="d-flex flex-column gap-2 mb-3"></div>
 
-                            <div class="text-danger mt-2" style="font-size:0.82rem;"
-                                 th:if="${#fields.hasErrors('memberId')}"
-                                 th:errors="*{memberId}"></div>
+            <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('memberId')}"
+                 th:errors="*{memberId}"></div>
 
-                            <div th:if="${duplicateError}"
-                                 class="mt-2 d-flex align-items-start gap-2 p-2 rounded-2"
-                                 style="background:#fef2f2;border:1px solid #fecaca;font-size:0.82rem;color:#dc2626;">
-                                <i class="bi bi-person-x-fill flex-shrink-0 mt-1"></i>
-                                <span th:text="${duplicateError}"></span>
-                            </div>
-                        </div>
+            <button type="button" class="add-member-btn btn" onclick="addMemberRow()">
+                <i class="bi bi-person-plus-fill me-2"></i>Add Member
+            </button>
 
-                        <!-- Hidden source of member options for JS cloning -->
-                        <select id="memberSrc" style="display:none;">
-                            <option value="">-- Select Member --</option>
+            <!-- Hidden source for JS cloning -->
+            <select id="memberSrc" style="display:none;">
+                <option value="">— Select Member —</option>
+                <option th:each="m : ${members}"
+                        th:value="${m.id}"
+                        th:text="${m.firstName + ' ' + m.lastName + ' — ' + m.phone}"></option>
+            </select>
+        </div>
+    </div>
+
+    <!-- ── Section 3b: EDIT — single member + role ── -->
+    <div th:unless="${item.id == null}" class="sec-card">
+        <div class="sec-head">
+            <div class="sec-icon si-purple"><i class="bi bi-person-fill"></i></div>
+            <div class="sec-title">Member &amp; Role</div>
+            <span class="sec-sub">Who is assigned and in what capacity?</span>
+        </div>
+        <div class="sec-body">
+            <div class="row g-3">
+
+                <div class="col-12">
+                    <label class="form-label">Member <span class="req">*</span></label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-person"></i></span>
+                        <select class="form-select" th:field="*{memberId}"
+                                th:classappend="${#fields.hasErrors('memberId')} ? ' is-invalid'">
+                            <option value="">— Select Member —</option>
                             <option th:each="m : ${members}"
                                     th:value="${m.id}"
                                     th:text="${m.firstName + ' ' + m.lastName + ' — ' + m.phone}"></option>
                         </select>
                     </div>
-
-                    <!-- ── EDIT: single member + single role ── -->
-                    <div th:unless="${item.id == null}" class="col-12">
-                        <label class="form-label fw-medium">Member <span class="text-danger">*</span></label>
-                        <select class="form-select" th:field="*{memberId}"
-                                th:classappend="${#fields.hasErrors('memberId')} ? ' is-invalid'">
-                            <option value="">-- Select Member --</option>
-                            <option th:each="m : ${members}"
-                                    th:value="${m.id}"
-                                    th:text="${m.firstName} + ' ' + ${m.lastName} + ' — ' + ${m.phone}"></option>
-                        </select>
-                        <div class="invalid-feedback" th:errors="*{memberId}"></div>
-                    </div>
-
-                    <div th:unless="${item.id == null}" class="col-md-6">
-                        <label class="form-label fw-medium">Role <span class="text-danger">*</span></label>
-                        <select class="form-select" th:field="*{role}"
-                                th:classappend="${#fields.hasErrors('role')} ? ' is-invalid'">
-                            <option value="">-- Select Role --</option>
-                            <option value="Lead">Lead</option>
-                            <option value="Co-Lead">Co-Lead</option>
-                            <option value="Coordinator">Coordinator</option>
-                            <option value="Volunteer">Volunteer</option>
-                            <option value="Support">Support</option>
-                            <option value="Other">Other</option>
-                        </select>
-                        <div class="invalid-feedback" th:errors="*{role}"></div>
-                    </div>
-
-                    <!-- Notes -->
-                    <div class="col-12">
-                        <label class="form-label fw-medium">Notes</label>
-                        <textarea class="form-control" th:field="*{notes}" rows="2"></textarea>
-                    </div>
-
+                    <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('memberId')}"
+                         th:errors="*{memberId}"></div>
                 </div>
 
-                <div class="d-flex gap-2 mt-4">
-                    <button type="submit" class="btn btn-primary px-4">
-                        <i class="bi bi-check-lg me-1"></i>Save
-                    </button>
-                    <a th:href="@{/assignments}" class="btn btn-outline-secondary px-4">Cancel</a>
+                <div class="col-12">
+                    <label class="form-label">Role <span class="req">*</span></label>
+                    <!-- Hidden select -->
+                    <select class="form-select d-none" th:field="*{role}" id="roleSelect">
+                        <option value="">— Select —</option>
+                        <option value="Lead">Lead</option>
+                        <option value="Co-Lead">Co-Lead</option>
+                        <option value="Coordinator">Coordinator</option>
+                        <option value="Volunteer">Volunteer</option>
+                        <option value="Support">Support</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <!-- Role chip picker -->
+                    <div class="role-chips" id="roleChips">
+                        <span th:each="r : ${ {'Lead','Co-Lead','Coordinator','Volunteer','Support','Other'} }"
+                              th:class="'role-chip' + (${item.role == r} ? ' sel' : '')"
+                              th:attr="data-val=${r}"
+                              th:onclick="'pickRole(this)'"
+                              th:text="${r}"></span>
+                    </div>
+                    <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('role')}"
+                         th:errors="*{role}"></div>
                 </div>
 
-            </form>
+            </div>
         </div>
     </div>
+
+    <!-- ── Section 4: Notes ── -->
+    <div class="sec-card">
+        <div class="sec-head">
+            <div class="sec-icon si-slate"><i class="bi bi-journal-text"></i></div>
+            <div class="sec-title">Notes</div>
+            <span class="sec-sub">Internal remarks</span>
+        </div>
+        <div class="sec-body">
+            <textarea class="form-control" th:field="*{notes}" rows="3"
+                      placeholder="Special instructions, expectations or any notes for this assignment…"
+                      style="resize:vertical;"></textarea>
+        </div>
+    </div>
+
+    <!-- Action bar -->
+    <div class="action-bar">
+        <button type="submit" class="btn btn-save">
+            <i class="bi bi-check-lg me-2"></i>
+            <span th:text="${item.id == null ? 'Assign Members' : 'Save Changes'}">Save</span>
+        </button>
+        <a th:href="@{/assignments}" class="btn btn-cancel">
+            <i class="bi bi-x me-1"></i>Cancel
+        </a>
+        <span class="ms-auto text-muted" style="font-size:0.72rem;">
+            <span class="req">*</span> Required fields
+        </span>
+    </div>
+
+</form>
 </div>
 
 <th:block layout:fragment="page-scripts">
 <script>
+// ── Status chip picker ──
+function pickStatus(chip) {
+    document.querySelectorAll('#statusChips .st-chip').forEach(function(c) { c.className = 'st-chip'; });
+    chip.classList.add('sel-' + chip.dataset.val);
+    document.getElementById('statusSelect').value = chip.dataset.val;
+}
+(function() {
+    var s = document.getElementById('statusSelect');
+    if (s && s.value) {
+        var c = document.querySelector('#statusChips [data-val="' + s.value + '"]');
+        if (c) c.classList.add('sel-' + s.value);
+    }
+})();
+
+// ── Role chip picker (edit mode) ──
+function pickRole(chip) {
+    document.querySelectorAll('#roleChips .role-chip').forEach(function(c) { c.classList.remove('sel'); });
+    chip.classList.add('sel');
+    var rs = document.getElementById('roleSelect');
+    if (rs) rs.value = chip.dataset.val;
+}
+(function() {
+    var rs = document.getElementById('roleSelect');
+    if (rs && rs.value) {
+        var c = document.querySelector('#roleChips [data-val="' + rs.value + '"]');
+        if (c) c.classList.add('sel');
+    }
+})();
+
+// ── Multi-member row builder (create mode) ──
 (function () {
     var roles = ['Volunteer','Lead','Co-Lead','Coordinator','Support','Other'];
 
-    function buildRoleOptions() {
+    function roleOpts() {
         return roles.map(function(r) {
             return '<option value="' + r + '">' + r + '</option>';
         }).join('');
@@ -159,44 +413,40 @@
         var container = document.getElementById('memberRows');
         if (!src || !container) return;
 
-        var rowNum = container.children.length + 1;
-
-        var div = document.createElement('div');
-        div.className = 'd-flex align-items-center gap-2 p-2 rounded-2';
-        div.style.background = '#fff';
-        div.style.border = '1px solid #e5e7eb';
-        div.innerHTML =
-            '<span class="badge rounded-pill bg-primary bg-opacity-75 flex-shrink-0" style="min-width:26px;text-align:center;">' + rowNum + '</span>' +
-            '<select name="memberIds" class="form-select form-select-sm flex-grow-1">' +
-              src.innerHTML +
-            '</select>' +
-            '<select name="memberRoles" class="form-select form-select-sm" style="max-width:160px;">' +
-              buildRoleOptions() +
-            '</select>' +
-            '<button type="button" class="btn btn-sm btn-outline-danger px-2 flex-shrink-0" ' +
-              'onclick="removeRow(this)" title="Remove">' +
-              '<i class="bi bi-x-lg"></i>' +
+        var n = container.children.length + 1;
+        var card = document.createElement('div');
+        card.className = 'member-row-card d-flex align-items-center gap-3';
+        card.innerHTML =
+            '<div class="row-num">' + n + '</div>' +
+            '<div class="flex-grow-1">' +
+                '<select name="memberIds" class="form-select" style="font-size:.84rem;">' +
+                    src.innerHTML +
+                '</select>' +
+            '</div>' +
+            '<div style="flex:0 0 170px;">' +
+                '<select name="memberRoles" class="form-select" style="font-size:.84rem;">' +
+                    roleOpts() +
+                '</select>' +
+            '</div>' +
+            '<button type="button" class="btn btn-sm btn-outline-danger flex-shrink-0 px-2" ' +
+                    'style="border-radius:8px;" onclick="removeRow(this)" title="Remove">' +
+                '<i class="bi bi-x-lg"></i>' +
             '</button>';
-
-        container.appendChild(div);
+        container.appendChild(card);
     };
 
     window.removeRow = function (btn) {
-        var row = btn.closest('div[style]');
-        row.remove();
+        btn.closest('.member-row-card').remove();
         renumber();
     };
 
     function renumber() {
-        var rows = document.querySelectorAll('#memberRows > div');
-        rows.forEach(function (div, i) {
-            div.querySelector('.badge').textContent = i + 1;
+        document.querySelectorAll('#memberRows .row-num').forEach(function(el, i) {
+            el.textContent = i + 1;
         });
     }
 
-    if (document.getElementById('memberRows')) {
-        addMemberRow();
-    }
+    if (document.getElementById('memberRows')) addMemberRow();
 })();
 </script>
 </th:block>

@@ -8,7 +8,7 @@
 <div layout:fragment="content">
 <style>
 .hr-table th{font-size:.7rem;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:#6366f1;padding:11px 14px;background:#f8f7ff;border-bottom:2px solid #e0e7ff;}
-.hr-table td{padding:12px 14px;vertical-align:middle;border-color:#f1f5f9;font-size:.84rem;}
+.hr-table td{padding:11px 14px;vertical-align:middle;border-color:#f1f5f9;font-size:.83rem;}
 .hr-row{transition:background .1s;}
 .hr-row:hover{background:#fafafe;}
 .hr-row.s-Completed{border-left:3px solid #059669;}
@@ -20,7 +20,8 @@
 .bs-HOLD{background:#fef3c7;color:#92400e;}
 .bs-REJECTED{background:#fee2e2;color:#991b1b;}
 .bs-CONFIRMED{background:#dcfce7;color:#166534;}
-.st-tag{display:inline-flex;align-items:center;border-radius:20px;padding:3px 12px;font-size:.72rem;font-weight:700;}
+.st-tag{display:inline-flex;align-items:center;border-radius:20px;padding:3px 11px;font-size:.7rem;font-weight:700;}
+.grp-row td{background:linear-gradient(90deg,#eef2ff,#f5f3ff);border-bottom:2px solid #c7d2fe;padding:8px 14px;}
 .fp{border-radius:20px;padding:5px 14px;font-size:.78rem;font-weight:600;border:1.5px solid #e5e7eb;background:#fff;color:#475569;cursor:pointer;transition:all .15s;}
 .fp:hover{border-color:#6366f1;color:#6366f1;}
 .fp.fa{background:#1e1b4b;border-color:#1e1b4b;color:#fff;}
@@ -29,23 +30,26 @@
 .sw{position:relative;}.sw i{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:.8rem;}
 .sb{border-radius:20px;border:1.5px solid #e5e7eb;padding:6px 14px 6px 32px;font-size:.84rem;width:220px;}
 .sb:focus{border-color:#6366f1;box-shadow:0 0 0 3px rgba(99,102,241,.1);outline:none;}
+.amt{font-family:monospace;font-weight:700;}
 </style>
 
 <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
     <div>
         <h5 class="fw-bold mb-0" style="color:#1e1b4b;">Hall Registration</h5>
-        <p class="text-muted mb-0" style="font-size:.78rem;">Manage hall hire bookings and payments</p>
+        <p class="text-muted mb-0" style="font-size:.78rem;">Payments grouped by Event — each row is an individual payment</p>
     </div>
     <a th:href="@{/hall-registrations/new}" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>Add Booking</a>
 </div>
 
 <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
     <div class="d-flex gap-2 flex-wrap">
-        <span class="fp fa" onclick="hrfilter('all',this)">All <span class="ms-1 badge rounded-pill text-bg-dark" style="font-size:.65rem;" th:text="${#lists.size(items)}"></span></span>
+        <span class="fp fa" onclick="hrfilter('all',this)">All <span class="ms-1 badge rounded-pill text-bg-dark" style="font-size:.65rem;" th:text="${#lists.size(rows)}"></span></span>
         <span class="fp fp-ip"   onclick="hrfilter('InProgress',this)"><i class="bi bi-circle-fill me-1" style="font-size:.45rem;color:#d97706;"></i>In Progress</span>
         <span class="fp fp-done" onclick="hrfilter('Completed',this)"><i class="bi bi-circle-fill me-1" style="font-size:.45rem;color:#059669;"></i>Completed</span>
     </div>
-    <div class="sw"><i class="bi bi-search"></i><input type="text" class="sb form-control" id="hrSearch" placeholder="Search booking…" oninput="hrsearch(this.value)"></div>
+    <div class="sw"><i class="bi bi-search"></i>
+        <input type="text" class="sb form-control" id="hrSearch" placeholder="Search booking…" oninput="hrsearch(this.value)">
+    </div>
 </div>
 
 <div class="card border-0 shadow-sm" style="border-radius:14px;overflow:hidden;">
@@ -55,49 +59,89 @@
                 <th style="width:36px;">#</th>
                 <th>Hall Name</th>
                 <th>Booked By</th>
-                <th>Event</th>
                 <th>Hire Date</th>
                 <th>Time</th>
                 <th>Hall Charges</th>
-                <th>Booking Status</th>
-                <th>Payment</th>
+                <th>Payment Date</th>
+                <th>Mode</th>
+                <th class="text-end">Paid</th>
+                <th class="text-end">Remaining</th>
+                <th>Status</th>
+                <th>Notes</th>
                 <th class="text-end" style="padding-right:16px;">Actions</th>
             </tr></thead>
             <tbody>
-                <tr th:each="item, stat : ${items}"
-                    th:class="'hr-row s-' + ${item.status}"
-                    th:attr="data-s=${item.status}, data-q=${(item.bookedBy + ' ' + (item.event != null ? item.event.eventName : '')).toLowerCase()}">
-                    <td class="text-muted fw-medium" th:text="${stat.count}"></td>
-                    <td>
-                        <div class="fw-semibold" style="color:#1e1b4b;" th:text="${item.hallName != null ? item.hallName : '—'}"></div>
-                    </td>
-                    <td>
-                        <div class="fw-semibold" style="color:#1e1b4b;" th:text="${item.bookedBy}"></div>
-                        <div th:if="${item.phone != null}" style="font-size:.72rem;color:#94a3b8;"><i class="bi bi-telephone me-1"></i><span th:text="${item.phone}"></span></div>
-                    </td>
-                    <td style="font-size:.8rem;" th:text="${item.event != null ? item.event.eventName : '—'}"></td>
-                    <td>
-                        <div style="font-size:.8rem;"><i class="bi bi-calendar3 me-1" style="color:#94a3b8;font-size:.72rem;"></i>
-                        <span th:text="${#temporals.format(item.hireDate,'dd MMM yyyy')}"></span></div>
-                    </td>
-                    <td style="font-size:.8rem;color:#64748b;">
-                        <span th:if="${item.fromTime != null}" th:text="${item.fromTime}"></span>
-                        <span th:if="${item.fromTime != null and item.tillTime != null}"> – </span>
-                        <span th:if="${item.tillTime != null}" th:text="${item.tillTime}"></span>
-                        <span th:if="${item.fromTime == null and item.tillTime == null}">—</span>
-                    </td>
-                    <td style="font-family:monospace;font-weight:700;color:#1e1b4b;" th:text="${item.hallCharges != null ? '£' + #numbers.formatDecimal(item.hallCharges,1,2) : '—'}"></td>
-                    <td><span th:class="'st-tag bs-' + ${item.bookingStatus}" th:text="${item.bookingStatus}"></span></td>
-                    <td><span th:class="'st-tag st-' + ${item.status}" th:text="${item.status}"></span></td>
-                    <td class="text-end" style="padding-right:16px;white-space:nowrap;">
-                        <a th:href="@{/hall-registrations/{id}/edit(id=${item.id})}" class="btn btn-sm btn-outline-warning me-1"><i class="bi bi-pencil-fill"></i></a>
-                        <form th:action="@{/hall-registrations/{id}/delete(id=${item.id})}" method="post" class="d-inline" onsubmit="return confirm('Delete this booking?')">
-                            <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash-fill"></i></button>
-                        </form>
+                <th:block th:each="row, stat : ${rows}">
+
+                    <!-- Event group header -->
+                    <tr th:if="${groupStarts.contains(stat.index)}" class="grp-row"
+                        th:attr="data-grp=${row.eventName}">
+                        <td colspan="13">
+                            <div class="d-flex align-items-center gap-2">
+                                <span style="width:26px;height:26px;border-radius:7px;background:#4f46e5;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                    <i class="bi bi-calendar-event-fill text-white" style="font-size:.65rem;"></i>
+                                </span>
+                                <span style="font-weight:700;font-size:.82rem;color:#3730a3;" th:text="${row.eventName}"></span>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Payment row -->
+                    <tr th:class="'hr-row s-' + ${row.paymentStatus}"
+                        th:attr="data-s=${row.paymentStatus},
+                                 data-grp=${row.eventName},
+                                 data-q=${(row.bookedBy + ' ' + row.eventName + ' ' + (row.hallName != null ? row.hallName : '')).toLowerCase()}">
+                        <td class="text-muted fw-medium" th:text="${stat.count}"></td>
+                        <td>
+                            <div class="fw-semibold" style="color:#1e1b4b;" th:text="${row.hallName != null ? row.hallName : '—'}"></div>
+                        </td>
+                        <td>
+                            <div class="fw-semibold" style="color:#1e1b4b;" th:text="${row.bookedBy}"></div>
+                            <div th:if="${row.phone != null}" style="font-size:.72rem;color:#94a3b8;">
+                                <i class="bi bi-telephone me-1"></i><span th:text="${row.phone}"></span>
+                            </div>
+                        </td>
+                        <td style="font-size:.8rem;">
+                            <i class="bi bi-calendar3 me-1" style="color:#94a3b8;font-size:.72rem;"></i>
+                            <span th:text="${row.hireDate != null ? #temporals.format(row.hireDate,'dd MMM yyyy') : '—'}"></span>
+                        </td>
+                        <td style="font-size:.8rem;color:#64748b;">
+                            <span th:if="${row.fromTime != null}" th:text="${row.fromTime}"></span>
+                            <span th:if="${row.fromTime != null and row.tillTime != null}"> – </span>
+                            <span th:if="${row.tillTime != null}" th:text="${row.tillTime}"></span>
+                            <span th:if="${row.fromTime == null and row.tillTime == null}">—</span>
+                        </td>
+                        <td class="amt" style="color:#1e1b4b;"
+                            th:text="${row.hallCharges != null ? '£' + #numbers.formatDecimal(row.hallCharges,1,2) : '—'}"></td>
+                        <td style="font-size:.8rem;font-weight:600;color:#374151;"
+                            th:text="${row.paymentDate != null ? #temporals.format(row.paymentDate,'dd MMM yyyy') : '—'}"></td>
+                        <td>
+                            <span th:if="${row.paymentMode != null and row.paymentMode != '—'}"
+                                  class="badge bg-light text-dark border" th:text="${row.paymentMode}"></span>
+                            <span th:unless="${row.paymentMode != null and row.paymentMode != '—'}" class="text-muted">—</span>
+                        </td>
+                        <td class="text-end amt" style="color:#059669;"
+                            th:text="${row.amountPaid != null ? '£' + #numbers.formatDecimal(row.amountPaid,1,2) : '—'}"></td>
+                        <td class="text-end amt"
+                            th:style="${row.remaining != null and row.remaining.compareTo(T(java.math.BigDecimal).ZERO) > 0} ? 'color:#dc2626;' : 'color:#94a3b8;'"
+                            th:text="${row.remaining != null ? '£' + #numbers.formatDecimal(row.remaining,1,2) : '—'}"></td>
+                        <td><span th:class="'st-tag st-' + ${row.paymentStatus}" th:text="${row.paymentStatus}"></span></td>
+                        <td style="font-size:.75rem;color:#64748b;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"
+                            th:text="${row.notes != null ? row.notes : '—'}"></td>
+                        <td class="text-end" style="padding-right:16px;white-space:nowrap;">
+                            <a th:href="@{/hall-registrations/{id}/edit(id=${row.bookingId})}" class="btn btn-sm btn-outline-warning me-1"><i class="bi bi-pencil-fill"></i></a>
+                        </td>
+                    </tr>
+
+                </th:block>
+
+                <tr id="hrEmpty" style="display:none;"><td colspan="13" class="text-center py-4 text-muted">No records match</td></tr>
+                <tr th:if="${#lists.isEmpty(rows)}">
+                    <td colspan="13" class="text-center py-5">
+                        <i class="bi bi-building d-block mb-2" style="font-size:2.5rem;color:#c7d2fe;"></i>
+                        <div class="fw-semibold text-muted">No hall bookings yet</div>
                     </td>
                 </tr>
-                <tr id="hrEmpty" style="display:none;"><td colspan="10" class="text-center py-4 text-muted">No records match</td></tr>
-                <tr th:if="${#lists.isEmpty(items)}"><td colspan="10" class="text-center py-5"><i class="bi bi-building d-block mb-2" style="font-size:2.5rem;color:#c7d2fe;"></i><div class="fw-semibold text-muted">No hall bookings yet</div></td></tr>
             </tbody>
         </table>
     </div>
@@ -107,6 +151,20 @@
 var hrf='all';
 function hrfilter(s,p){hrf=s;document.querySelectorAll('.fp').forEach(x=>x.classList.remove('fa'));p.classList.add('fa');hrdof();}
 function hrsearch(q){hrdof(q);}
-function hrdof(q){q=(q!==undefined?q:document.getElementById('hrSearch').value).toLowerCase();var rows=document.querySelectorAll('#hrTable tbody tr.hr-row'),v=0;rows.forEach(r=>{var ok=(hrf==='all'||r.dataset.s===hrf)&&(!q||r.dataset.q.includes(q));r.style.display=ok?'':'none';if(ok)v++;});document.getElementById('hrEmpty').style.display=v===0&&rows.length>0?'':'none';}
+function hrdof(q){
+    q=(q!==undefined?q:document.getElementById('hrSearch').value).toLowerCase();
+    var rows=document.querySelectorAll('#hrTable tbody tr.hr-row');
+    var visGrp={};
+    var v=0;
+    rows.forEach(function(r){
+        var ok=(hrf==='all'||r.dataset.s===hrf)&&(!q||r.dataset.q.includes(q));
+        r.style.display=ok?'':'none';
+        if(ok){v++;visGrp[r.dataset.grp]=true;}
+    });
+    document.querySelectorAll('#hrTable tbody tr.grp-row').forEach(function(h){
+        h.style.display=visGrp[h.dataset.grp]?'':'none';
+    });
+    document.getElementById('hrEmpty').style.display=v===0&&rows.length>0?'':'none';
+}
 </script></th:block>
 </body></html>

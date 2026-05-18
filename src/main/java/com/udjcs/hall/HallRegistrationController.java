@@ -16,6 +16,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.ArrayList;
 
 @Controller
 @RequestMapping("/hall-registrations")
@@ -38,7 +39,106 @@ public class HallRegistrationController {
 
     @GetMapping
     public String list(Model model) {
-        model.addAttribute("items", repo.findAllWithEvent());
+        List<HallRegistration> bookings = repo.findAllWithEvent();
+        List<HallPaymentRow> rows = new java.util.ArrayList<>();
+
+        for (HallRegistration h : bookings) {
+            List<PaymentInstalment> insts = instalmentRepo
+                    .findBySourceTypeAndSourceIdOrderByPaymentDateAsc("Hall", h.getId());
+            String eventName = h.getEvent() != null ? h.getEvent().getEventName() : "— No Event —";
+            BigDecimal charges = h.getHallCharges() != null ? h.getHallCharges() : BigDecimal.ZERO;
+
+            if (insts.isEmpty()) {
+                // No instalments — show booking as single row
+                HallPaymentRow row = new HallPaymentRow();
+                row.setBookingId(h.getId());
+                row.setEventName(eventName);
+                row.setHallName(h.getHallName());
+                row.setBookedBy(h.getBookedBy());
+                row.setPhone(h.getPhone());
+                row.setHireDate(h.getHireDate());
+                row.setFromTime(h.getFromTime());
+                row.setTillTime(h.getTillTime());
+                row.setHallCharges(charges);
+                row.setBookingStatus(h.getBookingStatus());
+                row.setPaymentStatus(h.getStatus());
+                row.setPaymentDate(h.getHireDate());
+                row.setPaymentMode("—");
+                BigDecimal deposit = h.getInitialDeposit() != null ? h.getInitialDeposit() : BigDecimal.ZERO;
+                row.setAmountPaid(deposit);
+                row.setRemaining(charges.subtract(deposit).max(BigDecimal.ZERO));
+                row.setNotes(h.getNotes());
+                rows.add(row);
+            } else {
+                BigDecimal running = BigDecimal.ZERO;
+
+                // Initial deposit row (first, before instalments)
+                BigDecimal deposit = h.getInitialDeposit() != null ? h.getInitialDeposit() : BigDecimal.ZERO;
+                if (deposit.compareTo(BigDecimal.ZERO) > 0) {
+                    running = running.add(deposit);
+                    HallPaymentRow depRow = new HallPaymentRow();
+                    depRow.setBookingId(h.getId());
+                    depRow.setEventName(eventName);
+                    depRow.setHallName(h.getHallName());
+                    depRow.setBookedBy(h.getBookedBy());
+                    depRow.setPhone(h.getPhone());
+                    depRow.setHireDate(h.getHireDate());
+                    depRow.setFromTime(h.getFromTime());
+                    depRow.setTillTime(h.getTillTime());
+                    depRow.setHallCharges(charges);
+                    depRow.setBookingStatus(h.getBookingStatus());
+                    depRow.setPaymentStatus(h.getStatus());
+                    depRow.setPaymentDate(h.getHireDate());
+                    depRow.setPaymentMode("Initial Deposit");
+                    depRow.setAmountPaid(deposit);
+                    depRow.setRemaining(charges.subtract(running).max(BigDecimal.ZERO));
+                    depRow.setNotes("Paid at booking");
+                    rows.add(depRow);
+                }
+
+                for (PaymentInstalment inst : insts) {
+                    running = running.add(inst.getAmount());
+                    HallPaymentRow row = new HallPaymentRow();
+                    row.setBookingId(h.getId());
+                    row.setEventName(eventName);
+                    row.setHallName(h.getHallName());
+                    row.setBookedBy(h.getBookedBy());
+                    row.setPhone(h.getPhone());
+                    row.setHireDate(h.getHireDate());
+                    row.setFromTime(h.getFromTime());
+                    row.setTillTime(h.getTillTime());
+                    row.setHallCharges(charges);
+                    row.setBookingStatus(h.getBookingStatus());
+                    row.setPaymentStatus(h.getStatus());
+                    row.setPaymentDate(inst.getPaymentDate());
+                    row.setPaymentMode(inst.getPaymentMode());
+                    row.setAmountPaid(inst.getAmount());
+                    row.setRemaining(charges.subtract(running).max(BigDecimal.ZERO));
+                    row.setNotes(inst.getNotes());
+                    rows.add(row);
+                }
+            }
+        }
+
+        // Sort: event name ASC, then payment date DESC within group
+        rows.sort((a, b) -> {
+            int cmp = a.getEventName().compareToIgnoreCase(b.getEventName());
+            if (cmp != 0) return cmp;
+            LocalDate da = a.getPaymentDate() != null ? a.getPaymentDate() : java.time.LocalDate.MIN;
+            LocalDate db = b.getPaymentDate() != null ? b.getPaymentDate() : java.time.LocalDate.MIN;
+            return db.compareTo(da);
+        });
+
+        // Compute group-start indices by event name
+        java.util.Set<Integer> groupStarts = new java.util.HashSet<>();
+        String prev = null;
+        for (int i = 0; i < rows.size(); i++) {
+            String key = rows.get(i).getEventName().toLowerCase();
+            if (!key.equals(prev)) { groupStarts.add(i); prev = key; }
+        }
+
+        model.addAttribute("rows", rows);
+        model.addAttribute("groupStarts", groupStarts);
         return "hall/list";
     }
 

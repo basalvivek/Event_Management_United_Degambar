@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head><title>Receivable</title></head>
+<body>
+<th:block layout:fragment="page-title">Receivable</th:block>
+<div layout:fragment="content">
+<style>
+.rv-table th{font-size:.7rem;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:#059669;padding:12px 14px;background:#f0fdf4;border-bottom:2px solid #bbf7d0;}
+.rv-table td{padding:12px 14px;vertical-align:middle;border-color:#f1f5f9;}
+.rv-row{transition:background .12s;}
+.rv-row:hover{background:#f9fffe;}
+.rv-row.s-RECEIVED{border-left:3px solid #059669;}
+.rv-row.s-PARTIAL{border-left:3px solid #f59e0b;}
+.rv-row.s-PENDING{border-left:3px solid #6366f1;}
+.st-RECEIVED{background:#dcfce7;color:#166534;}
+.st-PARTIAL{background:#fef3c7;color:#92400e;}
+.st-PENDING{background:#eef2ff;color:#4338ca;}
+.st-tag{display:inline-flex;align-items:center;gap:4px;border-radius:20px;padding:3px 12px;font-size:.7rem;font-weight:700;white-space:nowrap;}
+.type-TICKET_PAYMENT{background:#dbeafe;color:#1e40af;}
+.type-MEMBER_DONATION{background:#dcfce7;color:#166534;}
+.type-ORG_DONATION{background:#ede9fe;color:#6d28d9;}
+.type-SPONSOR{background:#fef3c7;color:#92400e;}
+.type-INVITATION_REG{background:#fce7f3;color:#9d174d;}
+.type-HALL_HIRE{background:#e0f2fe;color:#0c4a6e;}
+.type-MISCELLANEOUS{background:#f1f5f9;color:#475569;}
+.type-OTHER{background:#f8fafc;color:#64748b;}
+.type-badge{display:inline-flex;align-items:center;border-radius:8px;padding:3px 9px;font-size:.68rem;font-weight:700;white-space:nowrap;}
+.sum-card{border-radius:14px;padding:20px 22px;box-shadow:0 2px 16px rgba(0,0,0,0.06);background:#fff;border:1px solid transparent;transition:box-shadow .18s;}
+.sum-card:hover{box-shadow:0 4px 24px rgba(0,0,0,0.1);}
+.sum-icon{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;}
+.sum-label{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:#94a3b8;margin-bottom:3px;}
+.sum-val{font-size:1.5rem;font-weight:800;line-height:1.15;font-family:monospace;}
+.fp{border-radius:20px;padding:5px 15px;font-size:.78rem;font-weight:600;border:1.5px solid #e5e7eb;background:#fff;color:#475569;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:5px;}
+.fp:hover{border-color:#059669;color:#059669;}
+.fp.fa{background:#1e1b4b;border-color:#1e1b4b;color:#fff;}
+.fp.fp-rcvd.fa{background:#059669;border-color:#059669;}
+.fp.fp-part.fa{background:#d97706;border-color:#d97706;}
+.fp.fp-pend.fa{background:#4338ca;border-color:#4338ca;}
+.sw{position:relative;}.sw i{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:.82rem;}
+.sb{border-radius:20px;border:1.5px solid #e5e7eb;padding:7px 16px 7px 36px;font-size:.84rem;width:230px;transition:border-color .18s,box-shadow .18s;}
+.sb:focus{border-color:#059669;box-shadow:0 0 0 3px rgba(5,150,105,.1);outline:none;}
+.amt{font-family:monospace;font-weight:700;font-size:.86rem;}
+</style>
+
+<div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
+    <div>
+        <h5 class="fw-bold mb-0" style="color:#1e1b4b;">Receivable</h5>
+        <p class="text-muted mb-0" style="font-size:.78rem;">Journal of all incoming receipts — donations, ticket payments, hall hire and other income</p>
+    </div>
+    <a th:href="@{/receivable/new}" class="btn" style="border-radius:10px;background:linear-gradient(135deg,#059669,#10b981);color:#fff;border:0;box-shadow:0 4px 12px rgba(5,150,105,.3);">
+        <i class="bi bi-plus-lg me-1"></i>Add Receivable
+    </a>
+</div>
+
+<!-- Summary Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="sum-card" style="border-color:#bbf7d0;">
+            <div class="d-flex align-items-center gap-3">
+                <div class="sum-icon" style="background:#dcfce7;color:#059669;"><i class="bi bi-arrow-down-circle-fill"></i></div>
+                <div>
+                    <div class="sum-label">Total Receivable</div>
+                    <div class="sum-val" style="color:#059669;" th:text="'£' + ${#numbers.formatDecimal(grandTotal,1,2)}"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="sum-card" style="border-color:#bbf7d0;">
+            <div class="d-flex align-items-center gap-3">
+                <div class="sum-icon" style="background:#f0fdf4;color:#166534;"><i class="bi bi-receipt"></i></div>
+                <div>
+                    <div class="sum-label">Transactions</div>
+                    <div class="sum-val" style="color:#1e1b4b;" th:text="${#lists.size(items)}"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filter + Search -->
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <div class="d-flex gap-2 flex-wrap">
+        <span class="fp fa" onclick="rvfilter('all',this)">
+            All <span class="badge rounded-pill text-bg-dark ms-1" style="font-size:.62rem;" th:text="${#lists.size(items)}"></span>
+        </span>
+        <span class="fp fp-rcvd" onclick="rvfilter('RECEIVED',this)">
+            <i class="bi bi-check-circle-fill" style="font-size:.7rem;color:#059669;"></i>Received
+        </span>
+        <span class="fp fp-part" onclick="rvfilter('PARTIAL',this)">
+            <i class="bi bi-circle-half" style="font-size:.7rem;color:#d97706;"></i>Partial
+        </span>
+        <span class="fp fp-pend" onclick="rvfilter('PENDING',this)">
+            <i class="bi bi-clock" style="font-size:.7rem;color:#4338ca;"></i>Pending
+        </span>
+    </div>
+    <div class="sw">
+        <i class="bi bi-search"></i>
+        <input type="text" class="sb form-control" id="rvSearch" placeholder="Search receivable…" oninput="rvsearch(this.value)">
+    </div>
+</div>
+
+<!-- Table -->
+<div class="card border-0 shadow-sm" style="border-radius:14px;overflow:hidden;">
+    <div class="table-responsive">
+        <table class="table rv-table mb-0" id="rvTable">
+            <thead><tr>
+                <th style="width:36px;">#</th>
+                <th>Organisation</th>
+                <th>Name / Description</th>
+                <th>Type</th>
+                <th>Received From</th>
+                <th>Date</th>
+                <th class="text-end">Amount</th>
+                <th>Status</th>
+                <th class="text-end" style="padding-right:16px;">Actions</th>
+            </tr></thead>
+            <tbody>
+                <th:block th:each="item, stat : ${items}">
+
+                    <!-- ── Group header row when organisation changes ── -->
+                    <tr th:if="${groupStarts.contains(stat.index)}"
+                        class="org-group-row"
+                        th:attr="data-grp=${item.organisationName != null and !#strings.isEmpty(item.organisationName) ? item.organisationName : '__none__'}">
+                        <td colspan="9" style="background:linear-gradient(90deg,#eef2ff,#f5f3ff);padding:8px 14px;border-bottom:2px solid #c7d2fe;">
+                            <div class="d-flex align-items-center gap-2">
+                                <span style="width:28px;height:28px;border-radius:8px;background:#4f46e5;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                    <i class="bi bi-building-fill text-white" style="font-size:.7rem;"></i>
+                                </span>
+                                <span style="font-weight:700;font-size:.82rem;color:#3730a3;"
+                                      th:text="${item.organisationName != null and !#strings.isEmpty(item.organisationName) ? item.organisationName : '— No Organisation —'}"></span>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- ── Data row ── -->
+                    <tr th:class="'rv-row s-' + ${item.status}"
+                        th:attr="data-s=${item.status},
+                                 data-grp=${item.organisationName != null and !#strings.isEmpty(item.organisationName) ? item.organisationName : '__none__'},
+                                 data-q=${(item.name + ' ' + (item.organisationName != null ? item.organisationName : '') + ' ' + (item.receivedFrom != null ? item.receivedFrom : '') + ' ' + item.incomeType).toLowerCase()}">
+                        <td class="text-muted fw-medium" style="font-size:.8rem;" th:text="${stat.count}"></td>
+                        <td style="font-size:.82rem;color:#475569;font-weight:600;"
+                            th:text="${item.organisationName != null and !#strings.isEmpty(item.organisationName) ? item.organisationName : '—'}"></td>
+                        <td>
+                            <div class="fw-semibold" style="font-size:.87rem;color:#1e1b4b;" th:text="${item.name}"></div>
+                            <div th:if="${item.notes != null and !#strings.isEmpty(item.notes)}"
+                                 style="font-size:.72rem;color:#94a3b8;margin-top:1px;" th:text="${item.notes}"></div>
+                        </td>
+                        <td>
+                            <span th:class="'type-badge type-' + ${item.incomeType}"
+                                  th:text="${item.incomeType.replace('_',' ')}"></span>
+                        </td>
+                        <td>
+                            <div style="font-size:.82rem;color:#1e1b4b;font-weight:600;"
+                                 th:text="${item.receivedFrom != null and !#strings.isEmpty(item.receivedFrom) ? item.receivedFrom : '—'}"></div>
+                        </td>
+                        <td>
+                            <div th:if="${item.receiptDate != null}" style="font-size:.82rem;font-weight:600;color:#374151;"
+                                 th:text="${#temporals.format(item.receiptDate,'dd MMM yyyy')}"></div>
+                            <span th:unless="${item.receiptDate != null}" class="text-muted">—</span>
+                        </td>
+                        <td class="text-end">
+                            <span class="amt" style="color:#166534;"
+                                  th:text="${item.totalAmount != null ? '£' + #numbers.formatDecimal(item.totalAmount,1,2) : '—'}"></span>
+                        </td>
+                        <td>
+                            <span th:class="'st-tag st-' + ${item.status}">
+                                <i th:if="${item.status == 'RECEIVED'}" class="bi bi-check-circle-fill" style="font-size:.7rem;"></i>
+                                <i th:if="${item.status == 'PARTIAL'}"  class="bi bi-hourglass-split"   style="font-size:.7rem;"></i>
+                                <i th:if="${item.status == 'PENDING'}"  class="bi bi-clock"              style="font-size:.7rem;"></i>
+                                <span th:text="${item.status}"></span>
+                            </span>
+                        </td>
+                        <td class="text-end" style="padding-right:16px;white-space:nowrap;">
+                            <a th:href="@{/receivable/{id}/edit(id=${item.id})}" class="btn btn-sm btn-outline-warning me-1"><i class="bi bi-pencil-fill"></i></a>
+                            <form th:action="@{/receivable/{id}/delete(id=${item.id})}" method="post" class="d-inline"
+                                  data-confirm="Delete this transaction?">
+                                <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash-fill"></i></button>
+                            </form>
+                        </td>
+                    </tr>
+
+                </th:block>
+
+                <tr id="rvEmpty" style="display:none;">
+                    <td colspan="9" class="text-center py-5 text-muted">
+                        <i class="bi bi-inbox d-block mb-2" style="font-size:2rem;opacity:.3;"></i>No records match
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(items)}">
+                    <td colspan="9" class="text-center py-5">
+                        <i class="bi bi-arrow-down-circle d-block mb-2" style="font-size:2.5rem;color:#bbf7d0;"></i>
+                        <div class="fw-semibold text-muted">No receivable transactions yet</div>
+                        <p class="text-muted small mb-3">Record all incoming payments — donations, ticket sales, hall hire income.</p>
+                        <a th:href="@{/receivable/new}" class="btn btn-sm" style="border-radius:20px;background:#059669;color:#fff;border:0;">
+                            <i class="bi bi-plus-lg me-1"></i>Add Receivable
+                        </a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</div>
+<th:block layout:fragment="page-scripts"><script>
+var rvf='all';
+function rvfilter(s,p){rvf=s;document.querySelectorAll('.fp').forEach(x=>x.classList.remove('fa'));p.classList.add('fa');rvdof();}
+function rvsearch(q){rvdof(q);}
+function rvdof(q){
+    q=(q!==undefined?q:document.getElementById('rvSearch').value).toLowerCase();
+    var rows=document.querySelectorAll('#rvTable tbody tr.rv-row');
+    var visibleGroups={};
+    var v=0;
+    rows.forEach(function(r){
+        var ok=(rvf==='all'||r.dataset.s===rvf)&&(!q||r.dataset.q.includes(q));
+        r.style.display=ok?'':'none';
+        if(ok){v++;visibleGroups[r.dataset.grp]=true;}
+    });
+    document.querySelectorAll('#rvTable tbody tr.org-group-row').forEach(function(h){
+        h.style.display=visibleGroups[h.dataset.grp]?'':'none';
+    });
+    document.getElementById('rvEmpty').style.display=v===0&&rows.length>0?'':'none';
+}
+</script></th:block>
+</body></html>

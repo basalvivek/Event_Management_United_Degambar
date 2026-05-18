@@ -90,6 +90,69 @@ public class PaymentRecord {
         return r;
     }
 
+    public static PaymentRecord fromSponsorInstalment(SponsorDonation s, PaymentInstalment inst, BigDecimal pendingAfterThis) {
+        PaymentRecord r = new PaymentRecord();
+        r.sourceId         = s.getId();
+        r.source           = "Sponsors";
+        r.sourceIcon       = "bi-building-fill";
+        r.sourceBadgeColor = "#7c3aed";
+        r.orgName          = s.getSponsorOrgName();
+        r.personName       = s.getSponsorName();
+        r.paymentMode      = inst.getPaymentMode();
+        r.paymentDate      = inst.getPaymentDate();
+        r.committedAmount  = s.getCommittedAmount();
+        r.donatedAmount    = inst.getAmount();
+        r.pendingAmount    = pendingAfterThis.compareTo(BigDecimal.ZERO) < 0 ? BigDecimal.ZERO : pendingAfterThis;
+        r.status           = "Received";
+        r.remark           = inst.getNotes();
+        r.editUrl          = "/finance/sponsors/" + s.getId() + "/edit";
+        return r;
+    }
+
+    public static PaymentRecord fromOrgDonationInstalment(com.udjcs.payment.Payment p, PaymentInstalment inst, BigDecimal pendingAfterThis) {
+        PaymentRecord r = new PaymentRecord();
+        r.sourceId         = p.getId();
+        boolean isMember   = p.getMember() != null;
+        r.source           = isMember ? "Member" : "Organisation";
+        r.sourceIcon       = isMember ? "bi-person-fill" : "bi-building-fill";
+        r.sourceBadgeColor = isMember ? "#0ea5e9" : "#6366f1";
+        r.orgName          = p.getSupportiveOrganization() != null ? p.getSupportiveOrganization().getName() : "—";
+        r.personName       = isMember
+                ? p.getMember().getFirstName() + " " + p.getMember().getLastName()
+                : "By Organisation";
+        r.paymentMode      = inst.getPaymentMode();
+        r.paymentDate      = inst.getPaymentDate();
+        r.committedAmount  = p.getCommittedAmount() != null ? p.getCommittedAmount() : BigDecimal.ZERO;
+        r.donatedAmount    = inst.getAmount();
+        r.pendingAmount    = pendingAfterThis.compareTo(BigDecimal.ZERO) < 0 ? BigDecimal.ZERO : pendingAfterThis;
+        r.status           = "Received";
+        r.remark           = inst.getNotes();
+        r.editUrl          = "/finance/org-donations/" + p.getId() + "/edit";
+        return r;
+    }
+
+    public static PaymentRecord fromTicketInstalment(com.udjcs.ticket.EventTicket t, PaymentInstalment inst, BigDecimal pendingAfterThis) {
+        PaymentRecord r = new PaymentRecord();
+        r.sourceId         = t.getId();
+        r.source           = "Members";
+        r.sourceIcon       = "bi-ticket-perforated-fill";
+        r.sourceBadgeColor = "#10b981";
+        r.orgName          = t.getEvent() != null ? t.getEvent().getEventName() : "—";
+        r.personName       = t.getMember() != null
+                ? t.getMember().getFirstName() + " " + t.getMember().getLastName() : "—";
+        r.paymentMode      = inst.getPaymentMode();
+        r.paymentDate      = inst.getPaymentDate();
+        BigDecimal total     = t.getTotalAmount()    != null ? BigDecimal.valueOf(t.getTotalAmount())    : BigDecimal.ZERO;
+        BigDecimal committed = t.getCommittedAmount() != null ? BigDecimal.valueOf(t.getCommittedAmount()) : total;
+        r.committedAmount  = committed;
+        r.donatedAmount    = inst.getAmount();
+        r.pendingAmount    = pendingAfterThis.compareTo(BigDecimal.ZERO) < 0 ? BigDecimal.ZERO : pendingAfterThis;
+        r.status           = "Received";
+        r.remark           = inst.getNotes();
+        r.editUrl          = "/finance/tickets/" + t.getId() + "/edit";
+        return r;
+    }
+
     public static PaymentRecord fromInvitationReg(com.udjcs.invitation.InvitationRegistration reg) {
         PaymentRecord r = new PaymentRecord();
         r.sourceId         = reg.getId();

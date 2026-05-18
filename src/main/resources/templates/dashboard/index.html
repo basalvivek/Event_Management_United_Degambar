@@ -8,459 +8,554 @@
 <th:block layout:fragment="page-title">Dashboard</th:block>
 
 <div layout:fragment="content">
-
 <style>
-.kpi-card { border-radius:16px; border:none; overflow:hidden; transition:transform 0.2s,box-shadow 0.2s; }
-.kpi-card:hover { transform:translateY(-3px); box-shadow:0 8px 30px rgba(0,0,0,0.12)!important; }
-.kpi-icon { width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0; }
-.section-label { font-size:0.68rem;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:#94a3b8;margin-bottom:14px; }
-.revenue-card { border-radius:16px;border:none;overflow:hidden;transition:transform 0.2s,box-shadow 0.2s; }
-.revenue-card:hover { transform:translateY(-3px);box-shadow:0 8px 30px rgba(0,0,0,0.14)!important; }
-.data-panel { border-radius:16px;border:none; }
-.data-panel .card-header { padding:16px 20px;border-bottom:1px solid #f1f5f9; background:#fff!important;border-radius:16px 16px 0 0!important; }
-.data-panel .table td,.data-panel .table th { padding:11px 16px;vertical-align:middle; }
-.data-panel .table thead th { font-size:0.7rem;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:#94a3b8;border-bottom:1px solid #f1f5f9; }
-.data-panel .table tbody td { font-size:0.82rem;border-bottom:1px solid #f8fafc;color:#374151; }
-.data-panel .table tbody tr:last-child td { border-bottom:none; }
-.data-panel .table tbody tr:hover td { background:#fafbfc; }
-.quick-btn { border-radius:12px;padding:14px 10px;text-align:center;text-decoration:none;display:flex;flex-direction:column;align-items:center;gap:6px;transition:all 0.18s;border:1.5px solid transparent; }
-.quick-btn:hover { transform:translateY(-2px); }
+/* ── Hero ── */
+.db-hero {
+    border-radius: 20px;
+    background: linear-gradient(135deg, #1e1b4b 0%, #4f46e5 45%, #7c3aed 100%);
+    padding: 28px 32px;
+    margin-bottom: 1.25rem;
+    position: relative; overflow: hidden;
+    box-shadow: 0 8px 32px rgba(79,70,229,0.28);
+}
+.db-hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M50 50c0-5.523 4.477-10 10-10s10 4.477 10 10-4.477 10-10 10c0 5.523-4.477 10-10 10s-10-4.477-10-10 4.477-10 10-10zM10 10c0-5.523 4.477-10 10-10s10 4.477 10 10-4.477 10-10 10c0 5.523-4.477 10-10 10S0 25.523 0 20s4.477-10 10-10z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+.db-hero-logo {
+    width: 56px; height: 56px; border-radius: 14px;
+    object-fit: contain;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.25), 0 0 0 2px rgba(255,255,255,0.2);
+    flex-shrink: 0; position: relative; z-index: 1;
+}
+.db-hero-title { color: #fff; font-weight: 800; font-size: 1.15rem; line-height: 1.3; position: relative; z-index: 1; }
+.db-hero-sub   { color: rgba(255,255,255,0.65); font-size: 0.78rem; margin-top: 3px; position: relative; z-index: 1; }
+.db-hero-stat {
+    text-align: center; padding: 12px 20px; border-radius: 12px;
+    background: rgba(255,255,255,0.12); backdrop-filter: blur(4px);
+    position: relative; z-index: 1; min-width: 80px;
+}
+.db-hero-stat .val { color: #fff; font-weight: 900; font-size: 1.5rem; line-height: 1.1; font-family: monospace; }
+.db-hero-stat .lbl { color: rgba(255,255,255,0.65); font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.8px; margin-top: 2px; }
+
+/* ── Pending alert ── */
+.pending-alert {
+    border-radius: 14px;
+    background: linear-gradient(90deg, #fff7ed, #fffbeb);
+    border: 1.5px solid #fed7aa;
+    padding: 14px 20px;
+    display: flex; align-items: center; gap: 14px;
+    text-decoration: none;
+    transition: box-shadow 0.15s;
+    margin-bottom: 1.25rem;
+}
+.pending-alert:hover { box-shadow: 0 4px 18px rgba(249,115,22,0.18); }
+
+/* ── Section label ── */
+.sec-lbl { font-size: 0.65rem; font-weight: 800; letter-spacing: 1.4px; text-transform: uppercase; color: #94a3b8; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+.sec-lbl::after { content: ''; flex: 1; height: 1px; background: #e2e8f0; }
+
+/* ── KPI cards ── */
+.kpi { border-radius: 14px; border: 1.5px solid #e2e8f0; background: #fff; padding: 18px 20px; box-shadow: 0 1px 8px rgba(0,0,0,0.04); transition: transform 0.15s, box-shadow 0.15s; position: relative; overflow: hidden; }
+.kpi:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(0,0,0,0.1); }
+.kpi-accent { position: absolute; top: 0; left: 0; right: 0; height: 3px; border-radius: 14px 14px 0 0; }
+.kpi-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; }
+.kpi-val  { font-size: 2rem; font-weight: 900; color: #0f172a; line-height: 1; }
+.kpi-lbl  { font-size: 0.73rem; font-weight: 600; color: #64748b; margin-bottom: 4px; }
+.kpi-sub  { font-size: 0.68rem; color: #94a3b8; margin-top: 6px; }
+
+/* ── Finance cards ── */
+.fin-card {
+    border-radius: 16px; border: none; padding: 20px 22px;
+    transition: transform 0.15s, box-shadow 0.15s;
+    position: relative; overflow: hidden;
+}
+.fin-card:hover { transform: translateY(-3px); box-shadow: 0 10px 32px rgba(0,0,0,0.2); }
+.fin-card::before {
+    content: ''; position: absolute; right: -20px; bottom: -20px;
+    width: 100px; height: 100px; border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+}
+.fin-card .amount { font-size: 1.75rem; font-weight: 900; color: #fff; line-height: 1.1; font-family: monospace; }
+.fin-card .label  { font-size: 0.78rem; color: rgba(255,255,255,0.75); font-weight: 600; margin: 6px 0 10px; }
+.fin-pill { background: rgba(255,255,255,0.18); color: #fff; border-radius: 20px; padding: 3px 10px; font-size: 0.67rem; font-weight: 700; display: inline-block; }
+
+/* ── Data panels ── */
+.dp { border-radius: 16px; border: 1.5px solid #e2e8f0; background: #fff; box-shadow: 0 1px 8px rgba(0,0,0,0.04); overflow: hidden; }
+.dp-head { padding: 14px 18px; border-bottom: 1.5px solid #f1f5f9; display: flex; align-items: center; justify-content: space-between; }
+.dp-head-icon { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; flex-shrink: 0; }
+.dp table th { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: #94a3b8; padding: 10px 16px; border-bottom: 1px solid #f1f5f9; }
+.dp table td { font-size: 0.82rem; padding: 10px 16px; border-bottom: 1px solid #f8fafc; color: #374151; vertical-align: middle; }
+.dp table tbody tr:last-child td { border-bottom: none; }
+.dp table tbody tr:hover td { background: #fafbfc; }
+
+/* ── Quick launch grid ── */
+.ql-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; }
+.ql-btn {
+    border-radius: 14px; padding: 16px 10px; text-align: center;
+    text-decoration: none; display: flex; flex-direction: column; align-items: center; gap: 8px;
+    border: 1.5px solid transparent; transition: all 0.18s;
+}
+.ql-btn:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.12); }
+.ql-btn-icon { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.05rem; }
+.ql-btn span { font-size: 0.7rem; font-weight: 700; line-height: 1.3; }
 </style>
 
-    <!-- ══ WELCOME BANNER ══ -->
-    <div class="card border-0 shadow-sm mb-4"
-         style="border-radius:16px;background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 50%,#6d28d9 100%);overflow:hidden;">
-        <div class="card-body px-4 py-3 d-flex align-items-center justify-content-between flex-wrap gap-3">
-            <div class="d-flex align-items-center gap-3">
-                <div class="d-flex align-items-center justify-content-center rounded-3 flex-shrink-0"
-                     style="width:48px;height:48px;background:rgba(255,255,255,0.15);backdrop-filter:blur(4px);">
-                    <i class="bi bi-speedometer2 text-white" style="font-size:1.4rem;"></i>
-                </div>
-                <div>
-                    <div class="fw-bold text-white" style="font-size:1.05rem;">United Digambar Jain Community</div>
-                    <div style="font-size:0.78rem;color:rgba(255,255,255,0.72);">
-                        Trust Management System &nbsp;·&nbsp;
-                        <span th:text="${#temporals.format(#temporals.createNow(),'dd MMMM yyyy')}"></span>
-                    </div>
-                </div>
+<!-- ══ HERO BANNER ══ -->
+<div class="db-hero">
+    <div class="d-flex align-items-center gap-4 flex-wrap">
+        <img th:if="${siteOrg != null and siteOrg.logoData != null}"
+             th:src="@{/organization/{id}/logo(id=${siteOrg.id})}"
+             class="db-hero-logo" alt="Logo">
+        <img th:unless="${siteOrg != null and siteOrg.logoData != null}"
+             th:src="@{/images/logo.jpeg}"
+             class="db-hero-logo" alt="Logo">
+        <div class="flex-grow-1">
+            <div class="db-hero-title" th:text="${siteOrgName}">United Digambar Jain Community</div>
+            <div class="db-hero-sub">
+                Trust Management System &nbsp;·&nbsp;
+                <span th:text="${#temporals.format(#temporals.createNow(),'EEEE, dd MMMM yyyy')}"></span>
             </div>
-            <div class="d-flex gap-3 flex-wrap">
-                <div class="text-center px-3 py-2 rounded-3" style="background:rgba(255,255,255,0.15);">
-                    <div class="fw-black text-white" style="font-size:1.3rem;" th:text="${totalMembers}">0</div>
-                    <div style="font-size:0.65rem;color:rgba(255,255,255,0.72);text-transform:uppercase;letter-spacing:0.8px;">Members</div>
-                </div>
-                <div class="text-center px-3 py-2 rounded-3" style="background:rgba(255,255,255,0.15);">
-                    <div class="fw-black text-white" style="font-size:1.3rem;" th:text="${totalEvents}">0</div>
-                    <div style="font-size:0.65rem;color:rgba(255,255,255,0.72);text-transform:uppercase;letter-spacing:0.8px;">Events</div>
-                </div>
-                <div class="text-center px-3 py-2 rounded-3" style="background:rgba(255,255,255,0.15);">
-                    <div class="fw-black text-white" style="font-size:1.3rem;"
-                         th:text="${'£' + #numbers.formatDecimal(totalFunds, 1, 'COMMA', 0, 'POINT')}">£0</div>
-                    <div style="font-size:0.65rem;color:rgba(255,255,255,0.72);text-transform:uppercase;letter-spacing:0.8px;">Total Funds</div>
-                </div>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            <div class="db-hero-stat">
+                <div class="val" th:text="${totalMembers}">0</div>
+                <div class="lbl">Members</div>
+            </div>
+            <div class="db-hero-stat">
+                <div class="val" th:text="${totalEvents}">0</div>
+                <div class="lbl">Events</div>
+            </div>
+            <div class="db-hero-stat">
+                <div class="val" th:text="${'£' + #numbers.formatDecimal(totalFunds,1,'COMMA',0,'POINT')}">£0</div>
+                <div class="lbl">Donated</div>
+            </div>
+            <div class="db-hero-stat">
+                <div class="val" th:text="${'£' + #numbers.formatDecimal(totalReceivable,1,'COMMA',0,'POINT')}">£0</div>
+                <div class="lbl">Receivable</div>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- ══ PENDING ALERT ══ -->
-    <div th:if="${pendingApprovals > 0}" class="mb-4">
-        <a th:href="@{/members/pending}" class="text-decoration-none">
-            <div class="d-flex align-items-center gap-3 px-4 py-3 rounded-3 shadow-sm"
-                 style="background:linear-gradient(90deg,#fff7ed,#fffbeb);border:1.5px solid #fed7aa;">
-                <div class="d-flex align-items-center justify-content-center rounded-3 flex-shrink-0"
-                     style="width:44px;height:44px;background:linear-gradient(135deg,#f97316,#ea580c);">
-                    <i class="bi bi-person-exclamation text-white" style="font-size:1.2rem;"></i>
-                </div>
-                <div class="flex-grow-1">
-                    <div class="fw-bold" style="font-size:0.92rem;color:#9a3412;">
-                        <span th:text="${pendingApprovals}"></span>
-                        Member<span th:if="${pendingApprovals > 1}">s</span> Awaiting Approval
-                    </div>
-                    <div style="font-size:0.75rem;color:#c2410c;">Click to review and authorise pending registrations</div>
-                </div>
-                <span class="badge rounded-pill px-3 py-2" style="background:#f97316;font-size:0.72rem;">
-                    Review Now <i class="bi bi-arrow-right ms-1"></i>
+<!-- ══ PENDING APPROVAL ALERT ══ -->
+<a th:if="${pendingApprovals > 0}" th:href="@{/members/pending}" class="pending-alert d-block">
+    <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#f97316,#ea580c);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <i class="bi bi-person-exclamation text-white" style="font-size:1.2rem;"></i>
+    </div>
+    <div class="flex-grow-1">
+        <div class="fw-bold" style="font-size:0.9rem;color:#9a3412;">
+            <span th:text="${pendingApprovals}"></span>
+            Member<span th:if="${pendingApprovals > 1}">s</span> Awaiting Approval
+        </div>
+        <div style="font-size:0.75rem;color:#c2410c;">Click to review and authorise pending registrations</div>
+    </div>
+    <span class="badge rounded-pill px-3 py-2" style="background:#f97316;color:#fff;font-size:0.72rem;white-space:nowrap;">
+        Review Now <i class="bi bi-arrow-right ms-1"></i>
+    </span>
+</a>
+
+<!-- ══ KPI ROW 1 — Community ══ -->
+<div class="sec-lbl mb-2 mt-3"><i class="bi bi-people-fill" style="color:#3b82f6;"></i>Community</div>
+<div class="row g-3 mb-3">
+
+    <div class="col-6 col-sm-4 col-lg-2">
+        <a th:href="@{/members}" class="text-decoration-none d-block h-100">
+        <div class="kpi h-100">
+            <div class="kpi-accent" style="background:#3b82f6;"></div>
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div class="kpi-icon" style="background:#eff6ff;"><i class="bi bi-people-fill" style="color:#3b82f6;"></i></div>
+            </div>
+            <div class="kpi-lbl">Total Members</div>
+            <div class="kpi-val" th:text="${totalMembers}">0</div>
+            <div class="kpi-sub">
+                <span style="color:#059669;"><i class="bi bi-check-circle-fill me-1" style="font-size:0.6rem;"></i><span th:text="${activeMembers}"></span> active</span>
+                <span th:if="${pendingApprovals > 0}" style="color:#f59e0b;" class="ms-2">
+                    <i class="bi bi-hourglass-split me-1" style="font-size:0.6rem;"></i><span th:text="${pendingApprovals}"></span> pending
                 </span>
             </div>
+        </div>
         </a>
     </div>
 
-    <!-- ══ KPI CARDS ══ -->
-    <div class="section-label"><i class="bi bi-bar-chart-line me-2"></i>Key Metrics</div>
-    <div class="row g-3 mb-4">
-
-        <div class="col-sm-6 col-xl-3">
-            <div class="card kpi-card shadow-sm" style="border-top:3px solid #3b82f6;">
-                <div class="card-body p-4">
-                    <div class="d-flex align-items-start justify-content-between mb-3">
-                        <div>
-                            <div class="text-muted fw-semibold mb-1" style="font-size:0.78rem;">Total Members</div>
-                            <div style="font-size:2.2rem;font-weight:900;color:#0f172a;line-height:1;"
-                                 th:text="${totalMembers}">0</div>
-                        </div>
-                        <div class="kpi-icon" style="background:#eff6ff;">
-                            <i class="bi bi-people-fill" style="color:#3b82f6;"></i>
-                        </div>
-                    </div>
-                    <div class="d-flex align-items-center gap-2">
-                        <span class="badge rounded-pill" style="background:#dbeafe;color:#1d4ed8;font-size:0.7rem;padding:4px 10px;">
-                            <i class="bi bi-check-circle me-1"></i><span th:text="${activeMembers}">0</span> Active
-                        </span>
-                        <span th:if="${pendingApprovals > 0}"
-                              class="badge rounded-pill" style="background:#fef3c7;color:#b45309;font-size:0.7rem;padding:4px 10px;">
-                            <i class="bi bi-hourglass-split me-1"></i><span th:text="${pendingApprovals}">0</span> Pending
-                        </span>
-                    </div>
-                </div>
+    <div class="col-6 col-sm-4 col-lg-2">
+        <a th:href="@{/events}" class="text-decoration-none d-block h-100">
+        <div class="kpi h-100">
+            <div class="kpi-accent" style="background:#f59e0b;"></div>
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div class="kpi-icon" style="background:#fffbeb;"><i class="bi bi-calendar-event-fill" style="color:#f59e0b;"></i></div>
+            </div>
+            <div class="kpi-lbl">Total Events</div>
+            <div class="kpi-val" th:text="${totalEvents}">0</div>
+            <div class="kpi-sub">
+                <span style="color:#d97706;"><i class="bi bi-arrow-up-right me-1" style="font-size:0.6rem;"></i><span th:text="${upcomingEventCount}"></span> upcoming</span>
             </div>
         </div>
-
-        <div class="col-sm-6 col-xl-3">
-            <div class="card kpi-card shadow-sm" style="border-top:3px solid #f59e0b;">
-                <div class="card-body p-4">
-                    <div class="d-flex align-items-start justify-content-between mb-3">
-                        <div>
-                            <div class="text-muted fw-semibold mb-1" style="font-size:0.78rem;">Total Events</div>
-                            <div style="font-size:2.2rem;font-weight:900;color:#0f172a;line-height:1;"
-                                 th:text="${totalEvents}">0</div>
-                        </div>
-                        <div class="kpi-icon" style="background:#fffbeb;">
-                            <i class="bi bi-calendar-event-fill" style="color:#f59e0b;"></i>
-                        </div>
-                    </div>
-                    <div class="d-flex align-items-center gap-2">
-                        <span class="badge rounded-pill" style="background:#fef3c7;color:#b45309;font-size:0.7rem;padding:4px 10px;">
-                            <i class="bi bi-arrow-up-right me-1"></i><span th:text="${upcomingEventCount}">0</span> Upcoming
-                        </span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-sm-6 col-xl-3">
-            <div class="card kpi-card shadow-sm" style="border-top:3px solid #8b5cf6;">
-                <div class="card-body p-4">
-                    <div class="d-flex align-items-start justify-content-between mb-3">
-                        <div>
-                            <div class="text-muted fw-semibold mb-1" style="font-size:0.78rem;">Total Activities</div>
-                            <div style="font-size:2.2rem;font-weight:900;color:#0f172a;line-height:1;"
-                                 th:text="${totalActivities}">0</div>
-                        </div>
-                        <div class="kpi-icon" style="background:#f5f3ff;">
-                            <i class="bi bi-list-task" style="color:#8b5cf6;"></i>
-                        </div>
-                    </div>
-                    <div class="d-flex align-items-center gap-2">
-                        <span class="badge rounded-pill" style="background:#ede9fe;color:#5b21b6;font-size:0.7rem;padding:4px 10px;">
-                            <i class="bi bi-activity me-1"></i><span th:text="${activeActivities}">0</span> Active
-                        </span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-sm-6 col-xl-3">
-            <div class="card kpi-card shadow-sm" style="border-top:3px solid #10b981;">
-                <div class="card-body p-4">
-                    <div class="d-flex align-items-start justify-content-between mb-3">
-                        <div>
-                            <div class="text-muted fw-semibold mb-1" style="font-size:0.78rem;">Total Funds Received</div>
-                            <div style="font-size:1.6rem;font-weight:900;color:#0f172a;line-height:1.2;"
-                                 th:text="${'£' + #numbers.formatDecimal(totalFunds, 1, 'COMMA', 2, 'POINT')}">£0.00</div>
-                        </div>
-                        <div class="kpi-icon" style="background:#ecfdf5;">
-                            <i class="bi bi-currency-pound" style="color:#10b981;"></i>
-                        </div>
-                    </div>
-                    <div class="d-flex align-items-center gap-2">
-                        <span class="badge rounded-pill" style="background:#d1fae5;color:#065f46;font-size:0.7rem;padding:4px 10px;">
-                            <i class="bi bi-buildings me-1"></i><span th:text="${totalOrgs}">0</span> Supporters
-                        </span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
+        </a>
     </div>
 
-    <!-- ══ FINANCIAL BREAKDOWN ══ -->
-    <div class="section-label"><i class="bi bi-pie-chart me-2"></i>Financial Collection Breakdown</div>
-    <div class="row g-3 mb-4">
-
-        <div class="col-md-4">
-            <a th:href="@{/payments}" class="text-decoration-none">
-                <div class="revenue-card card shadow-sm h-100"
-                     style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);">
-                    <div class="card-body p-4">
-                        <div class="d-flex align-items-center justify-content-between mb-3">
-                            <div class="d-flex align-items-center justify-content-center rounded-3"
-                                 style="width:44px;height:44px;background:rgba(255,255,255,0.18);">
-                                <i class="bi bi-buildings-fill text-white" style="font-size:1.2rem;"></i>
-                            </div>
-                            <i class="bi bi-arrow-up-right-circle-fill" style="font-size:1.1rem;color:rgba(255,255,255,0.4);"></i>
-                        </div>
-                        <div class="fw-black text-white mb-1"
-                             style="font-size:1.8rem;line-height:1;"
-                             th:text="${'£' + #numbers.formatDecimal(orgDonationTotal, 1, 'COMMA', 2, 'POINT')}">£0.00</div>
-                        <div style="font-size:0.8rem;color:rgba(255,255,255,0.75);font-weight:600;margin-bottom:12px;">Organisation Donation</div>
-                        <div class="d-flex align-items-center gap-2">
-                            <span class="badge rounded-pill" style="background:rgba(255,255,255,0.2);color:#fff;font-size:0.68rem;padding:4px 10px;">
-                                <i class="bi bi-receipt me-1"></i>
-                                <span th:text="${orgDonationCount}">0</span> record<span th:if="${orgDonationCount != 1}">s</span>
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </a>
+    <div class="col-6 col-sm-4 col-lg-2">
+        <a th:href="@{/supportive}" class="text-decoration-none d-block h-100">
+        <div class="kpi h-100">
+            <div class="kpi-accent" style="background:#6366f1;"></div>
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div class="kpi-icon" style="background:#eef2ff;"><i class="bi bi-building-fill" style="color:#4f46e5;"></i></div>
+            </div>
+            <div class="kpi-lbl">Supporter Orgs</div>
+            <div class="kpi-val" th:text="${totalOrgs}">0</div>
+            <div class="kpi-sub"><span style="color:#4f46e5;">Charitable organisations</span></div>
         </div>
-
-        <div class="col-md-4">
-            <a th:href="@{/payments}" class="text-decoration-none">
-                <div class="revenue-card card shadow-sm h-100"
-                     style="background:linear-gradient(135deg,#059669 0%,#047857 100%);">
-                    <div class="card-body p-4">
-                        <div class="d-flex align-items-center justify-content-between mb-3">
-                            <div class="d-flex align-items-center justify-content-center rounded-3"
-                                 style="width:44px;height:44px;background:rgba(255,255,255,0.18);">
-                                <i class="bi bi-person-heart text-white" style="font-size:1.2rem;"></i>
-                            </div>
-                            <i class="bi bi-arrow-up-right-circle-fill" style="font-size:1.1rem;color:rgba(255,255,255,0.4);"></i>
-                        </div>
-                        <div class="fw-black text-white mb-1"
-                             style="font-size:1.8rem;line-height:1;"
-                             th:text="${'£' + #numbers.formatDecimal(memberDonationTotal, 1, 'COMMA', 2, 'POINT')}">£0.00</div>
-                        <div style="font-size:0.8rem;color:rgba(255,255,255,0.75);font-weight:600;margin-bottom:12px;">Member Donation</div>
-                        <div class="d-flex align-items-center gap-2">
-                            <span class="badge rounded-pill" style="background:rgba(255,255,255,0.2);color:#fff;font-size:0.68rem;padding:4px 10px;">
-                                <i class="bi bi-receipt me-1"></i>
-                                <span th:text="${memberDonationCount}">0</span> record<span th:if="${memberDonationCount != 1}">s</span>
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </a>
-        </div>
-
-        <div class="col-md-4">
-            <a th:href="@{/ticket-payments}" class="text-decoration-none">
-                <div class="revenue-card card shadow-sm h-100"
-                     style="background:linear-gradient(135deg,#d97706 0%,#b45309 100%);">
-                    <div class="card-body p-4">
-                        <div class="d-flex align-items-center justify-content-between mb-3">
-                            <div class="d-flex align-items-center justify-content-center rounded-3"
-                                 style="width:44px;height:44px;background:rgba(255,255,255,0.18);">
-                                <i class="bi bi-ticket-perforated-fill text-white" style="font-size:1.2rem;"></i>
-                            </div>
-                            <i class="bi bi-arrow-up-right-circle-fill" style="font-size:1.1rem;color:rgba(255,255,255,0.4);"></i>
-                        </div>
-                        <div class="fw-black text-white mb-1"
-                             style="font-size:1.8rem;line-height:1;"
-                             th:text="${'£' + ticketTotal}">£0</div>
-                        <div style="font-size:0.8rem;color:rgba(255,255,255,0.75);font-weight:600;margin-bottom:12px;">Event Ticket Collection</div>
-                        <div class="d-flex align-items-center gap-2">
-                            <span class="badge rounded-pill" style="background:rgba(255,255,255,0.2);color:#fff;font-size:0.68rem;padding:4px 10px;">
-                                <i class="bi bi-check2-circle me-1"></i>
-                                <span th:text="${ticketCount}">0</span> accepted booking<span th:if="${ticketCount != 1}">s</span>
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </a>
-        </div>
-
+        </a>
     </div>
 
-    <!-- ══ DATA PANELS ══ -->
-    <div class="section-label"><i class="bi bi-calendar2-week me-2"></i>Schedule Overview</div>
-    <div class="row g-3 mb-4">
-
-        <!-- Upcoming Events -->
-        <div class="col-lg-6">
-            <div class="card data-panel shadow-sm h-100">
-                <div class="card-header d-flex align-items-center justify-content-between">
-                    <div class="d-flex align-items-center gap-2">
-                        <div class="d-flex align-items-center justify-content-center rounded-2 flex-shrink-0"
-                             style="width:30px;height:30px;background:#fffbeb;">
-                            <i class="bi bi-calendar-event-fill" style="color:#f59e0b;font-size:0.85rem;"></i>
-                        </div>
-                        <span class="fw-bold" style="font-size:0.87rem;color:#0f172a;">Upcoming Events</span>
-                        <span th:if="${not #lists.isEmpty(upcomingEvents)}"
-                              class="badge rounded-pill" style="background:#fef3c7;color:#b45309;font-size:0.67rem;"
-                              th:text="${#lists.size(upcomingEvents)}"></span>
-                    </div>
-                    <a th:href="@{/events}" class="btn btn-sm btn-outline-warning" style="font-size:0.72rem;padding:3px 12px;border-radius:20px;">
-                        View All <i class="bi bi-arrow-right ms-1"></i>
-                    </a>
-                </div>
-                <div class="card-body p-0">
-                    <table class="table mb-0">
-                        <thead>
-                            <tr>
-                                <th>Event</th>
-                                <th>Date</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr th:each="ev : ${upcomingEvents}">
-                                <td>
-                                    <div class="fw-semibold" style="color:#1e293b;" th:text="${ev.eventName}"></div>
-                                    <div class="text-muted" style="font-size:0.72rem;" th:text="${ev.eventType}"></div>
-                                </td>
-                                <td>
-                                    <div style="font-size:0.82rem;" th:text="${#temporals.format(ev.eventDate,'dd MMM yyyy')}"></div>
-                                </td>
-                                <td>
-                                    <span class="badge rounded-pill"
-                                          th:text="${ev.status}"
-                                          th:style="${ev.status == 'Active'} ? 'background:#d1fae5;color:#065f46;' :
-                                                    (${ev.status == 'Planned'} ? 'background:#dbeafe;color:#1d4ed8;' :
-                                                    'background:#f1f5f9;color:#475569;')"
-                                          style="font-size:0.7rem;padding:4px 10px;"></span>
-                                </td>
-                            </tr>
-                            <tr th:if="${#lists.isEmpty(upcomingEvents)}">
-                                <td colspan="3" class="text-center py-5">
-                                    <i class="bi bi-calendar-x d-block mb-2" style="font-size:2rem;color:#cbd5e1;"></i>
-                                    <span class="text-muted" style="font-size:0.82rem;">No upcoming events scheduled</span>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+    <div class="col-6 col-sm-4 col-lg-2">
+        <a th:href="@{/activities}" class="text-decoration-none d-block h-100">
+        <div class="kpi h-100">
+            <div class="kpi-accent" style="background:#7c3aed;"></div>
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div class="kpi-icon" style="background:#f5f3ff;"><i class="bi bi-list-task" style="color:#7c3aed;"></i></div>
+            </div>
+            <div class="kpi-lbl">Activities</div>
+            <div class="kpi-val" th:text="${totalActivities}">0</div>
+            <div class="kpi-sub">
+                <span style="color:#7c3aed;"><span th:text="${activeActivities}"></span> active</span>
             </div>
         </div>
+        </a>
+    </div>
 
-        <!-- Upcoming Rehearsals -->
-        <div class="col-lg-6">
-            <div class="card data-panel shadow-sm h-100">
-                <div class="card-header d-flex align-items-center justify-content-between">
-                    <div class="d-flex align-items-center gap-2">
-                        <div class="d-flex align-items-center justify-content-center rounded-2 flex-shrink-0"
-                             style="width:30px;height:30px;background:#f5f3ff;">
-                            <i class="bi bi-clock-history" style="color:#8b5cf6;font-size:0.85rem;"></i>
-                        </div>
-                        <span class="fw-bold" style="font-size:0.87rem;color:#0f172a;">Upcoming Rehearsals</span>
-                        <span th:if="${not #lists.isEmpty(upcomingRehearsals)}"
-                              class="badge rounded-pill" style="background:#ede9fe;color:#5b21b6;font-size:0.67rem;"
-                              th:text="${#lists.size(upcomingRehearsals)}"></span>
-                    </div>
-                    <a th:href="@{/rehearsals}" class="btn btn-sm btn-outline-secondary" style="font-size:0.72rem;padding:3px 12px;border-radius:20px;border-color:#8b5cf6;color:#7c3aed;">
-                        View All <i class="bi bi-arrow-right ms-1"></i>
-                    </a>
-                </div>
-                <div class="card-body p-0">
-                    <table class="table mb-0">
-                        <thead>
-                            <tr>
-                                <th>Activity</th>
-                                <th>Date</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr th:each="rh : ${upcomingRehearsals}">
-                                <td>
-                                    <div class="fw-semibold" style="color:#1e293b;" th:text="${rh.activity.activityName}"></div>
-                                    <div class="text-muted" style="font-size:0.72rem;"
-                                         th:text="${rh.startTime != null ? rh.startTime : '—'}"></div>
-                                </td>
-                                <td>
-                                    <div style="font-size:0.82rem;" th:text="${#temporals.format(rh.rehearsalDate,'dd MMM yyyy')}"></div>
-                                </td>
-                                <td>
-                                    <span class="badge rounded-pill"
-                                          th:text="${rh.status}"
-                                          th:style="${rh.status == 'Scheduled'} ? 'background:#dbeafe;color:#1d4ed8;' :
-                                                    (${rh.status == 'Completed'} ? 'background:#d1fae5;color:#065f46;' :
-                                                    'background:#f1f5f9;color:#475569;')"
-                                          style="font-size:0.7rem;padding:4px 10px;"></span>
-                                </td>
-                            </tr>
-                            <tr th:if="${#lists.isEmpty(upcomingRehearsals)}">
-                                <td colspan="3" class="text-center py-5">
-                                    <i class="bi bi-clock d-block mb-2" style="font-size:2rem;color:#cbd5e1;"></i>
-                                    <span class="text-muted" style="font-size:0.82rem;">No upcoming rehearsals scheduled</span>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+    <div class="col-6 col-sm-4 col-lg-2">
+        <a th:href="@{/assignments}" class="text-decoration-none d-block h-100">
+        <div class="kpi h-100">
+            <div class="kpi-accent" style="background:#0ea5e9;"></div>
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div class="kpi-icon" style="background:#f0f9ff;"><i class="bi bi-person-lines-fill" style="color:#0ea5e9;"></i></div>
+            </div>
+            <div class="kpi-lbl">Assignments</div>
+            <div class="kpi-val" th:text="${totalAssignments}">0</div>
+            <div class="kpi-sub"><span style="color:#0ea5e9;">Member-activity links</span></div>
+        </div>
+        </a>
+    </div>
+
+    <div class="col-6 col-sm-4 col-lg-2">
+        <a th:href="@{/rehearsals}" class="text-decoration-none d-block h-100">
+        <div class="kpi h-100">
+            <div class="kpi-accent" style="background:#8b5cf6;"></div>
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div class="kpi-icon" style="background:#faf5ff;"><i class="bi bi-clock-history" style="color:#8b5cf6;"></i></div>
+            </div>
+            <div class="kpi-lbl">Rehearsals</div>
+            <div class="kpi-val" th:text="${totalRehearsals}">0</div>
+            <div class="kpi-sub"><span style="color:#8b5cf6;">Sessions logged</span></div>
+        </div>
+        </a>
+    </div>
+
+</div>
+
+<!-- ══ KPI ROW 2 — Registrations ══ -->
+<div class="sec-lbl mb-2"><i class="bi bi-clipboard-check" style="color:#059669;"></i>Registrations &amp; Bookings</div>
+<div class="row g-3 mb-4">
+
+    <div class="col-6 col-sm-4 col-lg-3">
+        <a th:href="@{/hall-registrations}" class="text-decoration-none d-block h-100">
+        <div class="kpi h-100">
+            <div class="kpi-accent" style="background:#0891b2;"></div>
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div class="kpi-icon" style="background:#ecfeff;"><i class="bi bi-building" style="color:#0891b2;"></i></div>
+            </div>
+            <div class="kpi-lbl">Hall Bookings</div>
+            <div class="kpi-val" th:text="${hallBookings}">0</div>
+            <div class="kpi-sub"><span style="color:#0891b2;">Hall hire registrations</span></div>
+        </div>
+        </a>
+    </div>
+
+    <div class="col-6 col-sm-4 col-lg-3">
+        <a th:href="@{/food-registrations}" class="text-decoration-none d-block h-100">
+        <div class="kpi h-100">
+            <div class="kpi-accent" style="background:#d97706;"></div>
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div class="kpi-icon" style="background:#fffbeb;"><i class="bi bi-cup-hot-fill" style="color:#d97706;"></i></div>
+            </div>
+            <div class="kpi-lbl">Food Registrations</div>
+            <div class="kpi-val" th:text="${foodRegistrations}">0</div>
+            <div class="kpi-sub"><span style="color:#d97706;">Catering vendors</span></div>
+        </div>
+        </a>
+    </div>
+
+    <div class="col-6 col-sm-4 col-lg-3">
+        <a th:href="@{/receivable}" class="text-decoration-none d-block h-100">
+        <div class="kpi h-100">
+            <div class="kpi-accent" style="background:#059669;"></div>
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div class="kpi-icon" style="background:#f0fdf4;"><i class="bi bi-arrow-down-circle-fill" style="color:#059669;"></i></div>
+            </div>
+            <div class="kpi-lbl">Receivable Records</div>
+            <div class="kpi-val" th:text="${receivableCount}">0</div>
+            <div class="kpi-sub">
+                <span style="color:#059669;font-family:monospace;font-weight:700;"
+                      th:text="'£' + ${#numbers.formatDecimal(totalReceivable,1,'COMMA',2,'POINT')}">£0.00</span> total
             </div>
         </div>
-
+        </a>
     </div>
 
-    <!-- ══ QUICK ACCESS ══ -->
-    <div class="section-label"><i class="bi bi-grid-3x3-gap me-2"></i>Quick Access</div>
-    <div class="row g-2">
-        <div class="col-6 col-sm-4 col-md-3 col-lg-2">
-            <a th:href="@{/members}" class="quick-btn h-100"
-               style="background:#eff6ff;border-color:#bfdbfe;"
-               onmouseover="this.style.background='#dbeafe';this.style.borderColor='#93c5fd';this.style.boxShadow='0 4px 16px rgba(59,130,246,0.18)'"
-               onmouseout="this.style.background='#eff6ff';this.style.borderColor='#bfdbfe';this.style.boxShadow=''">
-                <div class="rounded-3 d-flex align-items-center justify-content-center" style="width:40px;height:40px;background:#dbeafe;">
-                    <i class="bi bi-person-vcard" style="font-size:1.1rem;color:#2563eb;"></i>
-                </div>
-                <span style="font-size:0.72rem;font-weight:700;color:#1e3a5f;">Members</span>
-            </a>
+    <div class="col-6 col-sm-4 col-lg-3">
+        <a th:href="@{/invitations}" class="text-decoration-none d-block h-100">
+        <div class="kpi h-100">
+            <div class="kpi-accent" style="background:#6366f1;"></div>
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div class="kpi-icon" style="background:#eef2ff;"><i class="bi bi-envelope-paper-fill" style="color:#4f46e5;"></i></div>
+            </div>
+            <div class="kpi-lbl">Invitations</div>
+            <div class="kpi-val" th:text="${totalInvitations}">0</div>
+            <div class="kpi-sub"><span style="color:#4f46e5;">Event invitations sent</span></div>
         </div>
-        <div class="col-6 col-sm-4 col-md-3 col-lg-2">
-            <a th:href="@{/events}" class="quick-btn h-100"
-               style="background:#fffbeb;border-color:#fde68a;"
-               onmouseover="this.style.background='#fef3c7';this.style.borderColor='#fcd34d';this.style.boxShadow='0 4px 16px rgba(245,158,11,0.18)'"
-               onmouseout="this.style.background='#fffbeb';this.style.borderColor='#fde68a';this.style.boxShadow=''">
-                <div class="rounded-3 d-flex align-items-center justify-content-center" style="width:40px;height:40px;background:#fef3c7;">
-                    <i class="bi bi-calendar-event" style="font-size:1.1rem;color:#d97706;"></i>
+        </a>
+    </div>
+
+</div>
+
+<!-- ══ FINANCIAL BREAKDOWN ══ -->
+<div class="sec-lbl mb-2"><i class="bi bi-currency-pound" style="color:#059669;"></i>Financial Overview</div>
+<div class="row g-3 mb-4">
+
+    <div class="col-md-3">
+        <a th:href="@{/receivable}" class="text-decoration-none">
+        <div class="fin-card h-100" style="background:linear-gradient(135deg,#059669,#047857);">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <div style="width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,0.18);display:flex;align-items:center;justify-content:center;">
+                    <i class="bi bi-arrow-down-circle-fill text-white"></i>
                 </div>
-                <span style="font-size:0.72rem;font-weight:700;color:#78350f;">Events</span>
-            </a>
+                <i class="bi bi-arrow-up-right-circle-fill" style="color:rgba(255,255,255,0.35);font-size:1rem;"></i>
+            </div>
+            <div class="amount" th:text="${'£' + #numbers.formatDecimal(totalReceivable,1,'COMMA',2,'POINT')}">£0.00</div>
+            <div class="label">Total Receivable</div>
+            <span class="fin-pill"><span th:text="${receivableCount}"></span> records</span>
         </div>
-        <div class="col-6 col-sm-4 col-md-3 col-lg-2">
-            <a th:href="@{/payments}" class="quick-btn h-100"
-               style="background:#eef2ff;border-color:#c7d2fe;"
-               onmouseover="this.style.background='#e0e7ff';this.style.borderColor='#a5b4fc';this.style.boxShadow='0 4px 16px rgba(79,70,229,0.18)'"
-               onmouseout="this.style.background='#eef2ff';this.style.borderColor='#c7d2fe';this.style.boxShadow=''">
-                <div class="rounded-3 d-flex align-items-center justify-content-center" style="width:40px;height:40px;background:#e0e7ff;">
-                    <i class="bi bi-cash-stack" style="font-size:1.1rem;color:#4f46e5;"></i>
+        </a>
+    </div>
+
+    <div class="col-md-3">
+        <a th:href="@{/finance}" class="text-decoration-none">
+        <div class="fin-card h-100" style="background:linear-gradient(135deg,#4f46e5,#7c3aed);">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <div style="width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,0.18);display:flex;align-items:center;justify-content:center;">
+                    <i class="bi bi-buildings-fill text-white"></i>
                 </div>
-                <span style="font-size:0.72rem;font-weight:700;color:#3730a3;">Donations</span>
-            </a>
+                <i class="bi bi-arrow-up-right-circle-fill" style="color:rgba(255,255,255,0.35);font-size:1rem;"></i>
+            </div>
+            <div class="amount" th:text="${'£' + #numbers.formatDecimal(orgDonationTotal,1,'COMMA',2,'POINT')}">£0.00</div>
+            <div class="label">Organisation Donations</div>
+            <span class="fin-pill"><span th:text="${orgDonationCount}"></span> donations</span>
         </div>
-        <div class="col-6 col-sm-4 col-md-3 col-lg-2">
-            <a th:href="@{/ticket-payments}" class="quick-btn h-100"
-               style="background:#fffbeb;border-color:#fde68a;"
-               onmouseover="this.style.background='#fef3c7';this.style.borderColor='#fcd34d';this.style.boxShadow='0 4px 16px rgba(217,119,6,0.18)'"
-               onmouseout="this.style.background='#fffbeb';this.style.borderColor='#fde68a';this.style.boxShadow=''">
-                <div class="rounded-3 d-flex align-items-center justify-content-center" style="width:40px;height:40px;background:#fef3c7;">
-                    <i class="bi bi-ticket-perforated" style="font-size:1.1rem;color:#b45309;"></i>
+        </a>
+    </div>
+
+    <div class="col-md-3">
+        <a th:href="@{/finance}" class="text-decoration-none">
+        <div class="fin-card h-100" style="background:linear-gradient(135deg,#0ea5e9,#0284c7);">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <div style="width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,0.18);display:flex;align-items:center;justify-content:center;">
+                    <i class="bi bi-person-heart text-white"></i>
                 </div>
-                <span style="font-size:0.72rem;font-weight:700;color:#78350f;">Tickets</span>
-            </a>
+                <i class="bi bi-arrow-up-right-circle-fill" style="color:rgba(255,255,255,0.35);font-size:1rem;"></i>
+            </div>
+            <div class="amount" th:text="${'£' + #numbers.formatDecimal(memberDonationTotal,1,'COMMA',2,'POINT')}">£0.00</div>
+            <div class="label">Member Donations</div>
+            <span class="fin-pill"><span th:text="${memberDonationCount}"></span> donations</span>
         </div>
-        <div class="col-6 col-sm-4 col-md-3 col-lg-2">
-            <a th:href="@{/activities}" class="quick-btn h-100"
-               style="background:#f5f3ff;border-color:#ddd6fe;"
-               onmouseover="this.style.background='#ede9fe';this.style.borderColor='#c4b5fd';this.style.boxShadow='0 4px 16px rgba(139,92,246,0.18)'"
-               onmouseout="this.style.background='#f5f3ff';this.style.borderColor='#ddd6fe';this.style.boxShadow=''">
-                <div class="rounded-3 d-flex align-items-center justify-content-center" style="width:40px;height:40px;background:#ede9fe;">
-                    <i class="bi bi-list-task" style="font-size:1.1rem;color:#7c3aed;"></i>
+        </a>
+    </div>
+
+    <div class="col-md-3">
+        <a th:href="@{/ticket-payments}" class="text-decoration-none">
+        <div class="fin-card h-100" style="background:linear-gradient(135deg,#d97706,#b45309);">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <div style="width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,0.18);display:flex;align-items:center;justify-content:center;">
+                    <i class="bi bi-ticket-perforated-fill text-white"></i>
                 </div>
-                <span style="font-size:0.72rem;font-weight:700;color:#4c1d95;">Activities</span>
-            </a>
+                <i class="bi bi-arrow-up-right-circle-fill" style="color:rgba(255,255,255,0.35);font-size:1rem;"></i>
+            </div>
+            <div class="amount" th:text="${'£' + ticketTotal}">£0</div>
+            <div class="label">Ticket Collections</div>
+            <span class="fin-pill"><span th:text="${ticketCount}"></span> bookings</span>
         </div>
-        <div class="col-6 col-sm-4 col-md-3 col-lg-2">
-            <a th:href="@{/event-feedback}" class="quick-btn h-100"
-               style="background:#ecfdf5;border-color:#a7f3d0;"
-               onmouseover="this.style.background='#d1fae5';this.style.borderColor='#6ee7b7';this.style.boxShadow='0 4px 16px rgba(16,185,129,0.18)'"
-               onmouseout="this.style.background='#ecfdf5';this.style.borderColor='#a7f3d0';this.style.boxShadow=''">
-                <div class="rounded-3 d-flex align-items-center justify-content-center" style="width:40px;height:40px;background:#d1fae5;">
-                    <i class="bi bi-chat-square-heart" style="font-size:1.1rem;color:#059669;"></i>
+        </a>
+    </div>
+
+</div>
+
+<!-- ══ SCHEDULE PANELS ══ -->
+<div class="sec-lbl mb-2"><i class="bi bi-calendar2-week" style="color:#f59e0b;"></i>Upcoming Schedule</div>
+<div class="row g-3 mb-4">
+
+    <div class="col-lg-6">
+        <div class="dp h-100">
+            <div class="dp-head">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="dp-head-icon" style="background:#fffbeb;"><i class="bi bi-calendar-event-fill" style="color:#f59e0b;"></i></div>
+                    <span class="fw-bold" style="font-size:0.87rem;color:#0f172a;">Upcoming Events</span>
+                    <span th:if="${not #lists.isEmpty(upcomingEvents)}"
+                          class="badge rounded-pill" style="background:#fef3c7;color:#b45309;font-size:0.65rem;"
+                          th:text="${#lists.size(upcomingEvents)}"></span>
                 </div>
-                <span style="font-size:0.72rem;font-weight:700;color:#064e3b;">Feedback</span>
-            </a>
+                <a th:href="@{/events}" class="btn btn-sm" style="border-radius:20px;font-size:0.72rem;padding:3px 12px;background:#fffbeb;color:#d97706;border:1px solid #fde68a;">
+                    View All <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+            <div class="card-body p-0">
+                <table class="table mb-0">
+                    <thead><tr><th>Event</th><th>Date</th><th>Status</th></tr></thead>
+                    <tbody>
+                        <tr th:each="ev : ${upcomingEvents}">
+                            <td>
+                                <div class="fw-semibold" style="color:#1e293b;font-size:0.84rem;" th:text="${ev.eventName}"></div>
+                                <div class="text-muted" style="font-size:0.71rem;" th:text="${ev.eventType}"></div>
+                            </td>
+                            <td style="white-space:nowrap;font-size:0.82rem;color:#64748b;"
+                                th:text="${#temporals.format(ev.eventDate,'dd MMM yyyy')}"></td>
+                            <td>
+                                <span class="badge rounded-pill" style="font-size:0.68rem;padding:4px 10px;"
+                                      th:text="${ev.status}"
+                                      th:style="${ev.status == 'Active'} ? 'background:#d1fae5;color:#065f46;' :
+                                                (${ev.status == 'Planned'} ? 'background:#dbeafe;color:#1d4ed8;' :
+                                                'background:#f1f5f9;color:#475569;')"></span>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(upcomingEvents)}">
+                            <td colspan="3" class="text-center py-4">
+                                <i class="bi bi-calendar-x d-block mb-2" style="font-size:1.8rem;color:#cbd5e1;"></i>
+                                <span class="text-muted" style="font-size:0.8rem;">No upcoming events</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
+
+    <div class="col-lg-6">
+        <div class="dp h-100">
+            <div class="dp-head">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="dp-head-icon" style="background:#faf5ff;"><i class="bi bi-clock-history" style="color:#8b5cf6;"></i></div>
+                    <span class="fw-bold" style="font-size:0.87rem;color:#0f172a;">Upcoming Rehearsals</span>
+                    <span th:if="${not #lists.isEmpty(upcomingRehearsals)}"
+                          class="badge rounded-pill" style="background:#ede9fe;color:#5b21b6;font-size:0.65rem;"
+                          th:text="${#lists.size(upcomingRehearsals)}"></span>
+                </div>
+                <a th:href="@{/rehearsals}" class="btn btn-sm" style="border-radius:20px;font-size:0.72rem;padding:3px 12px;background:#faf5ff;color:#7c3aed;border:1px solid #ddd6fe;">
+                    View All <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+            <div class="card-body p-0">
+                <table class="table mb-0">
+                    <thead><tr><th>Activity</th><th>Date</th><th>Status</th></tr></thead>
+                    <tbody>
+                        <tr th:each="rh : ${upcomingRehearsals}">
+                            <td>
+                                <div class="fw-semibold" style="color:#1e293b;font-size:0.84rem;" th:text="${rh.activity.activityName}"></div>
+                                <div class="text-muted" style="font-size:0.71rem;" th:text="${rh.startTime != null ? rh.startTime + ' — ' + rh.venue : (rh.venue != null ? rh.venue : '—')}"></div>
+                            </td>
+                            <td style="white-space:nowrap;font-size:0.82rem;color:#64748b;"
+                                th:text="${#temporals.format(rh.rehearsalDate,'dd MMM yyyy')}"></td>
+                            <td>
+                                <span class="badge rounded-pill" style="font-size:0.68rem;padding:4px 10px;"
+                                      th:text="${rh.status}"
+                                      th:style="${rh.status == 'Scheduled'} ? 'background:#dbeafe;color:#1d4ed8;' :
+                                                (${rh.status == 'Completed'} ? 'background:#d1fae5;color:#065f46;' :
+                                                'background:#fef2f2;color:#991b1b;')"></span>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(upcomingRehearsals)}">
+                            <td colspan="3" class="text-center py-4">
+                                <i class="bi bi-clock d-block mb-2" style="font-size:1.8rem;color:#cbd5e1;"></i>
+                                <span class="text-muted" style="font-size:0.8rem;">No upcoming rehearsals</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- ══ QUICK LAUNCH ══ -->
+<div class="sec-lbl mb-2"><i class="bi bi-grid-3x3-gap" style="color:#6366f1;"></i>Quick Access</div>
+<div class="ql-grid">
+
+    <a th:href="@{/members}" class="ql-btn" style="background:#eff6ff;border-color:#bfdbfe;">
+        <div class="ql-btn-icon" style="background:#dbeafe;"><i class="bi bi-person-vcard" style="color:#2563eb;font-size:1.05rem;"></i></div>
+        <span style="color:#1e3a5f;">Members</span>
+    </a>
+    <a th:href="@{/events}" class="ql-btn" style="background:#fffbeb;border-color:#fde68a;">
+        <div class="ql-btn-icon" style="background:#fef3c7;"><i class="bi bi-calendar-event" style="color:#d97706;font-size:1.05rem;"></i></div>
+        <span style="color:#78350f;">Events</span>
+    </a>
+    <a th:href="@{/event-programs}" class="ql-btn" style="background:#f0fdf4;border-color:#bbf7d0;">
+        <div class="ql-btn-icon" style="background:#dcfce7;"><i class="bi bi-layout-text-sidebar-reverse" style="color:#059669;font-size:1.05rem;"></i></div>
+        <span style="color:#064e3b;">Event Planning</span>
+    </a>
+    <a th:href="@{/event-feedback}" class="ql-btn" style="background:#f0fdf4;border-color:#a7f3d0;">
+        <div class="ql-btn-icon" style="background:#d1fae5;"><i class="bi bi-chat-square-heart" style="color:#059669;font-size:1.05rem;"></i></div>
+        <span style="color:#064e3b;">Feedback</span>
+    </a>
+    <a th:href="@{/finance}" class="ql-btn" style="background:#eef2ff;border-color:#c7d2fe;">
+        <div class="ql-btn-icon" style="background:#e0e7ff;"><i class="bi bi-cash-stack" style="color:#4f46e5;font-size:1.05rem;"></i></div>
+        <span style="color:#3730a3;">Donations</span>
+    </a>
+    <a th:href="@{/ticket-payments}" class="ql-btn" style="background:#fffbeb;border-color:#fde68a;">
+        <div class="ql-btn-icon" style="background:#fef3c7;"><i class="bi bi-ticket-perforated" style="color:#b45309;font-size:1.05rem;"></i></div>
+        <span style="color:#78350f;">Tickets</span>
+    </a>
+    <a th:href="@{/payable}" class="ql-btn" style="background:#fff1f2;border-color:#fecdd3;">
+        <div class="ql-btn-icon" style="background:#fee2e2;"><i class="bi bi-arrow-up-circle" style="color:#dc2626;font-size:1.05rem;"></i></div>
+        <span style="color:#7f1d1d;">Payable</span>
+    </a>
+    <a th:href="@{/receivable}" class="ql-btn" style="background:#f0fdf4;border-color:#bbf7d0;">
+        <div class="ql-btn-icon" style="background:#dcfce7;"><i class="bi bi-arrow-down-circle" style="color:#059669;font-size:1.05rem;"></i></div>
+        <span style="color:#064e3b;">Receivable</span>
+    </a>
+    <a th:href="@{/hall-registrations}" class="ql-btn" style="background:#ecfeff;border-color:#a5f3fc;">
+        <div class="ql-btn-icon" style="background:#cffafe;"><i class="bi bi-building" style="color:#0891b2;font-size:1.05rem;"></i></div>
+        <span style="color:#164e63;">Hall Hire</span>
+    </a>
+    <a th:href="@{/food-registrations}" class="ql-btn" style="background:#fffbeb;border-color:#fde68a;">
+        <div class="ql-btn-icon" style="background:#fef3c7;"><i class="bi bi-cup-hot" style="color:#d97706;font-size:1.05rem;"></i></div>
+        <span style="color:#78350f;">Food</span>
+    </a>
+    <a th:href="@{/activities}" class="ql-btn" style="background:#f5f3ff;border-color:#ddd6fe;">
+        <div class="ql-btn-icon" style="background:#ede9fe;"><i class="bi bi-list-task" style="color:#7c3aed;font-size:1.05rem;"></i></div>
+        <span style="color:#4c1d95;">Activities</span>
+    </a>
+    <a th:href="@{/assignments}" class="ql-btn" style="background:#f0f9ff;border-color:#bae6fd;">
+        <div class="ql-btn-icon" style="background:#e0f2fe;"><i class="bi bi-person-lines-fill" style="color:#0284c7;font-size:1.05rem;"></i></div>
+        <span style="color:#0c4a6e;">Assignments</span>
+    </a>
+    <a th:href="@{/rehearsals}" class="ql-btn" style="background:#faf5ff;border-color:#e9d5ff;">
+        <div class="ql-btn-icon" style="background:#ede9fe;"><i class="bi bi-clock-history" style="color:#7c3aed;font-size:1.05rem;"></i></div>
+        <span style="color:#4c1d95;">Rehearsals</span>
+    </a>
+    <a th:href="@{/progress}" class="ql-btn" style="background:#f0fdf4;border-color:#bbf7d0;">
+        <div class="ql-btn-icon" style="background:#dcfce7;"><i class="bi bi-bar-chart-steps" style="color:#059669;font-size:1.05rem;"></i></div>
+        <span style="color:#064e3b;">Progress</span>
+    </a>
+    <a th:href="@{/invitations}" class="ql-btn" style="background:#eef2ff;border-color:#c7d2fe;">
+        <div class="ql-btn-icon" style="background:#e0e7ff;"><i class="bi bi-envelope-paper" style="color:#4f46e5;font-size:1.05rem;"></i></div>
+        <span style="color:#3730a3;">Invitations</span>
+    </a>
+    <a th:href="@{/supportive}" class="ql-btn" style="background:#eef2ff;border-color:#c7d2fe;">
+        <div class="ql-btn-icon" style="background:#e0e7ff;"><i class="bi bi-people-fill" style="color:#4f46e5;font-size:1.05rem;"></i></div>
+        <span style="color:#3730a3;">Supporters</span>
+    </a>
+
+</div>
 
 </div>
 </body>

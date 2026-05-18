@@ -167,39 +167,41 @@
         <li><a th:href="@{/payable}"
                th:class="${currentUri != null and currentUri.startsWith('/payable')} ? 'active'">
             <i class="bi bi-credit-card-2-front"></i> Payable <span class="sb-badge">07</span></a></li>
+        <li><a th:href="@{/receivable}"
+               th:class="${currentUri != null and currentUri.startsWith('/receivable')} ? 'active'">
+            <i class="bi bi-arrow-down-circle"></i> Receivable <span class="sb-badge">08</span></a></li>
 
         <li><hr class="sb-divider"></li>
 
         <li><span class="sb-label">Registration</span></li>
         <li><a th:href="@{/members}"
                th:class="${currentUri != null and currentUri.startsWith('/members')} ? 'active'">
-            <i class="bi bi-person-vcard"></i> Member Registration <span class="sb-badge">08</span></a></li>
+            <i class="bi bi-person-vcard"></i> Member Registration <span class="sb-badge">09</span></a></li>
         <li><a th:href="@{/hall-registrations}"
                th:class="${currentUri != null and currentUri.startsWith('/hall-registrations')} ? 'active'">
-            <i class="bi bi-building"></i> Hall Registration <span class="sb-badge">09</span></a></li>
+            <i class="bi bi-building"></i> Hall Registration <span class="sb-badge">10</span></a></li>
         <li><a th:href="@{/food-registrations}"
                th:class="${currentUri != null and currentUri.startsWith('/food-registrations')} ? 'active'">
-            <i class="bi bi-cup-hot"></i> Food Registration <span class="sb-badge">10</span></a></li>
+            <i class="bi bi-cup-hot"></i> Food Registration <span class="sb-badge">11</span></a></li>
 
         <li><hr class="sb-divider"></li>
 
         <li><span class="sb-label">Activities</span></li>
         <li><a th:href="@{/activities}"
                th:class="${currentUri != null and currentUri.startsWith('/activities')} ? 'active'">
-            <i class="bi bi-list-task"></i> Activities <span class="sb-badge">11</span></a></li>
+            <i class="bi bi-list-task"></i> Activities <span class="sb-badge">12</span></a></li>
         <li><a th:href="@{/assignments}"
                th:class="${currentUri != null and currentUri.startsWith('/assignments')} ? 'active'">
-            <i class="bi bi-person-lines-fill"></i> Assign Activities <span class="sb-badge">12</span></a></li>
+            <i class="bi bi-person-lines-fill"></i> Assign Activities <span class="sb-badge">13</span></a></li>
 
         <li><hr class="sb-divider"></li>
 
-        <li><span class="sb-label">Schedule &amp; Progress</span></li>
         <li><a th:href="@{/rehearsals}"
                th:class="${currentUri != null and currentUri.startsWith('/rehearsals')} ? 'active'">
-            <i class="bi bi-clock-history"></i> Rehearsal Schedule <span class="sb-badge">13</span></a></li>
+            <i class="bi bi-clock-history"></i> Rehearsal Schedule <span class="sb-badge">14</span></a></li>
         <li><a th:href="@{/progress}"
                th:class="${currentUri != null and currentUri.startsWith('/progress')} ? 'active'">
-            <i class="bi bi-bar-chart-steps"></i> Activities Progress <span class="sb-badge">14</span></a></li>
+            <i class="bi bi-bar-chart-steps"></i> Activities Progress <span class="sb-badge">15</span></a></li>
 
     </ul>
 </nav>

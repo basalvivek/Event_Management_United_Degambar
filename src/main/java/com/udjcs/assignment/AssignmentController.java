@@ -29,7 +29,14 @@ public class AssignmentController {
 
     @GetMapping
     public String list(Model model) {
-        model.addAttribute("groups", service.findGroupedByActivity());
+        java.util.Map<Long, java.util.List<Assignment>> groups = service.findGroupedByActivity();
+        int totalAssignments = groups.values().stream().mapToInt(java.util.List::size).sum();
+        long withLead = groups.values().stream()
+                .filter(list -> list.stream().anyMatch(a -> "Lead".equals(a.getRole())))
+                .count();
+        model.addAttribute("groups", groups);
+        model.addAttribute("totalAssignments", totalAssignments);
+        model.addAttribute("activitiesWithLead", withLead);
         return "assignment/list";
     }
 

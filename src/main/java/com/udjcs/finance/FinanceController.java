@@ -7,9 +7,12 @@ import com.udjcs.organization.OrganizationRepository;
 import com.udjcs.payment.Payment;
 import com.udjcs.payment.PaymentRepository;
 import com.udjcs.payment.PaymentService;
+import com.udjcs.receivable.ReceivableTransaction;
+import com.udjcs.receivable.ReceivableTransactionRepository;
 import com.udjcs.supportive.SupportiveOrganizationRepository;
 import com.udjcs.ticket.EventTicket;
 import com.udjcs.ticket.EventTicketRepository;
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -37,6 +40,7 @@ public class FinanceController {
     private final MemberRepository memberRepo;
     private final PaymentInstalmentRepository instalmentRepo;
     private final OrganizationRepository orgRepo;
+    private final ReceivableTransactionRepository receivableRepo;
 
     public FinanceController(SponsorDonationRepository sponsorRepo,
                               PaymentRepository paymentRepo,
@@ -45,7 +49,8 @@ public class FinanceController {
                               SupportiveOrganizationRepository supportiveOrgRepo,
                               MemberRepository memberRepo,
                               PaymentInstalmentRepository instalmentRepo,
-                              OrganizationRepository orgRepo) {
+                              OrganizationRepository orgRepo,
+                              ReceivableTransactionRepository receivableRepo) {
         this.sponsorRepo       = sponsorRepo;
         this.paymentRepo       = paymentRepo;
         this.ticketRepo        = ticketRepo;
@@ -54,6 +59,23 @@ public class FinanceController {
         this.memberRepo        = memberRepo;
         this.instalmentRepo    = instalmentRepo;
         this.orgRepo           = orgRepo;
+        this.receivableRepo    = receivableRepo;
+    }
+
+    private void autoReceivable(String incomeType, String name, String orgName,
+                                 String person, java.math.BigDecimal amount,
+                                 java.time.LocalDate date, String modeAndNotes) {
+        ReceivableTransaction r = new ReceivableTransaction();
+        r.setIncomeType(incomeType);
+        r.setName(name);
+        r.setOrganisationName(orgName);
+        r.setReceivedFrom(person);
+        r.setTotalAmount(amount);
+        r.setReceivedAmount(amount);
+        r.setReceiptDate(date);
+        r.setStatus("RECEIVED");
+        r.setNotes(modeAndNotes);
+        receivableRepo.save(r);
     }
 
     // ── Unified ledger ──────────────────────────────────────────────────────
@@ -70,7 +92,15 @@ public class FinanceController {
         BigDecimal totalDonated   = all.stream().map(r -> r.getDonatedAmount()   != null ? r.getDonatedAmount()   : BigDecimal.ZERO).reduce(BigDecimal.ZERO, BigDecimal::add);
         BigDecimal totalPending   = all.stream().map(r -> r.getPendingAmount()   != null ? r.getPendingAmount()   : BigDecimal.ZERO).reduce(BigDecimal.ZERO, BigDecimal::add);
 
+        java.util.Set<Integer> groupStarts = new java.util.HashSet<>();
+        String prevKey = null;
+        for (int i = 0; i < all.size(); i++) {
+            String key = groupKey(all.get(i).getOrgName()).toLowerCase();
+            if (!key.equals(prevKey)) { groupStarts.add(i); prevKey = key; }
+        }
+
         model.addAttribute("records", all);
+        model.addAttribute("groupStarts", groupStarts);
         model.addAttribute("selectedSource", source);
         model.addAttribute("totalCommitted", totalCommitted);
         model.addAttribute("totalDonated", totalDonated);
@@ -84,14 +114,33 @@ public class FinanceController {
     @GetMapping("/sponsors/new")
     public String newSponsor(Model model) {
         model.addAttribute("item", new SponsorDonation());
+        model.addAttribute("locked", false);
         return "finance/sponsor-form";
     }
 
+    @Transactional
     @PostMapping("/sponsors")
     public String createSponsor(@ModelAttribute("item") @Valid SponsorDonation s,
-                                 BindingResult result, RedirectAttributes attrs) {
-        if (result.hasErrors()) return "finance/sponsor-form";
+                                 BindingResult result, Model model, RedirectAttributes attrs) {
+        if (result.hasErrors()) { model.addAttribute("locked", false); return "finance/sponsor-form"; }
         sponsorRepo.save(s);
+        if (s.getDonatedAmount() != null && s.getDonatedAmount().compareTo(BigDecimal.ZERO) > 0) {
+            // Record initial payment as an instalment so future sum queries stay consistent
+            PaymentInstalment initial = new PaymentInstalment();
+            initial.setSourceType("Sponsor");
+            initial.setSourceId(s.getId());
+            initial.setAmount(s.getDonatedAmount());
+            initial.setPaymentDate(s.getPaymentDate());
+            initial.setPaymentMode(s.getPaymentMode());
+            initial.setNotes("Initial payment");
+            instalmentRepo.save(initial);
+            String memo = s.getPaymentMode()
+                    + (s.getRemark() != null && !s.getRemark().isBlank() ? " | " + s.getRemark() : "");
+            autoReceivable("SPONSOR",
+                    s.getSponsorOrgName() + " — Sponsor Donation",
+                    s.getSponsorOrgName(), s.getSponsorName(),
+                    s.getDonatedAmount(), s.getPaymentDate(), memo);
+        }
         attrs.addFlashAttribute("success", "Sponsor donation saved.");
         return "redirect:/finance";
     }
@@ -100,11 +149,14 @@ public class FinanceController {
     public String editSponsor(@PathVariable Long id, Model model) {
         model.addAttribute("item", sponsorRepo.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Not found: " + id)));
-        model.addAttribute("instalments", instalmentRepo.findBySourceTypeAndSourceIdOrderByPaymentDateAsc("Sponsor", id));
+        java.util.List<PaymentInstalment> insts = instalmentRepo.findBySourceTypeAndSourceIdOrderByPaymentDateAsc("Sponsor", id);
+        model.addAttribute("instalments", insts);
         model.addAttribute("newInstalment", new PaymentInstalment());
+        model.addAttribute("locked", !insts.isEmpty());
         return "finance/sponsor-form";
     }
 
+    @Transactional
     @PostMapping("/sponsors/{id}/pay")
     public String addSponsorInstalment(@PathVariable Long id,
                                         @RequestParam BigDecimal amount,
@@ -114,11 +166,12 @@ public class FinanceController {
                                         RedirectAttributes attrs) {
         SponsorDonation sponsor = sponsorRepo.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Not found: " + id));
+        java.time.LocalDate date = java.time.LocalDate.parse(paymentDate);
         PaymentInstalment inst = new PaymentInstalment();
         inst.setSourceType("Sponsor");
         inst.setSourceId(id);
         inst.setAmount(amount);
-        inst.setPaymentDate(java.time.LocalDate.parse(paymentDate));
+        inst.setPaymentDate(date);
         inst.setPaymentMode(paymentMode);
         inst.setNotes(notes);
         instalmentRepo.save(inst);
@@ -127,6 +180,11 @@ public class FinanceController {
         if (sponsor.getCommittedAmount() != null && totalPaid.compareTo(sponsor.getCommittedAmount()) >= 0)
             sponsor.setSource("Sponsors");
         sponsorRepo.save(sponsor);
+        String memo = paymentMode + (notes != null && !notes.isBlank() ? " | " + notes : "");
+        autoReceivable("SPONSOR",
+                sponsor.getSponsorOrgName() + " — Sponsor Payment",
+                sponsor.getSponsorOrgName(), sponsor.getSponsorName(),
+                amount, date, memo);
         attrs.addFlashAttribute("success", "Payment of £" + amount + " recorded.");
         return "redirect:/finance/sponsors/" + id + "/edit";
     }
@@ -134,8 +192,8 @@ public class FinanceController {
     @PostMapping("/sponsors/{id}")
     public String updateSponsor(@PathVariable Long id,
                                  @ModelAttribute("item") @Valid SponsorDonation s,
-                                 BindingResult result, RedirectAttributes attrs) {
-        if (result.hasErrors()) return "finance/sponsor-form";
+                                 BindingResult result, Model model, RedirectAttributes attrs) {
+        if (result.hasErrors()) { model.addAttribute("locked", false); return "finance/sponsor-form"; }
         s.setId(id);
         sponsorRepo.save(s);
         attrs.addFlashAttribute("success", "Sponsor donation updated.");
@@ -157,9 +215,11 @@ public class FinanceController {
         model.addAttribute("supportiveOrgs", supportiveOrgRepo.findAll(Sort.by("name")));
         model.addAttribute("members", memberRepo.findAll(Sort.by("firstName", "lastName")));
         model.addAttribute("donorType", "member".equals(type) ? "member" : "org");
+        model.addAttribute("locked", false);
         return "finance/org-donation-form";
     }
 
+    @Transactional
     @PostMapping("/org-donations")
     public String createOrgDonation(@ModelAttribute("item") @Valid Payment p,
                                      BindingResult result, Model model,
@@ -168,6 +228,7 @@ public class FinanceController {
             model.addAttribute("supportiveOrgs", supportiveOrgRepo.findAll(Sort.by("name")));
             model.addAttribute("members", memberRepo.findAll(Sort.by("firstName", "lastName")));
             model.addAttribute("donorType", p.getMemberId() != null ? "member" : "org");
+            model.addAttribute("locked", false);
             return "finance/org-donation-form";
         }
         if (p.getOrganizationId() != null) {
@@ -177,6 +238,25 @@ public class FinanceController {
             memberRepo.findById(p.getMemberId()).ifPresent(p::setMember);
         }
         paymentRepo.save(p);
+        if (p.getAmount() != null && p.getAmount().compareTo(BigDecimal.ZERO) > 0 && p.getPaymentDate() != null) {
+            // Record initial payment as an instalment so future sum queries stay consistent
+            PaymentInstalment initial = new PaymentInstalment();
+            initial.setSourceType("OrgMember");
+            initial.setSourceId(p.getId());
+            initial.setAmount(p.getAmount());
+            initial.setPaymentDate(p.getPaymentDate());
+            initial.setPaymentMode(p.getPaymentMode() != null ? p.getPaymentMode() : "");
+            initial.setNotes("Initial payment");
+            instalmentRepo.save(initial);
+            boolean isMember = p.getMember() != null;
+            String orgName  = p.getSupportiveOrganization() != null ? p.getSupportiveOrganization().getName() : null;
+            String person   = isMember ? p.getMember().getFirstName() + " " + p.getMember().getLastName() : orgName;
+            String incType  = isMember ? "MEMBER_DONATION" : "ORG_DONATION";
+            String recName  = (orgName != null ? orgName : person) + " — Donation";
+            String memo     = (p.getPaymentMode() != null ? p.getPaymentMode() : "")
+                            + (p.getNotes() != null && !p.getNotes().isBlank() ? " | " + p.getNotes() : "");
+            autoReceivable(incType, recName, orgName, person, p.getAmount(), p.getPaymentDate(), memo);
+        }
         attrs.addFlashAttribute("success", "Donation saved.");
         return "redirect:/finance";
     }
@@ -185,15 +265,18 @@ public class FinanceController {
     public String editOrgDonation(@PathVariable Long id, Model model) {
         Payment p = paymentRepo.findByIdWithDetails(id)
                 .orElseThrow(() -> new IllegalArgumentException("Not found: " + id));
+        java.util.List<PaymentInstalment> insts = instalmentRepo.findBySourceTypeAndSourceIdOrderByPaymentDateAsc("OrgMember", id);
         model.addAttribute("item", p);
         model.addAttribute("supportiveOrgs", supportiveOrgRepo.findAll(Sort.by("name")));
         model.addAttribute("members", memberRepo.findAll(Sort.by("firstName", "lastName")));
         model.addAttribute("donorType", p.getMember() != null ? "member" : "org");
-        model.addAttribute("instalments", instalmentRepo.findBySourceTypeAndSourceIdOrderByPaymentDateAsc("OrgMember", id));
+        model.addAttribute("instalments", insts);
         model.addAttribute("newInstalment", new PaymentInstalment());
+        model.addAttribute("locked", !insts.isEmpty());
         return "finance/org-donation-form";
     }
 
+    @Transactional
     @PostMapping("/org-donations/{id}/pay")
     public String addOrgDonationInstalment(@PathVariable Long id,
                                             @RequestParam BigDecimal amount,
@@ -201,13 +284,14 @@ public class FinanceController {
                                             @RequestParam String paymentMode,
                                             @RequestParam(required = false) String notes,
                                             RedirectAttributes attrs) {
-        Payment payment = paymentRepo.findById(id)
+        Payment payment = paymentRepo.findByIdWithDetails(id)
                 .orElseThrow(() -> new IllegalArgumentException("Not found: " + id));
+        java.time.LocalDate date = java.time.LocalDate.parse(paymentDate);
         PaymentInstalment inst = new PaymentInstalment();
         inst.setSourceType("OrgMember");
         inst.setSourceId(id);
         inst.setAmount(amount);
-        inst.setPaymentDate(java.time.LocalDate.parse(paymentDate));
+        inst.setPaymentDate(date);
         inst.setPaymentMode(paymentMode);
         inst.setNotes(notes);
         instalmentRepo.save(inst);
@@ -218,6 +302,13 @@ public class FinanceController {
         else if (totalPaid.compareTo(BigDecimal.ZERO) > 0)
             payment.setStatus("Partial");
         paymentRepo.save(payment);
+        boolean isMember = payment.getMember() != null;
+        String orgName  = payment.getSupportiveOrganization() != null ? payment.getSupportiveOrganization().getName() : null;
+        String person   = isMember ? payment.getMember().getFirstName() + " " + payment.getMember().getLastName() : orgName;
+        String incType  = isMember ? "MEMBER_DONATION" : "ORG_DONATION";
+        String recName  = (orgName != null ? orgName : person) + " — Donation Payment";
+        String memo     = paymentMode + (notes != null && !notes.isBlank() ? " | " + notes : "");
+        autoReceivable(incType, recName, orgName, person, amount, date, memo);
         attrs.addFlashAttribute("success", "Payment of £" + amount + " recorded.");
         return "redirect:/finance/org-donations/" + id + "/edit";
     }
@@ -268,6 +359,7 @@ public class FinanceController {
             model.addAttribute("supportiveOrgs", supportiveOrgRepo.findAll(Sort.by("name")));
             model.addAttribute("members", memberRepo.findAll(Sort.by("firstName", "lastName")));
             model.addAttribute("donorType", p.getMemberId() != null ? "member" : "org");
+            model.addAttribute("locked", false);
             return "finance/org-donation-form";
         }
         p.setId(id);
@@ -288,7 +380,9 @@ public class FinanceController {
     public String editTicket(@PathVariable Long id, Model model) {
         model.addAttribute("item", ticketRepo.findByIdWithDetails(id)
                 .orElseThrow(() -> new IllegalArgumentException("Not found: " + id)));
-        model.addAttribute("instalments", instalmentRepo.findBySourceTypeAndSourceIdOrderByPaymentDateAsc("Ticket", id));
+        java.util.List<PaymentInstalment> insts = instalmentRepo.findBySourceTypeAndSourceIdOrderByPaymentDateAsc("Ticket", id);
+        model.addAttribute("instalments", insts);
+        model.addAttribute("locked", !insts.isEmpty());
         return "finance/ticket-payment-form";
     }
 
@@ -313,6 +407,7 @@ public class FinanceController {
         return "redirect:/finance";
     }
 
+    @Transactional
     @PostMapping("/tickets/{id}/pay")
     public String addTicketInstalment(@PathVariable Long id,
                                        @RequestParam java.math.BigDecimal amount,
@@ -320,13 +415,14 @@ public class FinanceController {
                                        @RequestParam String paymentMode,
                                        @RequestParam(required = false) String notes,
                                        RedirectAttributes attrs) {
-        EventTicket t = ticketRepo.findById(id)
+        EventTicket t = ticketRepo.findByIdWithDetails(id)
                 .orElseThrow(() -> new IllegalArgumentException("Not found: " + id));
+        java.time.LocalDate date = java.time.LocalDate.parse(paymentDate);
         PaymentInstalment inst = new PaymentInstalment();
         inst.setSourceType("Ticket");
         inst.setSourceId(id);
         inst.setAmount(amount);
-        inst.setPaymentDate(java.time.LocalDate.parse(paymentDate));
+        inst.setPaymentDate(date);
         inst.setPaymentMode(paymentMode);
         inst.setNotes(notes);
         instalmentRepo.save(inst);
@@ -335,6 +431,11 @@ public class FinanceController {
         int committed = t.getCommittedAmount() != null ? t.getCommittedAmount() : (t.getTotalAmount() != null ? t.getTotalAmount() : 0);
         t.setStatus(totalPaid.intValue() >= committed ? "Accepted" : "Pending");
         ticketRepo.save(t);
+        String eventName  = t.getEvent()  != null ? t.getEvent().getEventName() : "Ticket";
+        String memberName = t.getMember() != null ? t.getMember().getFirstName() + " " + t.getMember().getLastName() : null;
+        String memo = paymentMode + (notes != null && !notes.isBlank() ? " | " + notes : "");
+        autoReceivable("TICKET_PAYMENT", eventName + " — Ticket Payment",
+                eventName, memberName, amount, date, memo);
         attrs.addFlashAttribute("success", "Payment of £" + amount + " recorded.");
         return "redirect:/finance/tickets/" + id + "/edit";
     }
@@ -422,21 +523,72 @@ public class FinanceController {
     private List<PaymentRecord> buildLedger() {
         List<PaymentRecord> all = new ArrayList<>();
 
-        sponsorRepo.findAll(org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "paymentDate"))
-                .forEach(s -> all.add(PaymentRecord.fromSponsor(s)));
+        // Sponsors — one row per instalment with running pending per row
+        sponsorRepo.findAll().forEach(s -> {
+            List<PaymentInstalment> insts = instalmentRepo
+                    .findBySourceTypeAndSourceIdOrderByPaymentDateAsc("Sponsor", s.getId());
+            if (insts.isEmpty()) {
+                all.add(PaymentRecord.fromSponsor(s));
+            } else {
+                BigDecimal committed = s.getCommittedAmount() != null ? s.getCommittedAmount() : BigDecimal.ZERO;
+                BigDecimal[] running = {BigDecimal.ZERO};
+                insts.forEach(inst -> {
+                    running[0] = running[0].add(inst.getAmount());
+                    all.add(PaymentRecord.fromSponsorInstalment(s, inst, committed.subtract(running[0])));
+                });
+            }
+        });
 
-        paymentRepo.findAllWithDetails()
-                .forEach(p -> all.add(PaymentRecord.fromOrgDonation(p)));
+        // Org/Member donations — one row per instalment with running pending
+        paymentRepo.findAllWithDetails().forEach(p -> {
+            List<PaymentInstalment> insts = instalmentRepo
+                    .findBySourceTypeAndSourceIdOrderByPaymentDateAsc("OrgMember", p.getId());
+            if (insts.isEmpty()) {
+                all.add(PaymentRecord.fromOrgDonation(p));
+            } else {
+                BigDecimal committed = p.getCommittedAmount() != null ? p.getCommittedAmount() : BigDecimal.ZERO;
+                BigDecimal[] running = {BigDecimal.ZERO};
+                insts.forEach(inst -> {
+                    running[0] = running[0].add(inst.getAmount());
+                    all.add(PaymentRecord.fromOrgDonationInstalment(p, inst, committed.subtract(running[0])));
+                });
+            }
+        });
 
-        ticketRepo.findAllWithDetails()
-                .forEach(t -> all.add(PaymentRecord.fromTicket(t)));
+        // Ticket payments — one row per instalment with running pending
+        ticketRepo.findAllWithDetails().forEach(t -> {
+            List<PaymentInstalment> insts = instalmentRepo
+                    .findBySourceTypeAndSourceIdOrderByPaymentDateAsc("Ticket", t.getId());
+            if (insts.isEmpty()) {
+                all.add(PaymentRecord.fromTicket(t));
+            } else {
+                BigDecimal total     = t.getTotalAmount()    != null ? BigDecimal.valueOf(t.getTotalAmount())    : BigDecimal.ZERO;
+                BigDecimal committed = t.getCommittedAmount() != null ? BigDecimal.valueOf(t.getCommittedAmount()) : total;
+                BigDecimal[] running = {BigDecimal.ZERO};
+                insts.forEach(inst -> {
+                    running[0] = running[0].add(inst.getAmount());
+                    all.add(PaymentRecord.fromTicketInstalment(t, inst, committed.subtract(running[0])));
+                });
+            }
+        });
 
+        // Invitations — always one row (no instalment concept)
         invRegRepo.findAllWithInvitation()
                 .forEach(r -> all.add(PaymentRecord.fromInvitationReg(r)));
 
-        all.sort(Comparator.comparing(
-                r -> r.getPaymentDate() != null ? r.getPaymentDate() : java.time.LocalDate.MIN,
-                Comparator.reverseOrder()));
+        all.sort((a, b) -> {
+            String ka = groupKey(a.getOrgName());
+            String kb = groupKey(b.getOrgName());
+            int cmp = ka.compareToIgnoreCase(kb);
+            if (cmp != 0) return cmp;
+            java.time.LocalDate da = a.getPaymentDate() != null ? a.getPaymentDate() : java.time.LocalDate.MIN;
+            java.time.LocalDate db = b.getPaymentDate() != null ? b.getPaymentDate() : java.time.LocalDate.MIN;
+            return db.compareTo(da);
+        });
         return all;
+    }
+
+    private static String groupKey(String orgName) {
+        return (orgName == null || orgName.isBlank() || "—".equals(orgName)) ? "￿" : orgName;
     }
 }
