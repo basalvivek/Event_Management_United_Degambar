@@ -54,8 +54,15 @@
             <div class="section-title"><i class="bi bi-person-badge"></i>Booking Details</div>
             <div class="row g-3">
                 <div class="col-md-8">
-                    <label class="form-label">Hall Name</label>
-                    <input type="text" class="form-control" th:field="*{hallName}" placeholder="e.g. Main Hall, Banquet Hall, Community Centre">
+                    <label class="form-label">Hall Name <span class="req-star">*</span></label>
+                    <select class="form-select" th:field="*{hallName}"
+                            th:classappend="${#fields.hasErrors('hallName')} ? ' is-invalid'">
+                        <option value="">— Select Hall / Venue —</option>
+                        <option th:each="v : ${venues}"
+                                th:value="${v.venueName}"
+                                th:text="${v.venueName} + ' — ' + ${v.city}"></option>
+                    </select>
+                    <div class="invalid-feedback" th:errors="*{hallName}"></div>
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">Booking Status</label>
@@ -68,14 +75,17 @@
                     </select>
                 </div>
                 <div class="col-12">
-                    <label class="form-label">Event <span class="text-muted" style="font-weight:400;">(optional)</span></label>
-                    <select class="form-select" name="eventId">
-                        <option value="">— No linked event —</option>
+                    <label class="form-label">Event <span class="req-star">*</span></label>
+                    <select class="form-select" name="eventId" required
+                            th:classappend="${#fields.hasErrors('eventId')} ? ' is-invalid'">
+                        <option value="">— Select Event —</option>
                         <option th:each="e : ${events}"
                                 th:value="${e.id}"
                                 th:text="${e.eventName}"
                                 th:selected="${item.event != null and item.event.id == e.id}"></option>
                     </select>
+                    <div class="invalid-feedback" th:if="${#fields.hasErrors('eventId')}"
+                         th:errors="*{eventId}"></div>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">Booked By <span class="req-star">*</span></label>

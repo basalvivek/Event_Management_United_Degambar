@@ -113,9 +113,14 @@ public class MemberPortalController {
         }
         model.addAttribute("feedbackGiven", feedbackGiven);
 
-        // Track which active events this member has already registered for (reuse activeEvents list)
+        // Track which active + planned events this member has already registered for
         Set<Long> registeredEventIds = new HashSet<>();
         for (Event ev : activeEvents) {
+            if (ticketService.isRegistered(ev.getId(), member.getId())) {
+                registeredEventIds.add(ev.getId());
+            }
+        }
+        for (Event ev : eventRepository.findByStatusOrderByEventDateAsc("Planned")) {
             if (ticketService.isRegistered(ev.getId(), member.getId())) {
                 registeredEventIds.add(ev.getId());
             }

@@ -1,6 +1,7 @@
 package com.udjcs.invitation;
 
 import com.udjcs.common.BaseEntity;
+import com.udjcs.event.Event;
 import com.udjcs.organization.Organization;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -64,6 +65,13 @@ public class Invitation extends BaseEntity {
     @Column(name = "active", nullable = false)
     private boolean active = true;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "event_id")
+    private Event event;
+
+    @Transient
+    private Long eventId;
+
     @OneToMany(mappedBy = "invitation", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("sortOrder ASC, id ASC")
     private List<InvitationActivity> activities = new ArrayList<>();
@@ -112,4 +120,8 @@ public class Invitation extends BaseEntity {
 
     public List<InvitationActivity> getActivities() { return activities; }
     public void setActivities(List<InvitationActivity> activities) { this.activities = activities; }
+    public Event getEvent() { return event; }
+    public void setEvent(Event event) { this.event = event; }
+    public Long getEventId() { return eventId; }
+    public void setEventId(Long eventId) { this.eventId = eventId; }
 }

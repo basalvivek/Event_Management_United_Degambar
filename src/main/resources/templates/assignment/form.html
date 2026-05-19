@@ -112,15 +112,14 @@
     font-size: 0.72rem; font-weight: 800;
     display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
-.add-member-btn {
-    border-radius: 10px;
-    background: var(--ac-bg); color: var(--ac);
-    border: 1.5px solid var(--ac-light);
-    font-size: 0.82rem; font-weight: 600;
-    padding: 8px 18px;
-    transition: background 0.15s, color 0.15s;
+.add-participant-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    border-radius: 10px; background: var(--ac-bg); color: var(--ac);
+    border: 1.5px solid var(--ac-light); font-size: .82rem; font-weight: 600;
+    padding: 8px 18px; cursor: pointer;
+    transition: background .15s, color .15s, border-color .15s;
 }
-.add-member-btn:hover { background: var(--ac); color: #fff; }
+.add-participant-btn:hover { background: var(--ac) !important; color: #fff !important; border-color: var(--ac) !important; }
 
 /* Action bar */
 .action-bar {
@@ -154,11 +153,11 @@
     </div>
     <div>
         <div class="as-hero-title"
-             th:text="${item.id == null ? 'Assign Members to Activity' : 'Edit Assignment'}"></div>
+             th:text="${item.id == null ? 'Assign Participants to Activity' : 'Edit Assignment'}"></div>
         <div class="as-hero-sub"
              th:text="${item.id == null
-                ? 'Select an activity and assign one or more members with roles'
-                : 'Update member, role, status or notes for this assignment'}"></div>
+                ? 'Select an activity and assign one or more participants with roles'
+                : 'Update participant, role, status or notes for this assignment'}"></div>
     </div>
     <div th:if="${item.id != null and item.status != null}" class="ms-auto" style="position:relative;z-index:1;">
         <span th:class="'as-status-chip chip-' + ${item.status}" th:text="${item.status}"></span>
@@ -173,11 +172,26 @@
         <div class="sec-head">
             <div class="sec-icon si-indigo"><i class="bi bi-list-task"></i></div>
             <div class="sec-title">Activity</div>
-            <span class="sec-sub">Which activity are members being assigned to?</span>
+            <span class="sec-sub">Which activity participants are being assigned to?</span>
         </div>
         <div class="sec-body">
-            <label class="form-label">Activity <span class="req">*</span></label>
-            <div class="input-group">
+            <label class="form-label">Activity <span class="req" th:unless="${item.id != null}">*</span></label>
+
+            <!-- CREATE mode with pre-selected activity: locked -->
+            <div th:if="${item.id == null and preselectedActivity != null}"
+                 class="d-flex align-items-center gap-2 px-3 py-2 rounded-3"
+                 style="background:#eef2ff;border:1.5px solid #c7d2fe;">
+                <i class="bi bi-bookmark-check-fill" style="color:#4f46e5;"></i>
+                <span class="fw-semibold" style="font-size:.88rem;color:#1e1b4b;"
+                      th:text="${preselectedActivity.activityName + ' [' + preselectedActivity.activityCategory.categoryName + ']'}"></span>
+                <input type="hidden" name="activityId" th:value="${preselectedActivity.id}">
+                <span class="ms-auto badge" style="background:#c7d2fe;color:#4338ca;font-size:.68rem;">
+                    <i class="bi bi-lock-fill me-1"></i>Locked
+                </span>
+            </div>
+
+            <!-- CREATE mode without pre-selection: editable dropdown -->
+            <div th:if="${item.id == null and preselectedActivity == null}" class="input-group">
                 <span class="input-group-text"><i class="bi bi-bookmark-check"></i></span>
                 <select class="form-select" th:field="*{activityId}"
                         th:classappend="${#fields.hasErrors('activityId')} ? ' is-invalid'">
@@ -187,6 +201,20 @@
                             th:text="${a.activityName + ' [' + a.activityCategory.categoryName + ']'}"></option>
                 </select>
             </div>
+
+            <!-- EDIT mode: read-only display -->
+            <div th:unless="${item.id == null}"
+                 class="d-flex align-items-center gap-2 px-3 py-2 rounded-3"
+                 style="background:#eef2ff;border:1.5px solid #c7d2fe;">
+                <i class="bi bi-bookmark-check-fill" style="color:#4f46e5;"></i>
+                <span class="fw-semibold" style="font-size:.88rem;color:#1e1b4b;"
+                      th:text="${item.activity != null ? item.activity.activityName : '—'}"></span>
+                <input type="hidden" th:field="*{activityId}">
+                <span class="ms-auto badge" style="background:#c7d2fe;color:#4338ca;font-size:.68rem;">
+                    <i class="bi bi-lock-fill me-1"></i>Locked
+                </span>
+            </div>
+
             <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('activityId')}"
                  th:errors="*{activityId}"></div>
         </div>
@@ -203,12 +231,41 @@
             <div class="row g-3">
 
                 <div class="col-md-5">
-                    <label class="form-label">Assigned Date <span class="req">*</span></label>
-                    <div class="input-group">
+                    <label class="form-label">Assigned Date <span class="req" th:unless="${item.id != null}">*</span></label>
+
+                    <!-- CREATE mode with pre-selected activity: locked date from activity -->
+                    <div th:if="${item.id == null and preselectedActivity != null}"
+                         class="d-flex align-items-center gap-2 px-3 py-2 rounded-3"
+                         style="background:#f0fdf4;border:1.5px solid #bbf7d0;">
+                        <i class="bi bi-calendar-check-fill" style="color:#059669;"></i>
+                        <span class="fw-semibold" style="font-size:.88rem;color:#1e1b4b;"
+                              th:text="${item.assignedDate != null ? #temporals.format(item.assignedDate,'dd/MM/yyyy') : '—'}"></span>
+                        <input type="hidden" name="assignedDate" th:value="${item.assignedDate}">
+                        <span class="ms-auto badge" style="background:#bbf7d0;color:#166534;font-size:.68rem;">
+                            <i class="bi bi-lock-fill me-1"></i>Locked
+                        </span>
+                    </div>
+
+                    <!-- CREATE mode without pre-selection: editable -->
+                    <div th:if="${item.id == null and preselectedActivity == null}" class="input-group">
                         <span class="input-group-text"><i class="bi bi-calendar-event"></i></span>
                         <input type="date" class="form-control" th:field="*{assignedDate}"
                                th:classappend="${#fields.hasErrors('assignedDate')} ? ' is-invalid'">
                     </div>
+
+                    <!-- EDIT mode: read-only display -->
+                    <div th:unless="${item.id == null}"
+                         class="d-flex align-items-center gap-2 px-3 py-2 rounded-3"
+                         style="background:#f0fdf4;border:1.5px solid #bbf7d0;">
+                        <i class="bi bi-calendar-check-fill" style="color:#059669;"></i>
+                        <span class="fw-semibold" style="font-size:.88rem;color:#1e1b4b;"
+                              th:text="${item.assignedDate != null ? #temporals.format(item.assignedDate,'dd/MM/yyyy') : '—'}"></span>
+                        <input type="hidden" th:field="*{assignedDate}">
+                        <span class="ms-auto badge" style="background:#bbf7d0;color:#166534;font-size:.68rem;">
+                            <i class="bi bi-lock-fill me-1"></i>Locked
+                        </span>
+                    </div>
+
                     <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('assignedDate')}"
                          th:errors="*{assignedDate}"></div>
                 </div>
@@ -249,8 +306,8 @@
     <div th:if="${item.id == null}" class="sec-card">
         <div class="sec-head">
             <div class="sec-icon si-purple"><i class="bi bi-people-fill"></i></div>
-            <div class="sec-title">Members &amp; Roles</div>
-            <span class="sec-sub">Add one or more members</span>
+            <div class="sec-title">Participants &amp; Roles</div>
+            <span class="sec-sub">Add one or more participants</span>
         </div>
         <div class="sec-body">
 
@@ -262,14 +319,42 @@
                 <span th:text="${duplicateError}"></span>
             </div>
 
+            <!-- Existing participants (when coming from activity) -->
+            <div th:if="${existingAssignments != null and not #lists.isEmpty(existingAssignments)}" class="mb-3">
+                <div class="fw-semibold mb-2" style="font-size:.8rem;color:#374151;">
+                    <i class="bi bi-people-fill me-1" style="color:#4f46e5;"></i>
+                    Already Assigned (<span th:text="${#lists.size(existingAssignments)}"></span>)
+                </div>
+                <table class="table table-sm mb-0" style="font-size:.78rem;border-radius:8px;overflow:hidden;border:1.5px solid #e0e7ff;">
+                    <thead style="background:#eef2ff;">
+                        <tr>
+                            <th style="font-size:.67rem;font-weight:700;text-transform:uppercase;color:#4f46e5;padding:6px 12px;">Member</th>
+                            <th style="font-size:.67rem;font-weight:700;text-transform:uppercase;color:#4f46e5;padding:6px 12px;">Role</th>
+                            <th style="font-size:.67rem;font-weight:700;text-transform:uppercase;color:#4f46e5;padding:6px 12px;">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="ea : ${existingAssignments}" style="border-color:#e0e7ff;">
+                            <td style="padding:6px 12px;font-weight:600;color:#1e1b4b;"
+                                th:text="${ea.member.firstName + ' ' + ea.member.lastName}"></td>
+                            <td style="padding:6px 12px;color:#475569;" th:text="${ea.role}"></td>
+                            <td style="padding:6px 12px;">
+                                <span th:class="'badge ' + (${ea.status == 'Completed'} ? 'bg-success' : (${ea.status == 'Dropped'} ? 'bg-danger' : 'bg-secondary'))"
+                                      style="font-size:.66rem;" th:text="${ea.status}"></span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
             <!-- Member row container -->
             <div id="memberRows" class="d-flex flex-column gap-2 mb-3"></div>
 
             <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('memberId')}"
                  th:errors="*{memberId}"></div>
 
-            <button type="button" class="add-member-btn btn" onclick="addMemberRow()">
-                <i class="bi bi-person-plus-fill me-2"></i>Add Member
+            <button type="button" class="add-participant-btn" onclick="addMemberRow()">
+                <i class="bi bi-person-plus-fill"></i>Add Participant
             </button>
 
             <!-- Hidden source for JS cloning -->
@@ -286,7 +371,7 @@
     <div th:unless="${item.id == null}" class="sec-card">
         <div class="sec-head">
             <div class="sec-icon si-purple"><i class="bi bi-person-fill"></i></div>
-            <div class="sec-title">Member &amp; Role</div>
+            <div class="sec-title">Participant &amp; Role</div>
             <span class="sec-sub">Who is assigned and in what capacity?</span>
         </div>
         <div class="sec-body">
@@ -354,7 +439,7 @@
     <div class="action-bar">
         <button type="submit" class="btn btn-save">
             <i class="bi bi-check-lg me-2"></i>
-            <span th:text="${item.id == null ? 'Assign Members' : 'Save Changes'}">Save</span>
+            <span th:text="${item.id == null ? 'Assign Participants' : 'Save Changes'}">Save</span>
         </button>
         <a th:href="@{/assignments}" class="btn btn-cancel">
             <i class="bi bi-x me-1"></i>Cancel
@@ -408,31 +493,75 @@ function pickRole(chip) {
         }).join('');
     }
 
+    function getActivityLabel() {
+        var sel = document.getElementById('activityId');
+        if (!sel || !sel.value) return '— No activity selected —';
+        var opt = sel.options[sel.selectedIndex];
+        return opt ? opt.text : '—';
+    }
+
+    function getAssignedDate() {
+        var d = document.getElementById('assignedDate');
+        if (!d || !d.value) return '—';
+        // Format dd/mm/yyyy
+        var parts = d.value.split('-');
+        return parts.length === 3 ? parts[2] + '/' + parts[1] + '/' + parts[0] : d.value;
+    }
+
+    function getSelectedMemberIds() {
+        var ids = [];
+        document.querySelectorAll('#memberRows select[name="memberIds"]').forEach(function(s) {
+            if (s.value) ids.push(s.value);
+        });
+        return ids;
+    }
+
     window.addMemberRow = function () {
         var src = document.getElementById('memberSrc');
         var container = document.getElementById('memberRows');
         if (!src || !container) return;
 
+        var dateLabel = getAssignedDate();
         var n = container.children.length + 1;
         var card = document.createElement('div');
-        card.className = 'member-row-card d-flex align-items-center gap-3';
+        card.className = 'member-row-card d-flex flex-column gap-2';
         card.innerHTML =
-            '<div class="row-num">' + n + '</div>' +
-            '<div class="flex-grow-1">' +
-                '<select name="memberIds" class="form-select" style="font-size:.84rem;">' +
-                    src.innerHTML +
-                '</select>' +
+            '<div class="d-flex align-items-center gap-2">' +
+                '<div class="row-num">' + n + '</div>' +
+                (dateLabel !== '—' ?
+                    '<span style="background:#f0fdf4;color:#166534;border-radius:8px;padding:4px 10px;font-size:.75rem;font-weight:600;">' +
+                        '<i class="bi bi-calendar3 me-1"></i>' + dateLabel +
+                    '</span>' : '') +
+                '<button type="button" style="margin-left:auto;border-radius:8px;border:1.5px solid #fca5a5;background:#fff6f6;color:#ef4444;padding:4px 8px;cursor:pointer;" ' +
+                        'onclick="removeRow(this)" title="Remove">' +
+                    '<i class="bi bi-x-lg"></i>' +
+                '</button>' +
             '</div>' +
-            '<div style="flex:0 0 170px;">' +
-                '<select name="memberRoles" class="form-select" style="font-size:.84rem;">' +
-                    roleOpts() +
-                '</select>' +
-            '</div>' +
-            '<button type="button" class="btn btn-sm btn-outline-danger flex-shrink-0 px-2" ' +
-                    'style="border-radius:8px;" onclick="removeRow(this)" title="Remove">' +
-                '<i class="bi bi-x-lg"></i>' +
-            '</button>';
+            '<div class="d-flex gap-2">' +
+                '<div class="flex-grow-1">' +
+                    '<select name="memberIds" class="form-select" style="font-size:.84rem;" onchange="checkDuplicate(this)">' +
+                        src.innerHTML +
+                    '</select>' +
+                    '<div class="dup-warn" style="display:none;color:#dc2626;font-size:.75rem;margin-top:3px;">' +
+                        '<i class="bi bi-exclamation-triangle-fill me-1"></i>This participant is already added.' +
+                    '</div>' +
+                '</div>' +
+                '<div style="flex:0 0 170px;">' +
+                    '<select name="memberRoles" class="form-select" style="font-size:.84rem;">' +
+                        roleOpts() +
+                    '</select>' +
+                '</div>' +
+            '</div>';
         container.appendChild(card);
+    };
+
+    window.checkDuplicate = function(sel) {
+        var warn = sel.parentElement.querySelector('.dup-warn');
+        if (!sel.value) { if (warn) warn.style.display = 'none'; return; }
+        var allSelects = document.querySelectorAll('#memberRows select[name="memberIds"]');
+        var count = 0;
+        allSelects.forEach(function(s) { if (s.value === sel.value) count++; });
+        if (warn) warn.style.display = count > 1 ? '' : 'none';
     };
 
     window.removeRow = function (btn) {
@@ -443,6 +572,33 @@ function pickRole(chip) {
     function renumber() {
         document.querySelectorAll('#memberRows .row-num').forEach(function(el, i) {
             el.textContent = i + 1;
+        });
+    }
+
+    // Prevent form submit if duplicates exist or no members selected
+    if (document.getElementById('memberRows')) {
+        document.querySelectorAll('form').forEach(function(f) {
+            f.addEventListener('submit', function(e) {
+                var selects = document.querySelectorAll('#memberRows select[name="memberIds"]');
+                if (selects.length === 0) {
+                    e.preventDefault();
+                    alert('Please add at least one participant before saving.');
+                    return false;
+                }
+                var ids = [];
+                selects.forEach(function(s) { if (s.value) ids.push(s.value); });
+                if (ids.length === 0) {
+                    e.preventDefault();
+                    alert('Please select a member for each participant row.');
+                    return false;
+                }
+                var unique = new Set(ids);
+                if (unique.size < ids.length) {
+                    e.preventDefault();
+                    alert('Duplicate participants found. Each member can only be assigned once.');
+                    return false;
+                }
+            });
         });
     }
 

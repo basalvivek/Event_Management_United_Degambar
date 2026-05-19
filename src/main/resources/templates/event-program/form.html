@@ -88,7 +88,8 @@
                             <option value="">— Select an Event —</option>
                             <option th:each="e : ${events}"
                                     th:value="${e.id}"
-                                    th:text="${e.eventName} + '  ·  ' + ${#temporals.format(e.eventDate,'dd/MM/yyyy')}"></option>
+                                    th:text="${e.eventName} + '  ·  ' + ${#temporals.format(e.eventDate,'dd/MM/yyyy')}"
+                                    th:selected="${preselectedEventId != null and preselectedEventId == e.id}"></option>
                         </select>
                         <div th:if="${#lists.isEmpty(events)}"
                              class="alert alert-warning d-flex align-items-center gap-2 mt-2 py-2 mb-0" style="font-size:0.82rem;border-radius:8px;">

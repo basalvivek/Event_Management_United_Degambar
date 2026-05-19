@@ -1,6 +1,7 @@
 package com.udjcs.receivable;
 
 import com.udjcs.common.BaseEntity;
+import com.udjcs.event.Event;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -64,6 +65,13 @@ public class ReceivableTransaction extends BaseEntity {
     @Column(name = "source_id")
     private Long sourceId;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "event_id")
+    private Event event;
+
+    @Transient
+    private Long eventId;
+
     public String getIncomeType() { return incomeType; }
     public void setIncomeType(String v) { this.incomeType = v; }
     public String getName() { return name; }
@@ -90,4 +98,8 @@ public class ReceivableTransaction extends BaseEntity {
     public void setSourceType(String v) { this.sourceType = v; }
     public Long getSourceId() { return sourceId; }
     public void setSourceId(Long v) { this.sourceId = v; }
+    public Event getEvent() { return event; }
+    public void setEvent(Event v) { this.event = v; }
+    public Long getEventId() { return eventId; }
+    public void setEventId(Long v) { this.eventId = v; }
 }

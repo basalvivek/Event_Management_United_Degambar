@@ -1,6 +1,7 @@
 package com.udjcs.finance;
 
 import com.udjcs.common.BaseEntity;
+import com.udjcs.event.Event;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -48,6 +49,13 @@ public class SponsorDonation extends BaseEntity {
     @Column(name = "source", length = 50, nullable = false)
     private String source = "Sponsors";
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "event_id")
+    private Event event;
+
+    @Transient
+    private Long eventId;
+
     public BigDecimal getPendingAmount() {
         if (committedAmount == null || donatedAmount == null) return BigDecimal.ZERO;
         return committedAmount.subtract(donatedAmount);
@@ -76,4 +84,8 @@ public class SponsorDonation extends BaseEntity {
 
     public String getSource() { return source; }
     public void setSource(String source) { this.source = source; }
+    public Event getEvent() { return event; }
+    public void setEvent(Event event) { this.event = event; }
+    public Long getEventId() { return eventId; }
+    public void setEventId(Long eventId) { this.eventId = eventId; }
 }

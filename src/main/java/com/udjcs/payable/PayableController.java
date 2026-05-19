@@ -1,5 +1,6 @@
 package com.udjcs.payable;
 
+import com.udjcs.event.EventRepository;
 import com.udjcs.finance.PaymentInstalment;
 import com.udjcs.finance.PaymentInstalmentRepository;
 import com.udjcs.food.FoodRegistration;
@@ -29,15 +30,18 @@ public class PayableController {
     private final PaymentInstalmentRepository instalmentRepo;
     private final HallRegistrationRepository hallRepo;
     private final FoodRegistrationRepository foodRepo;
+    private final EventRepository eventRepo;
 
     public PayableController(PayableTransactionRepository repo,
                               PaymentInstalmentRepository instalmentRepo,
                               HallRegistrationRepository hallRepo,
-                              FoodRegistrationRepository foodRepo) {
+                              FoodRegistrationRepository foodRepo,
+                              EventRepository eventRepo) {
         this.repo          = repo;
         this.instalmentRepo = instalmentRepo;
         this.hallRepo      = hallRepo;
         this.foodRepo      = foodRepo;
+        this.eventRepo     = eventRepo;
     }
 
     @GetMapping
@@ -52,9 +56,66 @@ public class PayableController {
             paidMap.put(p.getId(), deposit.add(instSum));
         }
 
-        BigDecimal grandTotal   = items.stream().map(p -> p.getTotalAmount() != null ? p.getTotalAmount() : BigDecimal.ZERO).reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal grandPaid    = paidMap.values().stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal grandTotal = items.stream().map(p -> p.getTotalAmount() != null ? p.getTotalAmount() : BigDecimal.ZERO).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal grandPaid  = paidMap.values().stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        // Two-level grouping: event → name → items
+        java.util.LinkedHashMap<String, java.util.LinkedHashMap<String, List<PayableTransaction>>> groups = new java.util.LinkedHashMap<>();
+        items.stream()
+            .sorted(java.util.Comparator.comparing(p ->
+                p.getEvent() != null ? p.getEvent().getEventName().toLowerCase() : "zzz"))
+            .forEach(p -> {
+                String evKey   = p.getEvent() != null ? p.getEvent().getEventName() : "— No Event —";
+                String nameKey = p.getName() != null ? p.getName() : "";
+                groups.computeIfAbsent(evKey, k -> new java.util.LinkedHashMap<>())
+                      .computeIfAbsent(nameKey, k -> new java.util.ArrayList<>())
+                      .add(p);
+            });
+        // Within each name group: DEPOSIT first, then by payment date ASC, then id ASC
+        java.util.Comparator<PayableTransaction> payOrder = java.util.Comparator
+            .comparingInt((PayableTransaction p) ->
+                (p.getSourceType() != null && p.getSourceType().endsWith("_DEPOSIT")) ? 0 : 1)
+            .thenComparing(p -> p.getPaymentDate() != null ? p.getPaymentDate() : java.time.LocalDate.MAX)
+            .thenComparingLong(p -> p.getId() != null ? p.getId() : Long.MAX_VALUE);
+        groups.values().forEach(nameMap -> nameMap.values().forEach(list -> list.sort(payOrder)));
+
+        java.util.Map<String, BigDecimal> eventTotals = new java.util.LinkedHashMap<>();
+        groups.forEach((evName, nameMap) -> eventTotals.put(evName,
+            nameMap.values().stream().flatMap(List::stream)
+                .map(p -> p.getTotalAmount() != null ? p.getTotalAmount() : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add)));
+
+        java.util.Map<String, java.util.Map<String, BigDecimal>> nameTotals = new java.util.LinkedHashMap<>();
+        java.util.Map<String, java.util.Map<String, BigDecimal>> namePaidTotals = new java.util.LinkedHashMap<>();
+        groups.forEach((evName, nameMap) -> {
+            java.util.Map<String, BigDecimal> inner     = new java.util.LinkedHashMap<>();
+            java.util.Map<String, BigDecimal> innerPaid = new java.util.LinkedHashMap<>();
+            nameMap.forEach((name, list) -> {
+                // Use the DEPOSIT entry's totalAmount as booking amount; fall back to sum for manual entries
+                BigDecimal bookAmt = list.stream()
+                    .filter(p -> p.getSourceType() != null && p.getSourceType().endsWith("_DEPOSIT"))
+                    .map(p -> p.getTotalAmount() != null ? p.getTotalAmount() : BigDecimal.ZERO)
+                    .findFirst()
+                    .orElse(null);
+                if (bookAmt == null) {
+                    bookAmt = list.stream()
+                        .map(p -> p.getTotalAmount() != null ? p.getTotalAmount() : BigDecimal.ZERO)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+                }
+                inner.put(name, bookAmt);
+                innerPaid.put(name, list.stream()
+                    .map(p -> paidMap.getOrDefault(p.getId(), BigDecimal.ZERO))
+                    .reduce(BigDecimal.ZERO, BigDecimal::add));
+            });
+            nameTotals.put(evName, inner);
+            namePaidTotals.put(evName, innerPaid);
+        });
+
         model.addAttribute("items", items);
+        model.addAttribute("groups", groups);
+        model.addAttribute("eventTotals", eventTotals);
+        model.addAttribute("nameTotals", nameTotals);
+        model.addAttribute("namePaidTotals", namePaidTotals);
         model.addAttribute("paidMap", paidMap);
         model.addAttribute("grandTotal", grandTotal);
         model.addAttribute("grandPaid", grandPaid);
@@ -73,6 +134,7 @@ public class PayableController {
     public String create(@ModelAttribute("item") @Valid PayableTransaction p,
                          BindingResult result, Model model, RedirectAttributes attrs) {
         if (result.hasErrors()) { addFormData(model); return "payable/form"; }
+        wireEvent(p);
         computeStatus(p, BigDecimal.ZERO);
         repo.save(p);
         attrs.addFlashAttribute("success", "Payable transaction saved.");
@@ -81,8 +143,9 @@ public class PayableController {
 
     @GetMapping("/{id}/edit")
     public String showEditForm(@PathVariable Long id, Model model) {
-        PayableTransaction p = repo.findById(id)
+        PayableTransaction p = repo.findByIdWithEvent(id)
                 .orElseThrow(() -> new IllegalArgumentException("Not found: " + id));
+        if (p.getEvent() != null) p.setEventId(p.getEvent().getId());
         model.addAttribute("item", p);
         addFormData(model);
         List<PaymentInstalment> instalments = instalmentRepo
@@ -107,6 +170,7 @@ public class PayableController {
             return "payable/form";
         }
         p.setId(id);
+        wireEvent(p);
         BigDecimal instSum = instalmentRepo.sumBySourceTypeAndSourceId("Payable", id);
         computeStatus(p, instSum);
         repo.save(p);
@@ -198,6 +262,15 @@ public class PayableController {
     private void addFormData(Model model) {
         model.addAttribute("halls", hallRepo.findAllWithEvent());
         model.addAttribute("foods", foodRepo.findAllOrdered());
+        model.addAttribute("events", eventRepo.findAll(org.springframework.data.domain.Sort.by("eventName")));
+    }
+
+    private void wireEvent(PayableTransaction p) {
+        if (p.getEventId() != null) {
+            eventRepo.findById(p.getEventId()).ifPresent(p::setEvent);
+        } else {
+            p.setEvent(null);
+        }
     }
 
     private void computeStatus(PayableTransaction p, BigDecimal instSum) {

@@ -79,6 +79,10 @@ public class FoodRegistration extends BaseEntity {
     @Column(name = "deposit_amount", precision = 12, scale = 2)
     private BigDecimal depositAmount;
 
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+    @Column(name = "deposit_date")
+    private LocalDate depositDate;
+
     // Vendor payment
     @Size(max = 150) @Column(name = "vendor_payable_name", length = 150) private String vendorPayableName;
     @Size(max = 10)  @Column(name = "sort_code", length = 10)            private String sortCode;
@@ -134,6 +138,8 @@ public class FoodRegistration extends BaseEntity {
     public void setFullAmount(BigDecimal v) { this.fullAmount = v; }
     public BigDecimal getDepositAmount() { return depositAmount; }
     public void setDepositAmount(BigDecimal v) { this.depositAmount = v; }
+    public LocalDate getDepositDate() { return depositDate; }
+    public void setDepositDate(LocalDate v) { this.depositDate = v; }
     public String getVendorPayableName() { return vendorPayableName; }
     public void setVendorPayableName(String v) { this.vendorPayableName = v; }
     public String getSortCode() { return sortCode; }

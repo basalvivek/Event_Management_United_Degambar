@@ -25,7 +25,7 @@ public class Member extends BaseEntity {
 
     @Email
     @Size(max = 150)
-    @Column(length = 150)
+    @Column(length = 150, unique = true)
     private String email;
 
     @NotBlank

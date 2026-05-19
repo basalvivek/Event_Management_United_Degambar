@@ -26,6 +26,9 @@ public interface EventTicketRepository extends JpaRepository<EventTicket, Long> 
 
     boolean existsByEvent_IdAndMember_Id(Long eventId, Long memberId);
 
+    @Query("SELECT t FROM EventTicket t JOIN FETCH t.event WHERE t.member.id = :memberId ORDER BY t.createdAt DESC")
+    List<EventTicket> findByMemberIdWithEvent(@Param("memberId") Long memberId);
+
     @Query("SELECT SUM(t.totalAmount) FROM EventTicket t WHERE t.status = 'Accepted'")
     Long sumAcceptedTickets();
 

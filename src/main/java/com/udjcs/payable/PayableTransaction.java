@@ -1,9 +1,9 @@
 package com.udjcs.payable;
 
 import com.udjcs.common.BaseEntity;
+import com.udjcs.event.Event;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -63,6 +63,13 @@ public class PayableTransaction extends BaseEntity {
     @Column(name = "source_id")
     private Long sourceId;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "event_id")
+    private Event event;
+
+    @Transient
+    private Long eventId;
+
     public String getPaymentType() { return paymentType; }
     public void setPaymentType(String v) { this.paymentType = v; }
     public String getName() { return name; }
@@ -89,4 +96,8 @@ public class PayableTransaction extends BaseEntity {
     public void setSourceType(String v) { this.sourceType = v; }
     public Long getSourceId() { return sourceId; }
     public void setSourceId(Long v) { this.sourceId = v; }
+    public Event getEvent() { return event; }
+    public void setEvent(Event v) { this.event = v; }
+    public Long getEventId() { return eventId; }
+    public void setEventId(Long v) { this.eventId = v; }
 }

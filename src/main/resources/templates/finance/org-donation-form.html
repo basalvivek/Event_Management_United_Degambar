@@ -57,6 +57,18 @@
           th:onsubmit="${locked} ? 'return false;' : ''">
 
         <!-- Donor -->
+        <!-- Event / Cost Centre -->
+        <div class="section-card">
+            <div class="section-title"><i class="bi bi-calendar-event"></i>Event / Cost Centre</div>
+            <select class="form-select" name="eventId" th:disabled="${locked}">
+                <option value="">— Select Event —</option>
+                <option th:each="e : ${events}"
+                        th:value="${e.id}"
+                        th:text="${e.eventName}"
+                        th:selected="${item.event != null and item.event.id == e.id}"></option>
+            </select>
+        </div>
+
         <div class="section-card">
             <input type="hidden" name="donorTypeHidden" th:value="${donorType}">
 

@@ -49,18 +49,21 @@
 
 /* ── Two action buttons ── */
 .btn-add-member {
-    border-radius:9px; background:var(--ac); color:#fff; border:0;
-    font-size:0.76rem; font-weight:600; padding:7px 14px;
-    white-space:nowrap; transition:opacity 0.15s;
-}
-.btn-add-member:hover { opacity:0.88; color:#fff; }
-.btn-view-members {
-    border-radius:9px; background:#f8f9ff; color:var(--ac);
-    border:1.5px solid #c7d2fe; font-size:0.76rem; font-weight:600;
-    padding:7px 14px; white-space:nowrap; transition:all 0.15s;
     display:inline-flex; align-items:center; gap:6px;
+    border-radius:9px; background:var(--ac); color:#fff !important; border:0;
+    font-size:0.76rem; font-weight:600; padding:7px 14px;
+    white-space:nowrap; cursor:pointer; text-decoration:none !important;
+    transition:background 0.15s;
 }
-.btn-view-members:hover { background:var(--ac-bg); }
+.btn-add-member:hover { background:#3730a3; color:#fff !important; }
+.btn-view-members {
+    display:inline-flex; align-items:center; gap:6px;
+    border-radius:9px; background:#f8f9ff; color:var(--ac) !important;
+    border:1.5px solid #c7d2fe; font-size:0.76rem; font-weight:600;
+    padding:7px 14px; white-space:nowrap; cursor:pointer;
+    text-decoration:none !important; transition:background 0.15s;
+}
+.btn-view-members:hover { background:var(--ac-bg); color:var(--ac) !important; }
 .btn-view-members .chevron { font-size:0.68rem; transition:transform 0.2s; }
 .btn-view-members.open .chevron { transform:rotate(180deg); }
 
@@ -113,7 +116,7 @@
     <div class="col-6 col-md-3">
         <div class="stat-card d-flex align-items-center gap-3">
             <div class="stat-icon" style="background:#dbeafe;color:#1e40af;"><i class="bi bi-people-fill"></i></div>
-            <div><div class="stat-label">Members Assigned</div><div class="stat-value" th:text="${totalAssignments}">0</div></div>
+            <div><div class="stat-label">Participants Assigned</div><div class="stat-value" th:text="${totalAssignments}">0</div></div>
         </div>
     </div>
     <div class="col-6 col-md-3">
@@ -205,18 +208,18 @@
             <div class="d-flex align-items-center gap-2 ms-2">
                 <!-- Button 1: Add Member -->
                 <a th:href="@{/assignments/new(activityId=${entry.key})}"
-                   class="btn btn-add-member">
-                    <i class="bi bi-person-plus-fill me-1"></i>Add Member
+                   class="btn-add-member">
+                    <i class="bi bi-person-plus-fill"></i>Add Participant
                 </a>
 
                 <!-- Button 2: View Members (expand/collapse) -->
                 <button type="button"
-                        class="btn btn-view-members"
+                        class="btn-view-members"
                         data-bs-toggle="collapse"
                         th:attr="data-bs-target='#m-' + ${entry.key}"
                         th:id="'btn-' + ${entry.key}"
                         onclick="toggleView(this)">
-                    <i class="bi bi-people me-1"></i>View Members
+                    <i class="bi bi-people"></i>View Participants
                     <i class="bi bi-chevron-down chevron"></i>
                 </button>
             </div>

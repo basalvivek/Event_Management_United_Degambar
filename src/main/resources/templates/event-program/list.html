@@ -234,16 +234,33 @@
                             <i class="bi bi-eye me-1"></i>View Schedule
                         </a>
                         <a th:if="${#lists.isEmpty(entry.value)}"
-                           th:href="@{/event-programs/new}"
+                           th:href="@{/event-programs/new(eventId=${entry.key.id})}"
                            class="btn btn-outline-primary flex-grow-1">
                             <i class="bi bi-plus-lg me-1"></i>Add Programmes
                         </a>
                         <a th:if="${not #lists.isEmpty(entry.value)}"
                            th:href="@{/event-programs/{id}/edit-all(id=${entry.key.id})}"
-                           class="btn btn-outline-warning">
+                           class="btn btn-outline-warning" title="Edit all programmes">
                             <i class="bi bi-pencil-fill"></i>
                         </a>
                     </div>
+
+                    <!-- Status change -->
+                    <form th:action="@{/events/{id}/status(id=${entry.key.id})}" method="post"
+                          class="d-flex gap-2 mt-2 align-items-center">
+                        <input type="hidden" name="returnTo" value="event-programs">
+                        <select name="status" class="form-select form-select-sm"
+                                style="border-radius:8px;font-size:.75rem;border:1.5px solid #e0e7ff;flex:1;">
+                            <option value="Planned"   th:selected="${entry.key.status == 'Planned'}">Planned</option>
+                            <option value="Active"    th:selected="${entry.key.status == 'Active'}">Active</option>
+                            <option value="Completed" th:selected="${entry.key.status == 'Completed'}">Completed</option>
+                            <option value="Cancelled" th:selected="${entry.key.status == 'Cancelled'}">Cancelled</option>
+                        </select>
+                        <button type="submit" class="btn btn-sm btn-outline-secondary"
+                                style="border-radius:8px;font-size:.75rem;white-space:nowrap;">
+                            <i class="bi bi-check-lg me-1"></i>Set Status
+                        </button>
+                    </form>
 
                 </div>
             </div>

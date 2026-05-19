@@ -54,36 +54,40 @@
           th:object="${item}" method="post"
           th:onsubmit="${locked} ? 'return false;' : ''">
 
-        <!-- Income Type & Description -->
+        <!-- Event / Cost Centre -->
+        <div class="sc">
+            <div class="section-title"><i class="bi bi-calendar-event"></i>Event / Cost Centre</div>
+            <div>
+                <label class="form-label">Event <span class="text-muted" style="font-weight:400;">(optional)</span></label>
+                <select class="form-select" name="eventId" th:disabled="${locked}">
+                    <option value="">— No event —</option>
+                    <option th:each="e : ${events}"
+                            th:value="${e.id}"
+                            th:text="${e.eventName}"
+                            th:selected="${item.event != null and item.event.id == e.id}"></option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Income Type -->
         <div class="sc">
             <div class="section-title"><i class="bi bi-tag"></i>Income Type</div>
-            <div class="row g-3">
-                <div class="col-md-5">
-                    <label class="form-label">Income Type <span class="req-star" th:if="${!locked}">*</span></label>
-                    <select class="form-select" th:field="*{incomeType}"
-                            th:disabled="${locked}"
-                            th:classappend="${locked} ? ' bg-light text-muted' : (${#fields.hasErrors('incomeType')} ? ' is-invalid' : '')">
-                        <option value="">— Select Type —</option>
-                        <option value="TICKET_PAYMENT">Ticket Payment</option>
-                        <option value="MEMBER_DONATION">Member Donation</option>
-                        <option value="ORG_DONATION">Organisation Donation</option>
-                        <option value="SPONSOR">Sponsor Donation</option>
-                        <option value="INVITATION_REG">Invitation Registration</option>
-                        <option value="HALL_HIRE">Hall Hire Income</option>
-                        <option value="MISCELLANEOUS">Miscellaneous Income</option>
-                        <option value="OTHER">Other</option>
-                    </select>
-                    <div class="invalid-feedback" th:if="${!locked}" th:errors="*{incomeType}"></div>
-                </div>
-                <div class="col-md-7">
-                    <label class="form-label">Name / Description <span class="req-star" th:if="${!locked}">*</span></label>
-                    <input type="text" class="form-control" th:field="*{name}"
-                           placeholder="e.g. Paryushana 2025 ticket sales"
-                           th:readonly="${locked}"
-                           th:classappend="${locked} ? ' bg-light text-muted' : (${#fields.hasErrors('name')} ? ' is-invalid' : '')">
-                    <div class="invalid-feedback" th:if="${!locked}" th:errors="*{name}"></div>
-                </div>
-            </div>
+            <label class="form-label">Income Type <span class="req-star" th:if="${!locked}">*</span></label>
+            <select class="form-select" th:field="*{incomeType}"
+                    th:disabled="${locked}"
+                    onchange="onIncomeTypeChange(this)"
+                    th:classappend="${locked} ? ' bg-light text-muted' : (${#fields.hasErrors('incomeType')} ? ' is-invalid' : '')">
+                <option value="">— Select Type —</option>
+                <option value="TICKET_PAYMENT">Ticket Payment</option>
+                <option value="MEMBER_DONATION">Member Donation</option>
+                <option value="ORG_DONATION">Organisation Donation</option>
+                <option value="SPONSOR">Sponsor Donation</option>
+                <option value="INVITATION_REG">Invitation Registration</option>
+                <option value="HALL_HIRE">Hall Hire Income</option>
+                <option value="MISCELLANEOUS">Miscellaneous Income</option>
+                <option value="OTHER">Other</option>
+            </select>
+            <div class="invalid-feedback" th:if="${!locked}" th:errors="*{incomeType}"></div>
         </div>
 
         <!-- Payer Details -->
@@ -93,9 +97,14 @@
                 <div class="col-md-6">
                     <label class="form-label">Organisation Name</label>
                     <input type="text" class="form-control" th:field="*{organisationName}"
+                           id="organisationName"
                            placeholder="Organisation or company"
-                           th:readonly="${locked}"
-                           th:classappend="${locked} ? ' bg-light text-muted'">
+                           th:readonly="${locked or item.incomeType == 'TICKET_PAYMENT'}"
+                           th:classappend="${(locked or item.incomeType == 'TICKET_PAYMENT')} ? ' bg-light text-muted'">
+                    <div th:if="${item.incomeType == 'TICKET_PAYMENT'}"
+                         style="font-size:.72rem;color:#6366f1;margin-top:4px;">
+                        <i class="bi bi-info-circle me-1"></i>Always <strong>Self</strong> for ticket payments.
+                    </div>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">Received From (Person)</label>
@@ -306,7 +315,27 @@ function calcBalance() {
     el.style.borderColor = bal <= 0 ? '#e5e7eb' : '#fecaca';
     el.style.background  = bal <= 0 ? '#f8fafc' : '#fef2f2';
 }
-window.addEventListener('load', calcBalance);
+function onIncomeTypeChange(sel) {
+    var orgField = document.getElementById('organisationName');
+    if (!orgField) return;
+    if (sel.value === 'TICKET_PAYMENT') {
+        orgField.value = 'Self';
+        orgField.readOnly = true;
+        orgField.classList.add('bg-light', 'text-muted');
+    } else {
+        if (orgField.value === 'Self') orgField.value = '';
+        orgField.readOnly = false;
+        orgField.classList.remove('bg-light', 'text-muted');
+    }
+}
+window.addEventListener('load', function() {
+    calcBalance();
+    var sel = document.getElementById('incomeType');
+    if (sel) {
+        onIncomeTypeChange(sel);
+        sel.addEventListener('change', function() { onIncomeTypeChange(this); });
+    }
+});
 </script>
 </th:block>
 </body>

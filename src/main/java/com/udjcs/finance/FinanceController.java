@@ -1,5 +1,7 @@
 package com.udjcs.finance;
 
+import com.udjcs.event.Event;
+import com.udjcs.event.EventRepository;
 import com.udjcs.invitation.InvitationRegistration;
 import com.udjcs.invitation.InvitationRegistrationRepository;
 import com.udjcs.member.MemberRepository;
@@ -41,6 +43,7 @@ public class FinanceController {
     private final PaymentInstalmentRepository instalmentRepo;
     private final OrganizationRepository orgRepo;
     private final ReceivableTransactionRepository receivableRepo;
+    private final EventRepository eventRepo;
 
     public FinanceController(SponsorDonationRepository sponsorRepo,
                               PaymentRepository paymentRepo,
@@ -50,7 +53,8 @@ public class FinanceController {
                               MemberRepository memberRepo,
                               PaymentInstalmentRepository instalmentRepo,
                               OrganizationRepository orgRepo,
-                              ReceivableTransactionRepository receivableRepo) {
+                              ReceivableTransactionRepository receivableRepo,
+                              EventRepository eventRepo) {
         this.sponsorRepo       = sponsorRepo;
         this.paymentRepo       = paymentRepo;
         this.ticketRepo        = ticketRepo;
@@ -60,11 +64,12 @@ public class FinanceController {
         this.instalmentRepo    = instalmentRepo;
         this.orgRepo           = orgRepo;
         this.receivableRepo    = receivableRepo;
+        this.eventRepo         = eventRepo;
     }
 
     private void autoReceivable(String incomeType, String name, String orgName,
                                  String person, java.math.BigDecimal amount,
-                                 java.time.LocalDate date, String modeAndNotes) {
+                                 java.time.LocalDate date, String modeAndNotes, Event event) {
         ReceivableTransaction r = new ReceivableTransaction();
         r.setIncomeType(incomeType);
         r.setName(name);
@@ -75,6 +80,7 @@ public class FinanceController {
         r.setReceiptDate(date);
         r.setStatus("RECEIVED");
         r.setNotes(modeAndNotes);
+        r.setEvent(event);
         receivableRepo.save(r);
     }
 
@@ -88,19 +94,62 @@ public class FinanceController {
             all = all.stream().filter(r -> source.equals(r.getSource())).collect(Collectors.toList());
         }
 
-        BigDecimal totalCommitted = all.stream().map(r -> r.getCommittedAmount() != null ? r.getCommittedAmount() : BigDecimal.ZERO).reduce(BigDecimal.ZERO, BigDecimal::add);
+        // Sort each record within same source by paymentDate ASC, then id ASC
+        java.util.Comparator<PaymentRecord> payOrder = java.util.Comparator
+            .comparing((PaymentRecord r) -> r.getPaymentDate() != null ? r.getPaymentDate() : java.time.LocalDate.MAX)
+            .thenComparingLong(r -> r.getSourceId() != null ? r.getSourceId() : Long.MAX_VALUE);
+
+        // Use donated (received) for all totals; committed and pending computed after dedup
         BigDecimal totalDonated   = all.stream().map(r -> r.getDonatedAmount()   != null ? r.getDonatedAmount()   : BigDecimal.ZERO).reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal totalPending   = all.stream().map(r -> r.getPendingAmount()   != null ? r.getPendingAmount()   : BigDecimal.ZERO).reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        java.util.Set<Integer> groupStarts = new java.util.HashSet<>();
-        String prevKey = null;
-        for (int i = 0; i < all.size(); i++) {
-            String key = groupKey(all.get(i).getOrgName()).toLowerCase();
-            if (!key.equals(prevKey)) { groupStarts.add(i); prevKey = key; }
-        }
+        // Two-level grouping: event → org name → items
+        java.util.LinkedHashMap<String, java.util.LinkedHashMap<String, List<PaymentRecord>>> groups = new java.util.LinkedHashMap<>();
+        all.forEach(r -> {
+            String evKey  = r.getEventName() != null && !r.getEventName().isBlank() ? r.getEventName() : "— No Event —";
+            String orgKey = (r.getOrgName() != null && !r.getOrgName().isBlank() && !r.getOrgName().equals("—"))
+                    ? r.getOrgName() : (r.getPersonName() != null ? r.getPersonName() : "— Unknown —");
+            groups.computeIfAbsent(evKey, k -> new java.util.LinkedHashMap<>())
+                  .computeIfAbsent(orgKey, k -> new ArrayList<>()).add(r);
+        });
 
-        model.addAttribute("records", all);
-        model.addAttribute("groupStarts", groupStarts);
+        // Sort within each org group by paymentDate ASC
+        groups.values().forEach(orgMap -> orgMap.values().forEach(list -> list.sort(payOrder)));
+
+        java.util.Map<String, BigDecimal> eventTotals    = new java.util.LinkedHashMap<>();
+        java.util.Map<String, java.util.Map<String, BigDecimal>> orgCommitted = new java.util.LinkedHashMap<>();
+        java.util.Map<String, java.util.Map<String, BigDecimal>> orgReceived  = new java.util.LinkedHashMap<>();
+        java.util.Map<String, java.util.Map<String, BigDecimal>> orgPending   = new java.util.LinkedHashMap<>();
+        // First PaymentRecord per org group (for edit/print links on summary row)
+        java.util.Map<String, java.util.Map<String, PaymentRecord>> orgFirstRecord = new java.util.LinkedHashMap<>();
+        groups.forEach((evName, orgMap) -> {
+            java.util.Map<String, BigDecimal> oc = new java.util.LinkedHashMap<>();
+            java.util.Map<String, BigDecimal> or = new java.util.LinkedHashMap<>();
+            java.util.Map<String, BigDecimal> op = new java.util.LinkedHashMap<>();
+            java.util.Map<String, PaymentRecord> of = new java.util.LinkedHashMap<>();
+            orgMap.forEach((org, list) -> {
+                // committedAmount is the same on all rows of a group — take from first row
+                BigDecimal committed = list.get(0).getCommittedAmount() != null ? list.get(0).getCommittedAmount() : BigDecimal.ZERO;
+                BigDecimal received  = list.stream().map(r -> r.getDonatedAmount() != null ? r.getDonatedAmount() : BigDecimal.ZERO).reduce(BigDecimal.ZERO, BigDecimal::add);
+                oc.put(org, committed);
+                or.put(org, received);
+                op.put(org, committed.subtract(received).max(BigDecimal.ZERO));
+                of.put(org, list.get(0));
+            });
+            orgCommitted.put(evName, oc);
+            orgReceived.put(evName, or);
+            orgPending.put(evName, op);
+            orgFirstRecord.put(evName, of);
+            eventTotals.put(evName, or.values().stream().reduce(BigDecimal.ZERO, BigDecimal::add));
+        });
+
+        BigDecimal totalCommitted = orgCommitted.values().stream().flatMap(m -> m.values().stream()).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalPending   = orgPending.values().stream().flatMap(m -> m.values().stream()).reduce(BigDecimal.ZERO, BigDecimal::add);
+        model.addAttribute("groups", groups);
+        model.addAttribute("eventTotals", eventTotals);
+        model.addAttribute("orgCommitted", orgCommitted);
+        model.addAttribute("orgReceived", orgReceived);
+        model.addAttribute("orgPending", orgPending);
+        model.addAttribute("orgFirstRecord", orgFirstRecord);
         model.addAttribute("selectedSource", source);
         model.addAttribute("totalCommitted", totalCommitted);
         model.addAttribute("totalDonated", totalDonated);
@@ -116,6 +165,7 @@ public class FinanceController {
         model.addAttribute("item", new SponsorDonation());
         model.addAttribute("locked", false);
         model.addAttribute("individualSponsors", supportiveOrgRepo.findByOrganizationTypeOrderByNameAsc("Individual Sponsor"));
+        model.addAttribute("events", eventRepo.findAll(org.springframework.data.domain.Sort.by("eventName")));
         return "finance/sponsor-form";
     }
 
@@ -123,10 +173,10 @@ public class FinanceController {
     @PostMapping("/sponsors")
     public String createSponsor(@ModelAttribute("item") @Valid SponsorDonation s,
                                  BindingResult result, Model model, RedirectAttributes attrs) {
-        if (result.hasErrors()) { model.addAttribute("locked", false); model.addAttribute("individualSponsors", supportiveOrgRepo.findByOrganizationTypeOrderByNameAsc("Individual Sponsor")); return "finance/sponsor-form"; }
+        if (result.hasErrors()) { model.addAttribute("locked", false); model.addAttribute("individualSponsors", supportiveOrgRepo.findByOrganizationTypeOrderByNameAsc("Individual Sponsor")); model.addAttribute("events", eventRepo.findAll(org.springframework.data.domain.Sort.by("eventName"))); return "finance/sponsor-form"; }
+        wireEvent(s);
         sponsorRepo.save(s);
         if (s.getDonatedAmount() != null && s.getDonatedAmount().compareTo(BigDecimal.ZERO) > 0) {
-            // Record initial payment as an instalment so future sum queries stay consistent
             PaymentInstalment initial = new PaymentInstalment();
             initial.setSourceType("Sponsor");
             initial.setSourceId(s.getId());
@@ -140,7 +190,7 @@ public class FinanceController {
             autoReceivable("SPONSOR",
                     s.getSponsorOrgName() + " — Sponsor Donation",
                     s.getSponsorOrgName(), s.getSponsorName(),
-                    s.getDonatedAmount(), s.getPaymentDate(), memo);
+                    s.getDonatedAmount(), s.getPaymentDate(), memo, s.getEvent());
         }
         attrs.addFlashAttribute("success", "Sponsor donation saved.");
         return "redirect:/finance";
@@ -148,13 +198,16 @@ public class FinanceController {
 
     @GetMapping("/sponsors/{id}/edit")
     public String editSponsor(@PathVariable Long id, Model model) {
-        model.addAttribute("item", sponsorRepo.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Not found: " + id)));
+        SponsorDonation s = sponsorRepo.findByIdWithEvent(id)
+                .orElseThrow(() -> new IllegalArgumentException("Not found: " + id));
+        if (s.getEvent() != null) s.setEventId(s.getEvent().getId());
+        model.addAttribute("item", s);
         java.util.List<PaymentInstalment> insts = instalmentRepo.findBySourceTypeAndSourceIdOrderByPaymentDateAsc("Sponsor", id);
         model.addAttribute("instalments", insts);
         model.addAttribute("newInstalment", new PaymentInstalment());
         model.addAttribute("locked", !insts.isEmpty());
         model.addAttribute("individualSponsors", supportiveOrgRepo.findByOrganizationTypeOrderByNameAsc("Individual Sponsor"));
+        model.addAttribute("events", eventRepo.findAll(org.springframework.data.domain.Sort.by("eventName")));
         return "finance/sponsor-form";
     }
 
@@ -186,7 +239,7 @@ public class FinanceController {
         autoReceivable("SPONSOR",
                 sponsor.getSponsorOrgName() + " — Sponsor Payment",
                 sponsor.getSponsorOrgName(), sponsor.getSponsorName(),
-                amount, date, memo);
+                amount, date, memo, sponsor.getEvent());
         attrs.addFlashAttribute("success", "Payment of £" + amount + " recorded.");
         return "redirect:/finance/sponsors/" + id + "/edit";
     }
@@ -216,6 +269,7 @@ public class FinanceController {
         model.addAttribute("item", new Payment());
         model.addAttribute("supportiveOrgs", supportiveOrgRepo.findByOrganizationTypeNotOrderByNameAsc("Individual Sponsor"));
         model.addAttribute("members", memberRepo.findAll(Sort.by("firstName", "lastName")));
+        model.addAttribute("events", eventRepo.findAll(org.springframework.data.domain.Sort.by("eventName")));
         model.addAttribute("donorType", "member".equals(type) ? "member" : "org");
         model.addAttribute("locked", false);
         return "finance/org-donation-form";
@@ -239,9 +293,9 @@ public class FinanceController {
         if (p.getMemberId() != null) {
             memberRepo.findById(p.getMemberId()).ifPresent(p::setMember);
         }
+        wireEvent(p);
         paymentRepo.save(p);
         if (p.getAmount() != null && p.getAmount().compareTo(BigDecimal.ZERO) > 0 && p.getPaymentDate() != null) {
-            // Record initial payment as an instalment so future sum queries stay consistent
             PaymentInstalment initial = new PaymentInstalment();
             initial.setSourceType("OrgMember");
             initial.setSourceId(p.getId());
@@ -257,7 +311,7 @@ public class FinanceController {
             String recName  = (orgName != null ? orgName : person) + " — Donation";
             String memo     = (p.getPaymentMode() != null ? p.getPaymentMode() : "")
                             + (p.getNotes() != null && !p.getNotes().isBlank() ? " | " + p.getNotes() : "");
-            autoReceivable(incType, recName, orgName, person, p.getAmount(), p.getPaymentDate(), memo);
+            autoReceivable(incType, recName, orgName, person, p.getAmount(), p.getPaymentDate(), memo, p.getEvent());
         }
         attrs.addFlashAttribute("success", "Donation saved.");
         return "redirect:/finance";
@@ -267,10 +321,12 @@ public class FinanceController {
     public String editOrgDonation(@PathVariable Long id, Model model) {
         Payment p = paymentRepo.findByIdWithDetails(id)
                 .orElseThrow(() -> new IllegalArgumentException("Not found: " + id));
+        if (p.getEvent() != null) p.setEventId(p.getEvent().getId());
         java.util.List<PaymentInstalment> insts = instalmentRepo.findBySourceTypeAndSourceIdOrderByPaymentDateAsc("OrgMember", id);
         model.addAttribute("item", p);
         model.addAttribute("supportiveOrgs", supportiveOrgRepo.findByOrganizationTypeNotOrderByNameAsc("Individual Sponsor"));
         model.addAttribute("members", memberRepo.findAll(Sort.by("firstName", "lastName")));
+        model.addAttribute("events", eventRepo.findAll(org.springframework.data.domain.Sort.by("eventName")));
         model.addAttribute("donorType", p.getMember() != null ? "member" : "org");
         model.addAttribute("instalments", insts);
         model.addAttribute("newInstalment", new PaymentInstalment());
@@ -310,7 +366,7 @@ public class FinanceController {
         String incType  = isMember ? "MEMBER_DONATION" : "ORG_DONATION";
         String recName  = (orgName != null ? orgName : person) + " — Donation Payment";
         String memo     = paymentMode + (notes != null && !notes.isBlank() ? " | " + notes : "");
-        autoReceivable(incType, recName, orgName, person, amount, date, memo);
+        autoReceivable(incType, recName, orgName, person, amount, date, memo, payment.getEvent());
         attrs.addFlashAttribute("success", "Payment of £" + amount + " recorded.");
         return "redirect:/finance/org-donations/" + id + "/edit";
     }
@@ -437,7 +493,7 @@ public class FinanceController {
         String memberName = t.getMember() != null ? t.getMember().getFirstName() + " " + t.getMember().getLastName() : null;
         String memo = paymentMode + (notes != null && !notes.isBlank() ? " | " + notes : "");
         autoReceivable("TICKET_PAYMENT", eventName + " — Ticket Payment",
-                eventName, memberName, amount, date, memo);
+                eventName, memberName, amount, date, memo, t.getEvent());
         attrs.addFlashAttribute("success", "Payment of £" + amount + " recorded.");
         return "redirect:/finance/tickets/" + id + "/edit";
     }
@@ -526,7 +582,7 @@ public class FinanceController {
         List<PaymentRecord> all = new ArrayList<>();
 
         // Sponsors — one row per instalment with running pending per row
-        sponsorRepo.findAll().forEach(s -> {
+        sponsorRepo.findAllWithEvent().forEach(s -> {
             List<PaymentInstalment> insts = instalmentRepo
                     .findBySourceTypeAndSourceIdOrderByPaymentDateAsc("Sponsor", s.getId());
             if (insts.isEmpty()) {
@@ -579,8 +635,8 @@ public class FinanceController {
                 .forEach(r -> all.add(PaymentRecord.fromInvitationReg(r)));
 
         all.sort((a, b) -> {
-            String ka = groupKey(a.getOrgName());
-            String kb = groupKey(b.getOrgName());
+            String ka = eventGroupKey(a.getEventName());
+            String kb = eventGroupKey(b.getEventName());
             int cmp = ka.compareToIgnoreCase(kb);
             if (cmp != 0) return cmp;
             java.time.LocalDate da = a.getPaymentDate() != null ? a.getPaymentDate() : java.time.LocalDate.MIN;
@@ -590,7 +646,21 @@ public class FinanceController {
         return all;
     }
 
+    private static String eventGroupKey(String eventName) {
+        return (eventName == null || eventName.isBlank()) ? "zzz" : eventName;
+    }
+
     private static String groupKey(String orgName) {
         return (orgName == null || orgName.isBlank() || "—".equals(orgName)) ? "￿" : orgName;
+    }
+
+    private void wireEvent(SponsorDonation s) {
+        if (s.getEventId() != null) eventRepo.findById(s.getEventId()).ifPresent(s::setEvent);
+        else s.setEvent(null);
+    }
+
+    private void wireEvent(Payment p) {
+        if (p.getEventId() != null) eventRepo.findById(p.getEventId()).ifPresent(p::setEvent);
+        else p.setEvent(null);
     }
 }

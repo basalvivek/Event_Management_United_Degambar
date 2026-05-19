@@ -61,6 +61,21 @@
           th:object="${item}" method="post"
           th:onsubmit="${locked} ? 'return false;' : ''">
 
+        <!-- Event / Cost Centre -->
+        <div class="section-card">
+            <div class="section-title"><i class="bi bi-calendar-event"></i>Event / Cost Centre</div>
+            <div>
+                <label class="form-label">Event <span class="req-star">*</span></label>
+                <select class="form-select" name="eventId" th:disabled="${locked}">
+                    <option value="">— Select Event —</option>
+                    <option th:each="e : ${events}"
+                            th:value="${e.id}"
+                            th:text="${e.eventName}"
+                            th:selected="${item.event != null and item.event.id == e.id}"></option>
+                </select>
+            </div>
+        </div>
+
         <!-- Sponsor Details -->
         <div class="section-card">
             <div class="section-title"><i class="bi bi-building"></i>Sponsor Details</div>

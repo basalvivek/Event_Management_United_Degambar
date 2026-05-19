@@ -1,183 +1,265 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout/base}">
-<head>
-<title>Payment Ledger</title>
-<style>
-.src-badge { display:inline-flex; align-items:center; gap:5px; border-radius:20px; padding:3px 10px; font-size:0.7rem; font-weight:700; color:#fff; white-space:nowrap; }
-.filter-btn { border-radius:20px; font-size:0.78rem; padding:4px 14px; font-weight:600; }
-.filter-btn.active { color:#fff; }
-.amount-col { font-family:monospace; font-size:0.83rem; }
-.pending-positive { color:#dc2626; font-weight:600; }
-.pending-zero { color:#94a3b8; }
-.stat-card { background:#fff; border-radius:12px; padding:16px 20px; box-shadow:0 2px 12px rgba(0,0,0,0.06); }
-.stat-card .label { font-size:0.72rem; font-weight:700; letter-spacing:0.5px; text-transform:uppercase; color:#94a3b8; }
-.stat-card .value { font-size:1.5rem; font-weight:800; color:#1e1b4b; line-height:1.2; margin-top:4px; }
-.grp-row td { background:linear-gradient(90deg,#eef2ff,#f5f3ff); border-bottom:2px solid #c7d2fe; padding:8px 14px; }
-</style>
-</head>
+<head><title>Payment Ledger</title></head>
 <body>
-
 <th:block layout:fragment="page-title">Payment Ledger</th:block>
-
 <div layout:fragment="content">
+<style>
+.stat-card{background:#fff;border-radius:12px;padding:16px 20px;box-shadow:0 2px 12px rgba(0,0,0,0.06);}
+.stat-card .label{font-size:.72rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:#94a3b8;}
+.stat-card .value{font-size:1.45rem;font-weight:800;color:#1e1b4b;line-height:1.2;margin-top:4px;font-family:monospace;}
+.filter-btn{border-radius:20px;font-size:.78rem;padding:4px 14px;font-weight:600;}
+.filter-btn.active{color:#fff;}
+.fin-table th{font-size:.68rem;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:#6366f1;padding:10px 14px;background:#f8f7ff;border-bottom:2px solid #e0e7ff;white-space:nowrap;}
+.fin-table td{padding:11px 14px;vertical-align:middle;border-color:#f1f5f9;}
+.ev-hdr{background:linear-gradient(90deg,#1e1b4b,#312e81);color:#fff;padding:10px 16px;}
+.ev-hdr .ev-name{font-weight:700;font-size:.88rem;}
+.ev-hdr .ev-meta{font-size:.7rem;opacity:.72;}
+.name-hdr{background:#eef2ff;border-left:4px solid #6366f1;cursor:pointer;user-select:none;}
+.name-hdr:hover{background:#e0e7ff;}
+.name-hdr td{padding:10px 14px;font-size:.83rem;}
+.toggle-btn{width:26px;height:26px;border-radius:8px;border:1.5px solid #c7d2fe;background:#fff;color:#6366f1;display:inline-flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:700;transition:all .15s;flex-shrink:0;}
+.name-hdr:hover .toggle-btn{background:#6366f1;color:#fff;border-color:#6366f1;}
+.src-badge{display:inline-flex;align-items:center;border-radius:8px;padding:2px 8px;font-size:.66rem;font-weight:700;white-space:nowrap;}
+.src-Sponsors{background:#ede9fe;color:#6d28d9;}
+.src-Organisation{background:#e0e7ff;color:#3730a3;}
+.src-Member{background:#dbeafe;color:#1e40af;}
+.src-Members{background:#dcfce7;color:#166534;}
+.src-Invitation{background:#fef3c7;color:#92400e;}
+.pay-row{background:#fafafe;border-left:3px solid #c7d2fe;}
+.pay-row td{padding:9px 14px;font-size:.8rem;}
+.amount-col{font-family:monospace;font-size:.82rem;}
+.pending-positive{color:#dc2626;font-weight:600;}
+.pending-zero{color:#94a3b8;}
+.amt{font-family:monospace;font-weight:700;font-size:.85rem;}
+</style>
 
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-        <h5 class="fw-semibold mb-0">Payment Ledger</h5>
-        <div class="d-flex gap-2">
-            <a th:href="@{/finance/sponsors/new}" class="btn btn-sm btn-primary">
-                <i class="bi bi-plus-lg me-1"></i>Sponsor Donation
-            </a>
-            <a th:href="@{/finance/org-donations/new}" class="btn btn-sm btn-outline-primary">
-                <i class="bi bi-plus-lg me-1"></i>Organisation Donation
-            </a>
-            <a th:href="@{/finance/org-donations/new(type='member')}" class="btn btn-sm btn-outline-info">
-                <i class="bi bi-plus-lg me-1"></i>Member Donation
-            </a>
-        </div>
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <h5 class="fw-semibold mb-0">Payment Ledger</h5>
+    <div class="d-flex gap-2">
+        <a th:href="@{/finance/sponsors/new}" class="btn btn-sm btn-primary">
+            <i class="bi bi-plus-lg me-1"></i>Sponsor Donation
+        </a>
+        <a th:href="@{/finance/org-donations/new}" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-plus-lg me-1"></i>Organisation Donation
+        </a>
+        <a th:href="@{/finance/org-donations/new(type='member')}" class="btn btn-sm btn-outline-info">
+            <i class="bi bi-plus-lg me-1"></i>Member Donation
+        </a>
     </div>
+</div>
 
-    <!-- Summary cards -->
-    <div class="row g-3 mb-4">
-        <div class="col-6 col-md-3">
-            <div class="stat-card">
-                <div class="label">Transactions</div>
-                <div class="value" th:text="${totalCount}">0</div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="stat-card">
-                <div class="label">Total Committed</div>
-                <div class="value" style="color:#4f46e5;"
-                     th:text="'£' + ${#numbers.formatDecimal(totalCommitted,1,2)}">£0.00</div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="stat-card">
-                <div class="label">Total Received</div>
-                <div class="value" style="color:#059669;"
-                     th:text="'£' + ${#numbers.formatDecimal(totalDonated,1,2)}">£0.00</div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="stat-card">
-                <div class="label">Total Pending</div>
-                <div class="value" style="color:#dc2626;"
-                     th:text="'£' + ${#numbers.formatDecimal(totalPending,1,2)}">£0.00</div>
-            </div>
-        </div>
+<!-- Summary cards -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="stat-card"><div class="label">Transactions</div>
+            <div class="value" th:text="${totalCount}">0</div></div>
     </div>
-
-    <!-- Source filter -->
-    <div class="d-flex gap-2 mb-3 flex-wrap">
-        <a th:href="@{/finance}" th:class="${selectedSource == null ? 'btn filter-btn btn-dark active' : 'btn filter-btn btn-outline-secondary'}">All</a>
-        <a th:href="@{/finance(source='Sponsors')}"        th:class="${selectedSource == 'Sponsors' ? 'btn filter-btn active' : 'btn filter-btn btn-outline-secondary'}" th:style="${selectedSource == 'Sponsors' ? 'background:#7c3aed;border-color:#7c3aed;' : ''}"><i class="bi bi-building-fill me-1"></i>Sponsors</a>
-        <a th:href="@{/finance(source='Organisation')}" th:class="${selectedSource == 'Organisation' ? 'btn filter-btn active' : 'btn filter-btn btn-outline-secondary'}" th:style="${selectedSource == 'Organisation' ? 'background:#6366f1;border-color:#6366f1;' : ''}"><i class="bi bi-building-fill me-1"></i>Organisation</a>
-        <a th:href="@{/finance(source='Member')}" th:class="${selectedSource == 'Member' ? 'btn filter-btn active' : 'btn filter-btn btn-outline-secondary'}" th:style="${selectedSource == 'Member' ? 'background:#0ea5e9;border-color:#0ea5e9;' : ''}"><i class="bi bi-person-fill me-1"></i>Member</a>
-        <a th:href="@{/finance(source='Members')}"          th:class="${selectedSource == 'Members' ? 'btn filter-btn active' : 'btn filter-btn btn-outline-secondary'}" th:style="${selectedSource == 'Members' ? 'background:#10b981;border-color:#10b981;' : ''}"><i class="bi bi-ticket-perforated-fill me-1"></i>Members</a>
-        <a th:href="@{/finance(source='Invitation')}"      th:class="${selectedSource == 'Invitation' ? 'btn filter-btn active' : 'btn filter-btn btn-outline-secondary'}" th:style="${selectedSource == 'Invitation' ? 'background:#f59e0b;border-color:#f59e0b;' : ''}"><i class="bi bi-envelope-paper-fill me-1"></i>Invitation</a>
+    <div class="col-6 col-md-3">
+        <div class="stat-card"><div class="label">Total Committed</div>
+            <div class="value" style="color:#4f46e5;" th:text="'£' + ${#numbers.formatDecimal(totalCommitted,1,2)}">£0.00</div></div>
     </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card"><div class="label">Total Received</div>
+            <div class="value" style="color:#059669;" th:text="'£' + ${#numbers.formatDecimal(totalDonated,1,2)}">£0.00</div></div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card"><div class="label">Total Pending</div>
+            <div class="value" style="color:#dc2626;" th:text="'£' + ${#numbers.formatDecimal(totalPending,1,2)}">£0.00</div></div>
+    </div>
+</div>
 
-    <!-- Ledger table -->
-    <div class="card shadow-sm border-0">
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0" style="font-size:0.83rem;">
-                    <thead class="table-dark">
-                        <tr>
-                            <th>Source</th>
-                            <th>Organisation / Event</th>
-                            <th>Person</th>
-                            <th>Payment Mode</th>
-                            <th>Payment Date</th>
-                            <th class="text-end">Committed</th>
-                            <th class="text-end">Received</th>
-                            <th class="text-end">Pending</th>
-                            <th>Status</th>
-                            <th>Remark</th>
-                            <th class="text-end">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <th:block th:each="r, stat : ${records}">
+<!-- Source filter -->
+<div class="d-flex gap-2 mb-3 flex-wrap">
+    <a th:href="@{/finance}" th:class="${selectedSource == null ? 'btn filter-btn btn-dark active' : 'btn filter-btn btn-outline-secondary'}">All</a>
+    <a th:href="@{/finance(source='Sponsors')}" th:class="${selectedSource == 'Sponsors' ? 'btn filter-btn active' : 'btn filter-btn btn-outline-secondary'}" th:style="${selectedSource == 'Sponsors' ? 'background:#7c3aed;border-color:#7c3aed;' : ''}"><i class="bi bi-building-fill me-1"></i>Sponsors</a>
+    <a th:href="@{/finance(source='Organisation')}" th:class="${selectedSource == 'Organisation' ? 'btn filter-btn active' : 'btn filter-btn btn-outline-secondary'}" th:style="${selectedSource == 'Organisation' ? 'background:#6366f1;border-color:#6366f1;' : ''}"><i class="bi bi-building-fill me-1"></i>Organisation</a>
+    <a th:href="@{/finance(source='Member')}" th:class="${selectedSource == 'Member' ? 'btn filter-btn active' : 'btn filter-btn btn-outline-secondary'}" th:style="${selectedSource == 'Member' ? 'background:#0ea5e9;border-color:#0ea5e9;' : ''}"><i class="bi bi-person-fill me-1"></i>Member</a>
+    <a th:href="@{/finance(source='Members')}" th:class="${selectedSource == 'Members' ? 'btn filter-btn active' : 'btn filter-btn btn-outline-secondary'}" th:style="${selectedSource == 'Members' ? 'background:#10b981;border-color:#10b981;' : ''}"><i class="bi bi-ticket-perforated-fill me-1"></i>Members</a>
+    <a th:href="@{/finance(source='Invitation')}" th:class="${selectedSource == 'Invitation' ? 'btn filter-btn active' : 'btn filter-btn btn-outline-secondary'}" th:style="${selectedSource == 'Invitation' ? 'background:#f59e0b;border-color:#f59e0b;' : ''}"><i class="bi bi-envelope-paper-fill me-1"></i>Invitation</a>
+</div>
 
-                            <!-- Group header when Organisation/Event changes -->
-                            <tr th:if="${groupStarts.contains(stat.index)}" class="grp-row">
-                                <td colspan="11">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <span style="width:26px;height:26px;border-radius:7px;background:#4f46e5;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;">
-                                            <i class="bi bi-building-fill text-white" style="font-size:.65rem;"></i>
-                                        </span>
-                                        <span style="font-weight:700;font-size:.82rem;color:#3730a3;"
-                                              th:text="${(r.orgName != null and !#strings.isEmpty(r.orgName) and r.orgName != '—') ? r.orgName : '— No Organisation / Event —'}"></span>
-                                    </div>
-                                </td>
-                            </tr>
+<!-- Grouped cards -->
+<div th:if="${not #maps.isEmpty(groups)}">
+    <div th:each="group, groupStat : ${groups}" class="card border-0 shadow-sm mb-4 fin-group" style="border-radius:14px;overflow:hidden;">
 
-                            <!-- Data row -->
-                            <tr>
-                                <td>
-                                    <span class="src-badge"
-                                          th:style="'background:' + ${r.sourceBadgeColor}"
-                                          th:text="${r.source}">
+        <!-- Event header -->
+        <div class="ev-hdr d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <div>
+                <div class="ev-name"><i class="bi bi-calendar-event-fill me-2" style="opacity:.75;"></i><span th:text="${group.key}"></span></div>
+                <div class="ev-meta">
+                    <span th:text="${group.value.size()} + ' organisation' + (${group.value.size()} != 1 ? 's' : '')"></span>
+                </div>
+            </div>
+            <div style="font-family:monospace;font-weight:700;font-size:.9rem;color:#a5b4fc;">
+                <span style="font-size:.65rem;opacity:.7;">RECEIVED</span>
+                £<span th:text="${#numbers.formatDecimal(eventTotals[group.key],1,'COMMA',2,'POINT')}"></span>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table fin-table mb-0">
+                <thead>
+                    <tr>
+                        <th style="width:32px;"></th>
+                        <th>Organisation</th>
+                        <th>Date</th>
+                        <th>Notes</th>
+                        <th class="text-end">Committed</th>
+                        <th class="text-end">Received</th>
+                        <th class="text-end">Pending</th>
+                        <th class="text-end" style="padding-right:16px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <th:block th:each="orgGroup, ns : ${group.value}"
+                              th:with="grpId=${'fin_' + groupStat.index + '_' + ns.index},
+                                       cmtAmt=${orgCommitted[group.key][orgGroup.key]},
+                                       rcvAmt=${orgReceived[group.key][orgGroup.key]},
+                                       pndAmt=${orgPending[group.key][orgGroup.key]},
+                                       firstRec=${orgFirstRecord[group.key][orgGroup.key]}">
+
+                        <!-- Org summary row -->
+                        <tr class="name-hdr fin-name-row"
+                            th:attr="data-grp=${grpId}"
+                            onclick="toggleGroup(this)">
+                            <td><span class="toggle-btn" th:id="'btn_' + ${grpId}">+</span></td>
+                            <td>
+                                <div class="fw-bold" style="color:#1e1b4b;" th:text="${orgGroup.key}"></div>
+                                <div class="d-flex align-items-center gap-2 mt-1" th:if="${firstRec != null}">
+                                    <span th:class="'src-badge src-' + ${firstRec.source}"
+                                          th:text="${firstRec.source == 'Members' ? 'Ticket Payment' :
+                                                    firstRec.source == 'Organisation' ? 'Org Donation' :
+                                                    firstRec.source == 'Member' ? 'Member Donation' :
+                                                    firstRec.source == 'Sponsors' ? 'Sponsor Donation' :
+                                                    firstRec.source == 'Invitation' ? 'Invitation Reg' :
+                                                    firstRec.source}"></span>
+                                    <span style="font-size:.7rem;color:#64748b;">
+                                        <span th:text="${#lists.size(orgGroup.value)}"></span> payment(s)
                                     </span>
-                                </td>
-                                <td class="fw-medium" th:text="${r.orgName}"></td>
-                                <td th:text="${r.personName}"></td>
-                                <td>
-                                    <span th:if="${r.paymentMode != null}"
-                                          class="badge bg-light text-dark border"
-                                          th:text="${r.paymentMode}"></span>
-                                    <span th:unless="${r.paymentMode != null}" class="text-muted">—</span>
-                                </td>
-                                <td class="text-muted"
-                                    th:text="${r.paymentDate != null ? #temporals.format(r.paymentDate,'dd/MM/yyyy') : '—'}"></td>
-                                <td class="text-end amount-col"
-                                    th:text="${r.committedAmount != null ? '£' + #numbers.formatDecimal(r.committedAmount,1,2) : '—'}"></td>
-                                <td class="text-end amount-col" style="color:#059669;"
-                                    th:text="${r.donatedAmount != null ? '£' + #numbers.formatDecimal(r.donatedAmount,1,2) : '—'}"></td>
-                                <td class="text-end amount-col"
-                                    th:class="${(r.pendingAmount != null and r.pendingAmount > 0) ? 'text-end amount-col pending-positive' : 'text-end amount-col pending-zero'}"
-                                    th:text="${r.pendingAmount != null ? '£' + #numbers.formatDecimal(r.pendingAmount,1,2) : '—'}"></td>
-                                <td>
-                                    <span th:if="${r.status != null}"
-                                          th:class="${r.status == 'Accepted' or r.status == 'Received' ? 'badge bg-success' : (r.status == 'Pending' or r.status == 'Partial' ? 'badge bg-warning text-dark' : 'badge bg-secondary')}"
-                                          th:text="${r.status}"></span>
-                                </td>
-                                <td class="text-muted small" style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"
-                                    th:text="${r.remark}"></td>
-                                <td class="text-end" style="white-space:nowrap;">
-                                    <a th:href="${r.editUrl}" class="btn btn-sm btn-outline-warning me-1">
-                                        <i class="bi bi-pencil"></i>
-                                    </a>
-                                    <a th:if="${r.source == 'Sponsors'}"
-                                       th:href="@{/finance/sponsors/{id}/invoice(id=${r.sourceId})}"
-                                       class="btn btn-sm btn-outline-secondary" title="Print Invoice" target="_blank">
-                                        <i class="bi bi-printer"></i>
-                                    </a>
-                                    <a th:if="${r.source == 'Organisation' or r.source == 'Member' or r.source == 'Members'}"
-                                       th:href="@{/finance/org-donations/{id}/invoice(id=${r.sourceId})}"
-                                       class="btn btn-sm btn-outline-secondary" title="Print Invoice" target="_blank">
-                                        <i class="bi bi-printer"></i>
-                                    </a>
-                                </td>
-                            </tr>
-
-                        </th:block>
-                        <tr th:if="${#lists.isEmpty(records)}">
-                            <td colspan="11" class="text-center text-muted py-5">
-                                <i class="bi bi-credit-card d-block mb-2" style="font-size:2rem;opacity:0.3;"></i>
-                                No payment records found.
+                                </div>
+                            </td>
+                            <td></td>
+                            <td></td>
+                            <td class="text-end">
+                                <span class="amt" style="color:#4f46e5;"
+                                      th:text="'£' + ${#numbers.formatDecimal(cmtAmt,1,'COMMA',2,'POINT')}"></span>
+                            </td>
+                            <td class="text-end">
+                                <span class="amt" style="color:#059669;"
+                                      th:text="'£' + ${#numbers.formatDecimal(rcvAmt,1,'COMMA',2,'POINT')}"></span>
+                            </td>
+                            <td class="text-end">
+                                <span class="amt"
+                                      th:class="${pndAmt.signum() > 0} ? 'amt pending-positive' : 'amt pending-zero'"
+                                      th:text="'£' + ${#numbers.formatDecimal(pndAmt,1,'COMMA',2,'POINT')}"></span>
+                            </td>
+                            <td class="text-end" style="padding-right:16px;white-space:nowrap;" onclick="event.stopPropagation()">
+                                <a th:if="${firstRec != null}" th:href="${firstRec.editUrl}" class="btn btn-sm btn-outline-warning me-1">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a th:if="${firstRec != null and firstRec.source == 'Sponsors'}"
+                                   th:href="@{/finance/sponsors/{id}/invoice(id=${firstRec.sourceId})}"
+                                   class="btn btn-sm btn-outline-secondary" title="Invoice" target="_blank">
+                                    <i class="bi bi-printer"></i>
+                                </a>
+                                <a th:if="${firstRec != null and (firstRec.source == 'Organisation' or firstRec.source == 'Member')}"
+                                   th:href="@{/finance/org-donations/{id}/invoice(id=${firstRec.sourceId})}"
+                                   class="btn btn-sm btn-outline-secondary" title="Invoice" target="_blank">
+                                    <i class="bi bi-printer"></i>
+                                </a>
                             </td>
                         </tr>
-                    </tbody>
-                </table>
-            </div>
+
+                        <!-- Individual rows -->
+                        <tr th:each="r, stat : ${orgGroup.value}"
+                            class="pay-row"
+                            th:attr="data-grp=${grpId},data-q=${((r.orgName != null ? r.orgName : '') + ' ' + (r.personName != null ? r.personName : '') + ' ' + (r.source != null ? r.source : '')).toLowerCase()}"
+                            style="display:none;">
+
+                            <td style="padding-left:24px;color:#94a3b8;font-size:.72rem;" th:text="${stat.count}"></td>
+
+                            <td>
+                                <div style="font-size:.8rem;color:#374151;font-weight:600;">
+                                    <span th:if="${r.source == 'Member' or r.source == 'Members'}"
+                                          style="background:#dbeafe;color:#1e40af;border-radius:20px;padding:2px 10px;font-size:.72rem;font-weight:700;">Self</span>
+                                    <span th:unless="${r.source == 'Member' or r.source == 'Members'}"
+                                          th:text="${r.orgName != null and r.orgName != '—' ? r.orgName : r.personName}"></span>
+                                </div>
+                                <div th:if="${r.personName != null}" style="font-size:.7rem;color:#94a3b8;" th:text="${r.personName}"></div>
+                            </td>
+
+                            <td style="white-space:nowrap;">
+                                <span th:if="${r.paymentDate != null}"
+                                      style="font-size:.78rem;color:#374151;">
+                                    <i class="bi bi-calendar3 me-1" style="color:#94a3b8;font-size:.7rem;"></i>
+                                    <span th:text="${#temporals.format(r.paymentDate,'dd/MM/yyyy')}"></span>
+                                </span>
+                                <span th:unless="${r.paymentDate != null}" class="text-muted">—</span>
+                            </td>
+
+                            <td style="max-width:160px;">
+                                <span th:if="${r.remark != null and !#strings.isEmpty(r.remark)}"
+                                      style="font-size:.75rem;color:#64748b;"
+                                      th:text="${r.remark}"></span>
+                                <span th:unless="${r.remark != null and !#strings.isEmpty(r.remark)}"
+                                      class="text-muted">—</span>
+                            </td>
+
+                            <td class="text-end amount-col"
+                                th:text="${r.committedAmount != null ? '£' + #numbers.formatDecimal(r.committedAmount,1,'COMMA',2,'POINT') : '—'}"></td>
+
+                            <td class="text-end amount-col" style="color:#059669;"
+                                th:text="${r.donatedAmount != null ? '£' + #numbers.formatDecimal(r.donatedAmount,1,'COMMA',2,'POINT') : '—'}"></td>
+
+                            <td class="text-end amount-col"
+                                th:class="${(r.pendingAmount != null and r.pendingAmount > 0) ? 'text-end amount-col pending-positive' : 'text-end amount-col pending-zero'}"
+                                th:text="${r.pendingAmount != null ? '£' + #numbers.formatDecimal(r.pendingAmount,1,'COMMA',2,'POINT') : '—'}"></td>
+
+                            <td class="text-end" style="padding-right:16px;white-space:nowrap;">
+                                <span th:if="${r.paymentMode != null}" class="badge bg-light text-dark border me-1"
+                                      style="font-size:.7rem;" th:text="${r.paymentMode}"></span>
+                                <a th:href="${r.editUrl}" class="btn btn-sm btn-outline-warning me-1">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a th:if="${r.source == 'Sponsors'}"
+                                   th:href="@{/finance/sponsors/{id}/invoice(id=${r.sourceId})}"
+                                   class="btn btn-sm btn-outline-secondary" title="Invoice" target="_blank">
+                                    <i class="bi bi-printer"></i>
+                                </a>
+                                <a th:if="${r.source == 'Organisation' or r.source == 'Member'}"
+                                   th:href="@{/finance/org-donations/{id}/invoice(id=${r.sourceId})}"
+                                   class="btn btn-sm btn-outline-secondary" title="Invoice" target="_blank">
+                                    <i class="bi bi-printer"></i>
+                                </a>
+                            </td>
+                        </tr>
+
+                    </th:block>
+                </tbody>
+            </table>
         </div>
     </div>
+</div>
+
+<div th:if="${#maps.isEmpty(groups)}"
+     class="card border-0 shadow-sm text-center py-5" style="border-radius:14px;">
+    <i class="bi bi-credit-card d-block mb-2" style="font-size:2rem;opacity:.3;"></i>
+    <div class="fw-semibold text-muted">No payment records found.</div>
+</div>
 
 </div>
-</body>
-</html>
+<th:block layout:fragment="page-scripts"><script>
+function toggleGroup(hdr) {
+    var grp = hdr.dataset.grp;
+    var btn = document.getElementById('btn_' + grp);
+    var rows = document.querySelectorAll('tr.pay-row[data-grp="' + grp + '"]');
+    var expanded = btn.textContent.trim() === '-';
+    rows.forEach(function(r) { r.style.display = expanded ? 'none' : ''; });
+    btn.textContent = expanded ? '+' : '-';
+}
+</script></th:block>
+</body></html>

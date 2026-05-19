@@ -2,6 +2,7 @@ package com.udjcs.activity;
 
 import com.udjcs.activity.category.ActivityCategory;
 import com.udjcs.common.BaseEntity;
+import com.udjcs.event.Event;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -53,8 +54,15 @@ public class Activity extends BaseEntity {
     @Column(name = "show_on_portal", nullable = false)
     private boolean showOnPortal = false;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "event_id")
+    private Event event;
+
     @Transient
     private Long categoryId;
+
+    @Transient
+    private Long eventId;
 
     public String getActivityName() { return activityName; }
     public void setActivityName(String activityName) { this.activityName = activityName; }
@@ -88,4 +96,8 @@ public class Activity extends BaseEntity {
 
     public Long getCategoryId() { return categoryId; }
     public void setCategoryId(Long categoryId) { this.categoryId = categoryId; }
+    public Event getEvent() { return event; }
+    public void setEvent(Event event) { this.event = event; }
+    public Long getEventId() { return eventId; }
+    public void setEventId(Long eventId) { this.eventId = eventId; }
 }

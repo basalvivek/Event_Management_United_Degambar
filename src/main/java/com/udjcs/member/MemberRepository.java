@@ -11,5 +11,7 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     long countByApprovalStatus(String approvalStatus);
     List<Member> findByApprovalStatusOrderByCreatedAtAsc(String approvalStatus);
     Optional<Member> findFirstByEmailIgnoreCase(String email);
+    boolean existsByEmailIgnoreCaseAndIdNot(String email, Long id);
+    boolean existsByEmailIgnoreCase(String email);
     List<Member> findByApprovalStatusAndStatus(String approvalStatus, String status);
 }

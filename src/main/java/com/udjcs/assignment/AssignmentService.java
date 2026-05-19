@@ -58,6 +58,12 @@ public class AssignmentService {
         repository.deleteById(id);
     }
 
+    public List<Assignment> findByActivityId(Long activityId) {
+        return repository.findAllWithDetails().stream()
+                .filter(a -> a.getActivity().getId().equals(activityId))
+                .collect(Collectors.toList());
+    }
+
     public boolean isDuplicate(Long activityId, Long memberId) {
         return repository.existsByActivity_IdAndMember_Id(activityId, memberId);
     }

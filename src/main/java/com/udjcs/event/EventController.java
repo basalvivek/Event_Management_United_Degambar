@@ -93,4 +93,16 @@ public class EventController {
         attrs.addFlashAttribute("success", "Event deleted successfully.");
         return "redirect:/events";
     }
+
+    @PostMapping("/{id}/status")
+    public String updateStatus(@PathVariable Long id,
+                                @RequestParam String status,
+                                @RequestParam(required = false, defaultValue = "event-programs") String returnTo,
+                                RedirectAttributes attrs) {
+        Event event = service.findById(id);
+        event.setStatus(status);
+        service.save(event);
+        attrs.addFlashAttribute("success", event.getEventName() + " status updated to " + status + ".");
+        return "redirect:/" + returnTo;
+    }
 }

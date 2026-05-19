@@ -115,8 +115,7 @@ public class HomeController {
 
         // ── Schedule data ─────────────────────────────────────────────────────
         model.addAttribute("upcomingEvents",
-                eventRepository.findTop5ByEventDateGreaterThanEqualAndStatusInOrderByEventDateAsc(
-                        today, List.of("Planned", "Active")));
+                eventRepository.findByStatusInOrderByEventDateAsc(List.of("Planned", "Active")));
         model.addAttribute("upcomingRehearsals",
                 rehearsalRepository.findUpcomingWithActivity(today).stream().limit(5).toList());
 

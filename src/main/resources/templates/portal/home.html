@@ -307,12 +307,28 @@
                                         <div style="font-size:0.58rem;font-weight:700;color:#f59e0b;text-transform:uppercase;"
                                              th:text="${#temporals.format(ev.eventDate,'MMM')}"></div>
                                     </div>
-                                    <div>
+                                    <div class="flex-grow-1">
                                         <div class="fw-semibold" style="font-size:0.87rem;color:#78350f;"
                                              th:text="${ev.eventName}"></div>
                                         <div style="font-size:0.73rem;color:#92400e;">
                                             <i class="bi bi-geo-alt me-1"></i><span th:text="${ev.venue}"></span>
                                         </div>
+                                    </div>
+                                    <!-- Register / Already Registered -->
+                                    <div class="flex-shrink-0">
+                                        <span th:if="${registeredEventIds.contains(ev.id)}"
+                                              class="badge rounded-pill"
+                                              style="background:#fef3c7;color:#b45309;font-size:0.68rem;padding:5px 10px;">
+                                            <i class="bi bi-check2 me-1"></i>Registered
+                                        </span>
+                                        <a th:unless="${registeredEventIds.contains(ev.id)}"
+                                           th:href="@{/portal/register-event/{id}(id=${ev.id})}"
+                                           class="btn btn-sm fw-semibold"
+                                           style="font-size:0.72rem;padding:4px 12px;border-radius:20px;
+                                                  background:linear-gradient(135deg,#f59e0b,#d97706);
+                                                  color:#fff;border:none;text-decoration:none;">
+                                            <i class="bi bi-ticket-perforated me-1"></i>Register
+                                        </a>
                                     </div>
                                 </div>
                                 <!-- Programs -->

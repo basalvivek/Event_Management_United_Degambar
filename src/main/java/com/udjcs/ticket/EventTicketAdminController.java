@@ -31,7 +31,20 @@ public class EventTicketAdminController {
         long totalPending  = allTickets.stream().filter(t -> "Pending".equals(t.getStatus())).count();
         long totalAccepted = allTickets.stream().filter(t -> "Accepted".equals(t.getStatus())).count();
         long totalRevenue  = allTickets.stream().filter(t -> "Accepted".equals(t.getStatus())).mapToInt(EventTicket::getTotalAmount).sum();
-        model.addAttribute("tickets", tickets);
+
+        // Group filtered tickets by event name, preserving event-date order
+        java.util.LinkedHashMap<String, java.util.List<EventTicket>> grouped = new java.util.LinkedHashMap<>();
+        for (EventTicket t : tickets) {
+            String key = t.getEvent().getEventName();
+            grouped.computeIfAbsent(key, k -> new java.util.ArrayList<>()).add(t);
+        }
+        // Per-event subtotals
+        java.util.Map<String, Integer> eventTotals = new java.util.LinkedHashMap<>();
+        grouped.forEach((name, list) ->
+            eventTotals.put(name, list.stream().mapToInt(EventTicket::getTotalAmount).sum()));
+
+        model.addAttribute("grouped", grouped);
+        model.addAttribute("eventTotals", eventTotals);
         model.addAttribute("events", eventService.findAll());
         model.addAttribute("selectedEventId", eventId);
         model.addAttribute("selectedStatus", status);

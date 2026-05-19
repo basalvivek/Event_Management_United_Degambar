@@ -2,9 +2,14 @@ package com.udjcs.ticket;
 
 import com.udjcs.event.Event;
 import com.udjcs.event.EventRepository;
+import com.udjcs.member.Member;
 import com.udjcs.member.MemberRepository;
+import com.udjcs.receivable.ReceivableTransaction;
+import com.udjcs.receivable.ReceivableTransactionRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -14,13 +19,16 @@ public class EventTicketService {
     private final EventTicketRepository repository;
     private final EventRepository eventRepository;
     private final MemberRepository memberRepository;
+    private final ReceivableTransactionRepository receivableRepository;
 
     public EventTicketService(EventTicketRepository repository,
                               EventRepository eventRepository,
-                              MemberRepository memberRepository) {
+                              MemberRepository memberRepository,
+                              ReceivableTransactionRepository receivableRepository) {
         this.repository = repository;
         this.eventRepository = eventRepository;
         this.memberRepository = memberRepository;
+        this.receivableRepository = receivableRepository;
     }
 
     public EventTicket register(Long eventId, Long memberId,
@@ -60,6 +68,7 @@ public class EventTicketService {
                 .orElseThrow(() -> new IllegalArgumentException("Ticket not found: " + id));
         t.setStatus("Accepted");
         repository.save(t);
+        createReceivableEntry(t);
     }
 
     public void reject(Long id) {
@@ -67,6 +76,41 @@ public class EventTicketService {
                 .orElseThrow(() -> new IllegalArgumentException("Ticket not found: " + id));
         t.setStatus("Rejected");
         repository.save(t);
+        receivableRepository.findBySourceTypeAndSourceId("TICKET", id)
+                .ifPresent(receivableRepository::delete);
+    }
+
+    private void createReceivableEntry(EventTicket t) {
+        receivableRepository.findBySourceTypeAndSourceId("TICKET", t.getId())
+                .ifPresent(receivableRepository::delete);
+        Member member = t.getMember();
+        Event event   = t.getEvent();
+        String memberName = member != null
+                ? member.getFirstName() + " " + member.getLastName() : "Unknown";
+
+        ReceivableTransaction r = new ReceivableTransaction();
+        r.setIncomeType("TICKET_PAYMENT");
+        r.setName(event != null ? event.getEventName() : "Ticket Payment");
+        r.setOrganisationName("Self");
+        r.setReceivedFrom(memberName);
+        r.setTotalAmount(BigDecimal.valueOf(t.getTotalAmount()));
+        r.setReceivedAmount(BigDecimal.valueOf(t.getTotalAmount()));
+        r.setReceiptDate(t.getPaymentDate() != null ? t.getPaymentDate() : LocalDate.now());
+        r.setStatus("RECEIVED");
+        r.setEvent(event);
+        r.setSourceType("TICKET");
+        r.setSourceId(t.getId());
+        String breakdown = buildBreakdown(t);
+        r.setNotes(breakdown);
+        receivableRepository.save(r);
+    }
+
+    private String buildBreakdown(EventTicket t) {
+        StringBuilder sb = new StringBuilder();
+        if (t.getAdultCount() > 0)   sb.append(t.getAdultCount()).append(" Adult");
+        if (t.getYoungerCount() > 0) sb.append(sb.length() > 0 ? ", " : "").append(t.getYoungerCount()).append(" Youth");
+        if (t.getChildCount() > 0)   sb.append(sb.length() > 0 ? ", " : "").append(t.getChildCount()).append(" Child");
+        return sb.toString();
     }
 
     public List<EventTicket> findAll() {

@@ -1,64 +1,63 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout/base}">
 <head>
 <title>Ticket Payments</title>
 <style>
-    /* Stats */
-    .stat-card { border:none; border-radius:14px; padding:18px 20px; box-shadow:0 2px 12px rgba(0,0,0,0.06); display:flex; align-items:center; gap:14px; transition:transform 0.15s,box-shadow 0.15s; }
-    .stat-card:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,0,0,0.1); }
+    .stat-card { border:none; border-radius:14px; padding:18px 20px; box-shadow:0 2px 12px rgba(0,0,0,0.06); display:flex; align-items:center; gap:14px; }
     .stat-icon { width:48px; height:48px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.25rem; flex-shrink:0; }
     .stat-label { font-size:0.7rem; font-weight:700; letter-spacing:0.5px; text-transform:uppercase; color:#94a3b8; }
     .stat-value { font-size:1.65rem; font-weight:800; line-height:1.1; }
 
-    /* Filter bar */
     .filter-card { border:none; border-radius:14px; box-shadow:0 2px 12px rgba(0,0,0,0.06); }
     .filter-label { font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.4px; color:#6b7280; margin-bottom:5px; }
     .status-pill { display:inline-flex; align-items:center; gap:6px; border-radius:20px; padding:5px 16px; font-size:0.78rem; font-weight:600; border:1.5px solid #e5e7eb; background:#fff; color:#475569; cursor:pointer; text-decoration:none; transition:all 0.15s; }
     .status-pill:hover { border-color:#6366f1; color:#6366f1; text-decoration:none; }
-    .status-pill.active-all     { background:#1e1b4b; border-color:#1e1b4b; color:#fff; }
-    .status-pill.active-pending { background:#d97706; border-color:#d97706; color:#fff; }
-    .status-pill.active-accepted{ background:#059669; border-color:#059669; color:#fff; }
-    .status-pill.active-rejected{ background:#dc2626; border-color:#dc2626; color:#fff; }
+    .status-pill.active-all      { background:#1e1b4b; border-color:#1e1b4b; color:#fff; }
+    .status-pill.active-pending  { background:#d97706; border-color:#d97706; color:#fff; }
+    .status-pill.active-accepted { background:#059669; border-color:#059669; color:#fff; }
+    .status-pill.active-rejected { background:#dc2626; border-color:#dc2626; color:#fff; }
+
+    /* Event group header */
+    .event-group-hdr {
+        background:linear-gradient(90deg,#1e1b4b,#312e81);
+        color:#fff; padding:10px 18px;
+        display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;
+    }
+    .event-group-hdr .ev-name { font-weight:700; font-size:0.88rem; }
+    .event-group-hdr .ev-meta { font-size:0.72rem; opacity:0.75; }
+    .event-group-hdr .ev-subtotal { font-family:monospace; font-weight:700; font-size:0.9rem; }
 
     /* Table */
-    .tk-table th { font-size:0.7rem; font-weight:700; letter-spacing:0.6px; text-transform:uppercase; color:#6366f1; padding:12px 14px; background:#f8f7ff; border-bottom:2px solid #e0e7ff; white-space:nowrap; }
-    .tk-table td { padding:13px 14px; vertical-align:middle; border-color:#f1f5f9; }
+    .tk-table th { font-size:0.7rem; font-weight:700; letter-spacing:0.6px; text-transform:uppercase; color:#6366f1; padding:10px 14px; background:#f8f7ff; border-bottom:2px solid #e0e7ff; white-space:nowrap; }
+    .tk-table td { padding:12px 14px; vertical-align:middle; border-color:#f1f5f9; }
     .tk-row { transition:background 0.1s; }
     .tk-row:hover { background:#fafafa; }
     .tk-row.status-Pending  { border-left:3px solid #f59e0b; }
     .tk-row.status-Accepted { border-left:3px solid #059669; }
     .tk-row.status-Rejected { border-left:3px solid #ef4444; }
 
-    /* Member avatar */
-    .member-avatar { width:36px; height:36px; border-radius:10px; background:linear-gradient(135deg,#6366f1,#8b5cf6); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:0.78rem; flex-shrink:0; }
-    .member-name { font-weight:600; font-size:0.88rem; color:#1e1b4b; }
-    .member-sub  { font-size:0.72rem; color:#94a3b8; }
+    .member-avatar { width:34px; height:34px; border-radius:9px; background:linear-gradient(135deg,#6366f1,#8b5cf6); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:0.75rem; flex-shrink:0; }
+    .member-name { font-weight:600; font-size:0.87rem; color:#1e1b4b; }
+    .member-sub  { font-size:0.71rem; color:#94a3b8; }
 
-    /* Attendee chips */
-    .att-chip { display:inline-flex; align-items:center; gap:3px; background:#f1f5f9; border-radius:6px; padding:2px 8px; font-size:0.72rem; font-weight:600; color:#475569; margin-right:3px; }
+    .att-chip { display:inline-flex; align-items:center; gap:3px; background:#f1f5f9; border-radius:6px; padding:2px 8px; font-size:0.71rem; font-weight:600; color:#475569; margin-right:3px; }
     .att-chip i { font-size:0.65rem; color:#94a3b8; }
 
-    /* Status badge */
     .status-tag { display:inline-flex; align-items:center; gap:5px; border-radius:20px; padding:3px 12px; font-size:0.72rem; font-weight:700; white-space:nowrap; }
     .status-tag.Accepted { background:#dcfce7; color:#166534; }
     .status-tag.Pending  { background:#fef3c7; color:#92400e; }
     .status-tag.Rejected { background:#fee2e2; color:#991b1b; }
 
-    /* Action buttons */
-    .btn-accept { background:#059669; border:none; color:#fff; border-radius:8px; padding:5px 14px; font-size:0.78rem; font-weight:600; transition:background 0.15s; }
+    .btn-accept { background:#059669; border:none; color:#fff; border-radius:8px; padding:5px 14px; font-size:0.78rem; font-weight:600; }
     .btn-accept:hover { background:#047857; color:#fff; }
-    .btn-reject { background:transparent; border:1.5px solid #fca5a5; color:#ef4444; border-radius:8px; padding:5px 12px; font-size:0.78rem; font-weight:600; transition:all 0.15s; }
+    .btn-reject { background:transparent; border:1.5px solid #fca5a5; color:#ef4444; border-radius:8px; padding:5px 12px; font-size:0.78rem; font-weight:600; }
     .btn-reject:hover { background:#ef4444; color:#fff; border-color:#ef4444; }
 
-    /* Amount */
     .amount-cell { font-family:monospace; font-weight:700; font-size:0.9rem; color:#1e1b4b; }
-
-    /* Result count badge */
     .result-badge { background:#eef2ff; color:#4f46e5; border-radius:20px; padding:3px 12px; font-size:0.75rem; font-weight:700; }
 
-    /* Search box */
     .search-wrap { position:relative; }
     .search-wrap i { position:absolute; left:11px; top:50%; transform:translateY(-50%); color:#94a3b8; font-size:0.82rem; }
     .search-box { border-radius:20px; border:1.5px solid #e5e7eb; padding:7px 14px 7px 32px; font-size:0.84rem; }
@@ -70,7 +69,6 @@
 
 <div layout:fragment="content">
 
-    <!-- Header -->
     <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
         <div>
             <h5 class="fw-bold mb-0" style="color:#1e1b4b;">Ticket Payments</h5>
@@ -83,38 +81,30 @@
         <div class="col-6 col-md-3">
             <div class="stat-card" style="background:#fff;">
                 <div class="stat-icon" style="background:#eef2ff;"><i class="bi bi-ticket-perforated-fill" style="color:#6366f1;"></i></div>
-                <div>
-                    <div class="stat-label">Total Tickets</div>
-                    <div class="stat-value" style="color:#1e1b4b;" th:text="${grandTotal}">0</div>
-                </div>
+                <div><div class="stat-label">Total Tickets</div>
+                     <div class="stat-value" style="color:#1e1b4b;" th:text="${grandTotal}">0</div></div>
             </div>
         </div>
         <div class="col-6 col-md-3">
             <div class="stat-card" style="background:#fffbeb;">
                 <div class="stat-icon" style="background:#fef3c7;"><i class="bi bi-hourglass-split" style="color:#d97706;"></i></div>
-                <div>
-                    <div class="stat-label">Pending</div>
-                    <div class="stat-value" style="color:#d97706;" th:text="${totalPending}">0</div>
-                </div>
+                <div><div class="stat-label">Pending</div>
+                     <div class="stat-value" style="color:#d97706;" th:text="${totalPending}">0</div></div>
             </div>
         </div>
         <div class="col-6 col-md-3">
             <div class="stat-card" style="background:#f0fdf4;">
                 <div class="stat-icon" style="background:#dcfce7;"><i class="bi bi-check-circle-fill" style="color:#059669;"></i></div>
-                <div>
-                    <div class="stat-label">Accepted</div>
-                    <div class="stat-value" style="color:#059669;" th:text="${totalAccepted}">0</div>
-                </div>
+                <div><div class="stat-label">Accepted</div>
+                     <div class="stat-value" style="color:#059669;" th:text="${totalAccepted}">0</div></div>
             </div>
         </div>
         <div class="col-6 col-md-3">
             <div class="stat-card" style="background:#f0fdf4;">
                 <div class="stat-icon" style="background:#bbf7d0;"><i class="bi bi-currency-pound" style="color:#059669;"></i></div>
-                <div>
-                    <div class="stat-label">Revenue (Accepted)</div>
-                    <div class="stat-value" style="color:#059669;font-size:1.35rem;"
-                         th:text="'£' + ${totalRevenue}">£0</div>
-                </div>
+                <div><div class="stat-label">Revenue (Accepted)</div>
+                     <div class="stat-value" style="color:#059669;font-size:1.35rem;"
+                          th:text="'£' + ${totalRevenue}">£0</div></div>
             </div>
         </div>
     </div>
@@ -140,14 +130,11 @@
                             <a th:href="@{/ticket-payments(eventId=${selectedEventId})}"
                                th:class="${selectedStatus == null} ? 'status-pill active-all' : 'status-pill'">All</a>
                             <a th:href="@{/ticket-payments(eventId=${selectedEventId}, status='Pending')}"
-                               th:class="${selectedStatus == 'Pending'} ? 'status-pill active-pending' : 'status-pill'">
-                                Pending</a>
+                               th:class="${selectedStatus == 'Pending'} ? 'status-pill active-pending' : 'status-pill'">Pending</a>
                             <a th:href="@{/ticket-payments(eventId=${selectedEventId}, status='Accepted')}"
-                               th:class="${selectedStatus == 'Accepted'} ? 'status-pill active-accepted' : 'status-pill'">
-                                Accepted</a>
+                               th:class="${selectedStatus == 'Accepted'} ? 'status-pill active-accepted' : 'status-pill'">Accepted</a>
                             <a th:href="@{/ticket-payments(eventId=${selectedEventId}, status='Rejected')}"
-                               th:class="${selectedStatus == 'Rejected'} ? 'status-pill active-rejected' : 'status-pill'">
-                                Rejected</a>
+                               th:class="${selectedStatus == 'Rejected'} ? 'status-pill active-rejected' : 'status-pill'">Rejected</a>
                         </div>
                     </div>
                     <div class="col-md-3">
@@ -155,7 +142,7 @@
                         <div class="search-wrap">
                             <i class="bi bi-search"></i>
                             <input type="text" class="search-box form-control form-control-sm"
-                                   id="tkSearch" placeholder="Member or event name…"
+                                   id="tkSearch" placeholder="Member name…"
                                    oninput="searchRows(this.value)">
                         </div>
                     </div>
@@ -167,136 +154,148 @@
                             <i class="bi bi-x me-1"></i>Clear
                         </a>
                         <span class="ms-auto result-badge"
-                              th:text="${#lists.size(tickets)} + ' result' + (${#lists.size(tickets)} != 1 ? 's' : '')"></span>
+                              th:text="${grouped.size()} + ' event group' + (${grouped.size()} != 1 ? 's' : '')"></span>
                     </div>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Table -->
-    <div class="card border-0 shadow-sm" style="border-radius:14px;overflow:hidden;">
-        <div class="table-responsive">
-            <table class="table tk-table mb-0" id="tkTable">
-                <thead>
-                    <tr>
-                        <th style="width:36px;">#</th>
-                        <th>Member</th>
-                        <th>Event</th>
-                        <th>Attendees</th>
-                        <th class="text-end">Total</th>
-                        <th>Status</th>
-                        <th>Submitted</th>
-                        <th class="text-end">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:each="t, stat : ${tickets}"
-                        th:class="'tk-row status-' + ${t.status}"
-                        th:attr="data-search=${(t.member.firstName + ' ' + t.member.lastName + ' ' + t.event.eventName).toLowerCase()}">
+    <!-- Grouped by Event -->
+    <div th:if="${grouped != null and not grouped.isEmpty()}">
+        <div th:each="entry, entryStat : ${grouped}" class="card border-0 shadow-sm mb-4" style="border-radius:14px;overflow:hidden;">
 
-                        <td class="text-muted fw-medium" th:text="${stat.count}"></td>
+            <!-- Event header -->
+            <div class="event-group-hdr">
+                <div>
+                    <div class="ev-name">
+                        <i class="bi bi-calendar-event-fill me-2" style="opacity:0.75;"></i>
+                        <span th:text="${entry.key}"></span>
+                    </div>
+                    <div class="ev-meta" th:if="${not #lists.isEmpty(entry.value)}">
+                        <i class="bi bi-ticket-perforated me-1"></i>
+                        <span th:text="${#lists.size(entry.value)}"></span> registration(s)
+                        &nbsp;·&nbsp;
+                        <i class="bi bi-calendar3 me-1"></i>
+                        <span th:text="${#temporals.format(entry.value[0].event.eventDate,'dd/MM/yyyy')}"></span>
+                        &nbsp;·&nbsp;
+                        <i class="bi bi-geo-alt me-1"></i>
+                        <span th:text="${entry.value[0].event.venue}"></span>
+                    </div>
+                </div>
+                <div class="ev-subtotal">
+                    <i class="bi bi-currency-pound" style="opacity:0.8;"></i>
+                    <span th:text="${eventTotals[entry.key]}">0</span>
+                </div>
+            </div>
 
-                        <!-- Member -->
-                        <td>
-                            <div class="d-flex align-items-center gap-2">
-                                <div class="member-avatar"
-                                     th:text="${#strings.substring(t.member.firstName,0,1) + #strings.substring(t.member.lastName,0,1)}"></div>
-                                <div>
-                                    <div class="member-name" th:text="${t.member.firstName + ' ' + t.member.lastName}"></div>
-                                    <div class="member-sub"
-                                         th:text="${t.member.email != null ? t.member.email : t.member.phone}"></div>
+            <!-- Member rows -->
+            <div class="table-responsive">
+                <table class="table tk-table mb-0" th:id="'tbl_' + ${entryStat.index}">
+                    <thead>
+                        <tr>
+                            <th style="width:32px;">#</th>
+                            <th>Member</th>
+                            <th>Attendees</th>
+                            <th class="text-end">Total</th>
+                            <th>Status</th>
+                            <th>Submitted</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="t, stat : ${entry.value}"
+                            th:class="'tk-row status-' + ${t.status}"
+                            th:attr="data-search=${(t.member.firstName + ' ' + t.member.lastName).toLowerCase()}">
+
+                            <td class="text-muted fw-medium" th:text="${stat.count}"></td>
+
+                            <!-- Member -->
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="member-avatar"
+                                         th:text="${#strings.substring(t.member.firstName,0,1) + #strings.substring(t.member.lastName,0,1)}"></div>
+                                    <div>
+                                        <div class="member-name" th:text="${t.member.firstName + ' ' + t.member.lastName}"></div>
+                                        <div class="member-sub"
+                                             th:text="${t.member.email != null ? t.member.email : t.member.phone}"></div>
+                                    </div>
                                 </div>
-                            </div>
-                        </td>
+                            </td>
 
-                        <!-- Event -->
-                        <td>
-                            <div class="fw-semibold" style="font-size:0.85rem;color:#1e1b4b;"
-                                 th:text="${t.event.eventName}"></div>
-                            <div class="text-muted" style="font-size:0.72rem;">
-                                <i class="bi bi-calendar3 me-1"></i>
-                                <span th:text="${#temporals.format(t.event.eventDate,'dd/MM/yyyy')}"></span>
-                            </div>
-                        </td>
+                            <!-- Attendees -->
+                            <td>
+                                <span th:if="${t.adultCount > 0}" class="att-chip">
+                                    <i class="bi bi-person-fill"></i>
+                                    <span th:text="${t.adultCount}"></span> Adult
+                                </span>
+                                <span th:if="${t.youngerCount > 0}" class="att-chip">
+                                    <i class="bi bi-person"></i>
+                                    <span th:text="${t.youngerCount}"></span> Youth
+                                </span>
+                                <span th:if="${t.childCount > 0}" class="att-chip">
+                                    <i class="bi bi-emoji-smile"></i>
+                                    <span th:text="${t.childCount}"></span> Child
+                                </span>
+                            </td>
 
-                        <!-- Attendees -->
-                        <td>
-                            <span th:if="${t.adultCount > 0}" class="att-chip">
-                                <i class="bi bi-person-fill"></i>
-                                <span th:text="${t.adultCount}"></span> Adult
-                            </span>
-                            <span th:if="${t.youngerCount > 0}" class="att-chip">
-                                <i class="bi bi-person"></i>
-                                <span th:text="${t.youngerCount}"></span> Youth
-                            </span>
-                            <span th:if="${t.childCount > 0}" class="att-chip">
-                                <i class="bi bi-emoji-smile"></i>
-                                <span th:text="${t.childCount}"></span> Child
-                            </span>
-                        </td>
+                            <!-- Total -->
+                            <td class="text-end">
+                                <span class="amount-cell">£<span th:text="${t.totalAmount}"></span></span>
+                            </td>
 
-                        <!-- Total -->
-                        <td class="text-end">
-                            <span class="amount-cell">£<span th:text="${t.totalAmount}"></span></span>
-                        </td>
+                            <!-- Status -->
+                            <td>
+                                <span th:class="'status-tag ' + ${t.status}">
+                                    <i th:class="${t.status == 'Accepted' ? 'bi bi-check-circle-fill' : (t.status == 'Rejected' ? 'bi bi-x-circle-fill' : 'bi bi-hourglass-split')}"
+                                       style="font-size:0.65rem;"></i>
+                                    <span th:text="${t.status}"></span>
+                                </span>
+                            </td>
 
-                        <!-- Status -->
-                        <td>
-                            <span th:class="'status-tag ' + ${t.status}">
-                                <i th:class="${t.status == 'Accepted' ? 'bi bi-check-circle-fill' : (t.status == 'Rejected' ? 'bi bi-x-circle-fill' : 'bi bi-hourglass-split')}"
-                                   style="font-size:0.65rem;"></i>
-                                <span th:text="${t.status}"></span>
-                            </span>
-                        </td>
+                            <!-- Submitted -->
+                            <td style="font-size:0.78rem;color:#64748b;white-space:nowrap;">
+                                <i class="bi bi-clock me-1" style="font-size:0.7rem;"></i>
+                                <span th:text="${#temporals.format(t.createdAt,'dd/MM/yyyy')}"></span>
+                            </td>
 
-                        <!-- Submitted -->
-                        <td style="font-size:0.78rem;color:#64748b;white-space:nowrap;">
-                            <i class="bi bi-clock me-1" style="font-size:0.7rem;"></i>
-                            <span th:text="${#temporals.format(t.createdAt,'dd/MM/yyyy')}"></span>
-                        </td>
+                            <!-- Actions -->
+                            <td class="text-end" style="white-space:nowrap;">
+                                <form th:if="${t.status == 'Pending'}"
+                                      th:action="@{/ticket-payments/{id}/approve(id=${t.id})}" method="post"
+                                      class="d-inline">
+                                    <button type="submit" class="btn-accept">
+                                        <i class="bi bi-check-lg me-1"></i>Accept
+                                    </button>
+                                </form>
+                                <form th:if="${t.status == 'Pending'}"
+                                      th:action="@{/ticket-payments/{id}/reject(id=${t.id})}" method="post"
+                                      class="d-inline ms-1"
+                                      onsubmit="return confirm('Reject this registration?')">
+                                    <button type="submit" class="btn-reject">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                </form>
+                                <span th:unless="${t.status == 'Pending'}" class="text-muted" style="font-size:0.78rem;">—</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
 
-                        <!-- Actions -->
-                        <td class="text-end" style="white-space:nowrap;">
-                            <form th:if="${t.status == 'Pending'}"
-                                  th:action="@{/ticket-payments/{id}/approve(id=${t.id})}" method="post"
-                                  class="d-inline">
-                                <button type="submit" class="btn-accept">
-                                    <i class="bi bi-check-lg me-1"></i>Accept
-                                </button>
-                            </form>
-                            <form th:if="${t.status == 'Pending'}"
-                                  th:action="@{/ticket-payments/{id}/reject(id=${t.id})}" method="post"
-                                  class="d-inline ms-1" onsubmit="return confirm('Reject this registration?')">
-                                <button type="submit" class="btn-reject">
-                                    <i class="bi bi-x-lg"></i>
-                                </button>
-                            </form>
-                            <span th:unless="${t.status == 'Pending'}" class="text-muted" style="font-size:0.78rem;">—</span>
-                        </td>
-
-                    </tr>
-
-                    <tr th:if="${#lists.isEmpty(tickets)}">
-                        <td colspan="8" class="text-center py-5">
-                            <i class="bi bi-ticket-perforated d-block mb-2" style="font-size:2.5rem;color:#c7d2fe;"></i>
-                            <div class="fw-semibold text-muted">No ticket records found</div>
-                            <p class="text-muted small mb-0">Try adjusting your filters</p>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
         </div>
     </div>
 
+    <div th:if="${grouped == null or grouped.isEmpty()}"
+         class="card border-0 shadow-sm text-center py-5" style="border-radius:14px;">
+        <i class="bi bi-ticket-perforated d-block mb-2" style="font-size:2.5rem;color:#c7d2fe;"></i>
+        <div class="fw-semibold text-muted">No ticket records found</div>
+        <p class="text-muted small mb-0">Try adjusting your filters</p>
+    </div>
+
     <!-- Footer total -->
-    <div th:if="${not #lists.isEmpty(tickets)}"
-         class="d-flex justify-content-between align-items-center mt-3 px-1">
-        <span class="text-muted" style="font-size:0.78rem;">
-            Showing <strong th:text="${#lists.size(tickets)}"></strong>
-            <span th:if="${selectedEventId != null or selectedStatus != null}"> filtered</span>
-            record(s)
-        </span>
+    <div th:if="${grouped != null and not grouped.isEmpty()}"
+         class="d-flex justify-content-end align-items-center mt-2 px-1">
         <div style="font-size:0.85rem;">
             <span class="text-muted">Shown total:</span>
             <strong style="color:#1e1b4b;font-family:monospace;font-size:0.95rem;">
@@ -311,11 +310,8 @@
 <script>
 function searchRows(q) {
     q = q.toLowerCase();
-    var visible = 0;
-    document.querySelectorAll('#tkTable tbody tr.tk-row').forEach(function(row) {
-        var show = !q || row.dataset.search.includes(q);
-        row.style.display = show ? '' : 'none';
-        if (show) visible++;
+    document.querySelectorAll('.tk-row').forEach(function(row) {
+        row.style.display = (!q || row.dataset.search.includes(q)) ? '' : 'none';
     });
 }
 </script>

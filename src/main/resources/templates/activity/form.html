@@ -199,16 +199,51 @@
 <form th:action="${item.id == null ? '/activities' : '/activities/' + item.id}"
       th:object="${item}" method="post">
 
-    <!-- Section 1: Core details -->
+    <!-- Section 1: Activity Details -->
     <div class="sec-card">
         <div class="sec-head">
             <div class="sec-icon si-indigo"><i class="bi bi-list-task"></i></div>
             <div class="sec-title">Activity Details</div>
-            <span class="sec-sub">Name, category &amp; status</span>
+            <span class="sec-sub">Event, category, name &amp; status</span>
         </div>
         <div class="sec-body">
             <div class="row g-3">
 
+                <!-- 1. Event / Cost Centre -->
+                <div class="col-12">
+                    <label class="form-label">Event / Cost Centre <span class="req">*</span></label>
+                    <select class="form-select" name="eventId">
+                        <option value="">— Select Event —</option>
+                        <option th:each="e : ${events}"
+                                th:value="${e.id}"
+                                th:text="${e.eventName}"
+                                th:selected="${item.event != null and item.event.id == e.id}"></option>
+                    </select>
+                </div>
+
+                <!-- 2. Category + Add toggle -->
+                <div class="col-12">
+                    <label class="form-label">Category <span class="req">*</span></label>
+                    <div class="d-flex gap-2 align-items-start">
+                        <div class="flex-grow-1">
+                            <select class="form-select" th:field="*{categoryId}"
+                                    th:classappend="${#fields.hasErrors('categoryId')} ? ' is-invalid'">
+                                <option value="">— Select Category —</option>
+                                <option th:each="cat : ${categories}"
+                                        th:value="${cat.id}"
+                                        th:text="${cat.categoryName}"></option>
+                            </select>
+                            <div class="invalid-feedback" th:errors="*{categoryId}"></div>
+                        </div>
+                        <button type="button" class="btn btn-sm flex-shrink-0"
+                                style="border-radius:9px;background:var(--ac);color:#fff;border:0;font-weight:600;padding:9px 14px;white-space:nowrap;"
+                                data-bs-toggle="modal" data-bs-target="#catModal">
+                            <i class="bi bi-plus-lg me-1"></i>Add
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 3. Activity Name -->
                 <div class="col-12">
                     <label class="form-label">Activity Name <span class="req">*</span></label>
                     <input type="text" class="form-control" th:field="*{activityName}"
@@ -217,21 +252,9 @@
                     <div class="invalid-feedback" th:errors="*{activityName}"></div>
                 </div>
 
-                <div class="col-md-6">
-                    <label class="form-label">Category <span class="req">*</span></label>
-                    <select class="form-select" th:field="*{categoryId}"
-                            th:classappend="${#fields.hasErrors('categoryId')} ? ' is-invalid'">
-                        <option value="">— Select Category —</option>
-                        <option th:each="cat : ${categories}"
-                                th:value="${cat.id}"
-                                th:text="${cat.categoryName}"></option>
-                    </select>
-                    <div class="invalid-feedback" th:errors="*{categoryId}"></div>
-                </div>
-
-                <div class="col-md-6">
+                <!-- 4. Status -->
+                <div class="col-12">
                     <label class="form-label">Status <span class="req">*</span></label>
-                    <!-- Hidden select drives form submission -->
                     <select class="form-select d-none" th:field="*{status}" id="statusSelect"
                             th:classappend="${#fields.hasErrors('status')} ? ' is-invalid'">
                         <option value="">— Select —</option>
@@ -240,7 +263,6 @@
                         <option value="Completed">Completed</option>
                         <option value="Cancelled">Cancelled</option>
                     </select>
-                    <!-- Visual chip picker -->
                     <div class="status-chips" id="statusChips">
                         <span th:each="s : ${ {'Planned','In Progress','Completed','Cancelled'} }"
                               th:class="'st-chip' + (${item.status == s} ? ' sel-' + ${s} : '')"
@@ -262,7 +284,7 @@
         </div>
     </div>
 
-    <!-- Section 2: Schedule & ownership -->
+    <!-- Section 2: Schedule & Ownership -->
     <div class="sec-card">
         <div class="sec-head">
             <div class="sec-icon si-teal"><i class="bi bi-calendar3"></i></div>
@@ -272,29 +294,8 @@
         <div class="sec-body">
             <div class="row g-3">
 
-                <div class="col-md-4">
-                    <label class="form-label">Start Date</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-calendar-event"></i></span>
-                        <input type="date" class="form-control" th:field="*{startDate}"
-                               th:classappend="${#fields.hasErrors('startDate')} ? ' is-invalid'">
-                    </div>
-                    <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('startDate')}"
-                         th:errors="*{startDate}"></div>
-                </div>
-
-                <div class="col-md-4">
-                    <label class="form-label">End Date</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-calendar-check"></i></span>
-                        <input type="date" class="form-control" th:field="*{endDate}"
-                               th:classappend="${#fields.hasErrors('endDate')} ? ' is-invalid'">
-                    </div>
-                    <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('endDate')}"
-                         th:errors="*{endDate}"></div>
-                </div>
-
-                <div class="col-md-4">
+                <!-- Row 1: Venue + Responsible Person -->
+                <div class="col-md-6">
                     <label class="form-label">Venue</label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
@@ -317,11 +318,34 @@
                     </div>
                 </div>
 
+                <!-- Row 2: Start Date + End Date -->
+                <div class="col-md-6">
+                    <label class="form-label">Start Date</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-calendar-event"></i></span>
+                        <input type="date" class="form-control" th:field="*{startDate}"
+                               th:classappend="${#fields.hasErrors('startDate')} ? ' is-invalid'">
+                    </div>
+                    <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('startDate')}"
+                         th:errors="*{startDate}"></div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">End Date</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-calendar-check"></i></span>
+                        <input type="date" class="form-control" th:field="*{endDate}"
+                               th:classappend="${#fields.hasErrors('endDate')} ? ' is-invalid'">
+                    </div>
+                    <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('endDate')}"
+                         th:errors="*{endDate}"></div>
+                </div>
+
             </div>
         </div>
     </div>
 
-    <!-- Section 3: Content -->
+    <!-- Section 3: Description & Notes -->
     <div class="sec-card">
         <div class="sec-head">
             <div class="sec-icon si-amber"><i class="bi bi-file-text"></i></div>
@@ -392,52 +416,67 @@
 
 </form>
 
-<!-- ── Category Manager (outside main form) ── -->
-<div class="cat-manager">
-    <div class="d-flex align-items-center gap-2 mb-3">
-        <i class="bi bi-tags-fill" style="color:var(--ac);"></i>
-        <span class="fw-semibold" style="font-size:0.88rem;color:#1e293b;">Manage Activity Categories</span>
-        <span class="badge rounded-pill ms-1" style="background:#eef2ff;color:var(--ac);font-size:0.65rem;"
-              th:text="${#lists.size(categories)}"></span>
-    </div>
+<!-- ── Category Modal ── -->
+<div class="modal fade" id="catModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius:16px;">
+            <div class="modal-header" style="background:linear-gradient(135deg,#4f46e5,#7c3aed);border-radius:16px 16px 0 0;">
+                <h6 class="modal-title text-white fw-bold">
+                    <i class="bi bi-tags-fill me-2"></i>Manage Activity Categories
+                </h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
 
-    <!-- Category tags -->
-    <div class="d-flex flex-wrap gap-2 mb-3" id="catTagWrap">
-        <span th:each="cat : ${categories}" class="cat-tag">
-            <i class="bi bi-tag" style="font-size:0.65rem;"></i>
-            <span th:text="${cat.categoryName}"></span>
-            <form th:action="@{/activity-categories/{id}/delete(id=${cat.id})}"
-                  method="post" class="d-inline m-0"
-                  data-confirm="Delete this category?">
-                <input type="hidden" name="returnTo"
-                       th:value="${item.id == null ? '/activities/new' : '/activities/' + item.id + '/edit'}">
-                <button type="submit">
-                    <i class="bi bi-x-circle-fill" style="font-size:0.72rem;"></i>
-                </button>
-            </form>
-        </span>
-        <span th:if="${#lists.isEmpty(categories)}"
-              class="text-muted" style="font-size:0.82rem;">No categories yet. Add one below.</span>
-    </div>
+                <!-- Existing categories -->
+                <div class="mb-3">
+                    <div class="fw-semibold mb-2" style="font-size:.8rem;color:#374151;">
+                        Existing Categories
+                        <span class="badge rounded-pill ms-1" style="background:#eef2ff;color:var(--ac);font-size:.65rem;"
+                              th:text="${#lists.size(categories)}"></span>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2">
+                        <span th:each="cat : ${categories}" class="cat-tag">
+                            <i class="bi bi-tag" style="font-size:.65rem;"></i>
+                            <span th:text="${cat.categoryName}"></span>
+                            <form th:action="@{/activity-categories/{id}/delete(id=${cat.id})}"
+                                  method="post" class="d-inline m-0"
+                                  onsubmit="return confirm('Delete this category?')">
+                                <input type="hidden" name="returnTo"
+                                       th:value="${item.id == null ? '/activities/new' : '/activities/' + item.id + '/edit'}">
+                                <button type="submit"><i class="bi bi-x-circle-fill" style="font-size:.72rem;"></i></button>
+                            </form>
+                        </span>
+                        <span th:if="${#lists.isEmpty(categories)}"
+                              class="text-muted" style="font-size:.82rem;">No categories yet.</span>
+                    </div>
+                </div>
 
-    <!-- Add category inline -->
-    <form th:action="@{/activity-categories/quick-add}" method="post"
-          class="d-flex align-items-center gap-2">
-        <input type="hidden" name="returnTo"
-               th:value="${item.id == null ? '/activities/new' : '/activities/' + item.id + '/edit'}">
-        <div class="input-group" style="max-width:300px;">
-            <span class="input-group-text" style="border-radius:9px 0 0 9px;">
-                <i class="bi bi-tag"></i>
-            </span>
-            <input type="text" name="categoryName" class="form-control"
-                   placeholder="New category name…" required
-                   style="border-radius:0 9px 9px 0;">
+                <hr class="my-3">
+
+                <!-- Add new category -->
+                <div class="fw-semibold mb-2" style="font-size:.8rem;color:#374151;">Add New Category</div>
+                <form th:action="@{/activity-categories/quick-add}" method="post"
+                      class="d-flex align-items-center gap-2">
+                    <input type="hidden" name="returnTo"
+                           th:value="${item.id == null ? '/activities/new' : '/activities/' + item.id + '/edit'}">
+                    <div class="input-group">
+                        <span class="input-group-text" style="border-radius:9px 0 0 9px;">
+                            <i class="bi bi-tag"></i>
+                        </span>
+                        <input type="text" name="categoryName" class="form-control"
+                               placeholder="Category name…" required
+                               style="border-radius:0 9px 9px 0;" autofocus>
+                    </div>
+                    <button type="submit" class="btn btn-sm flex-shrink-0"
+                            style="border-radius:9px;background:var(--ac);color:#fff;border:0;font-weight:600;padding:9px 16px;">
+                        <i class="bi bi-plus-lg me-1"></i>Add
+                    </button>
+                </form>
+
+            </div>
         </div>
-        <button type="submit" class="btn btn-sm px-4"
-                style="border-radius:9px;background:var(--ac);color:#fff;border:0;font-weight:600;padding:9px 18px;">
-            <i class="bi bi-plus-lg me-1"></i>Add
-        </button>
-    </form>
+    </div>
 </div>
 
 </div><!-- /ac-canvas -->

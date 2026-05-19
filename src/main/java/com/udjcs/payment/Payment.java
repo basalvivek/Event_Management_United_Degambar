@@ -1,6 +1,7 @@
 package com.udjcs.payment;
 
 import com.udjcs.common.BaseEntity;
+import com.udjcs.event.Event;
 import com.udjcs.member.Member;
 import com.udjcs.supportive.SupportiveOrganization;
 import jakarta.persistence.*;
@@ -50,11 +51,18 @@ public class Payment extends BaseEntity {
     @Column(nullable = false, length = 20)
     private String status;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "event_id")
+    private Event event;
+
     @Transient
     private Long organizationId;
 
     @Transient
     private Long memberId;
+
+    @Transient
+    private Long eventId;
 
     public SupportiveOrganization getSupportiveOrganization() { return supportiveOrganization; }
     public void setSupportiveOrganization(SupportiveOrganization supportiveOrganization) { this.supportiveOrganization = supportiveOrganization; }
@@ -88,4 +96,8 @@ public class Payment extends BaseEntity {
 
     public Long getMemberId() { return memberId; }
     public void setMemberId(Long memberId) { this.memberId = memberId; }
+    public Event getEvent() { return event; }
+    public void setEvent(Event event) { this.event = event; }
+    public Long getEventId() { return eventId; }
+    public void setEventId(Long eventId) { this.eventId = eventId; }
 }

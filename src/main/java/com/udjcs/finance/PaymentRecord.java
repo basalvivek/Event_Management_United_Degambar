@@ -30,6 +30,7 @@ public class PaymentRecord {
         r.sourceBadgeColor = "#7c3aed";
         r.orgName          = s.getSponsorOrgName();
         r.personName       = s.getSponsorName();
+        r.eventName        = s.getEvent() != null ? s.getEvent().getEventName() : null;
         r.paymentMode      = s.getPaymentMode();
         r.paymentDate      = s.getPaymentDate();
         r.committedAmount  = s.getCommittedAmount();
@@ -52,6 +53,7 @@ public class PaymentRecord {
         r.personName       = isMember
                 ? p.getMember().getFirstName() + " " + p.getMember().getLastName()
                 : "By Organisation";
+        r.eventName        = p.getEvent() != null ? p.getEvent().getEventName() : null;
         r.paymentMode      = p.getPaymentMode();
         r.paymentDate      = p.getPaymentDate();
         BigDecimal donated = p.getAmount() != null ? p.getAmount() : BigDecimal.ZERO;
@@ -98,6 +100,7 @@ public class PaymentRecord {
         r.sourceBadgeColor = "#7c3aed";
         r.orgName          = s.getSponsorOrgName();
         r.personName       = s.getSponsorName();
+        r.eventName        = s.getEvent() != null ? s.getEvent().getEventName() : null;
         r.paymentMode      = inst.getPaymentMode();
         r.paymentDate      = inst.getPaymentDate();
         r.committedAmount  = s.getCommittedAmount();
@@ -120,6 +123,7 @@ public class PaymentRecord {
         r.personName       = isMember
                 ? p.getMember().getFirstName() + " " + p.getMember().getLastName()
                 : "By Organisation";
+        r.eventName        = p.getEvent() != null ? p.getEvent().getEventName() : null;
         r.paymentMode      = inst.getPaymentMode();
         r.paymentDate      = inst.getPaymentDate();
         r.committedAmount  = p.getCommittedAmount() != null ? p.getCommittedAmount() : BigDecimal.ZERO;
@@ -140,6 +144,8 @@ public class PaymentRecord {
         r.orgName          = t.getEvent() != null ? t.getEvent().getEventName() : "—";
         r.personName       = t.getMember() != null
                 ? t.getMember().getFirstName() + " " + t.getMember().getLastName() : "—";
+        r.eventName        = t.getEvent() != null ? t.getEvent().getEventName() : null;
+        r.eventDate        = t.getEvent() != null ? t.getEvent().getEventDate() : null;
         r.paymentMode      = inst.getPaymentMode();
         r.paymentDate      = inst.getPaymentDate();
         BigDecimal total     = t.getTotalAmount()    != null ? BigDecimal.valueOf(t.getTotalAmount())    : BigDecimal.ZERO;

@@ -5,14 +5,11 @@
 <head><title>Rehearsal</title></head>
 <body>
 <th:block layout:fragment="page-title"
-          th:text="${item.id == null ? (moreSession ? 'Add Session' : 'Add Rehearsal') : 'Edit Rehearsal'}">Rehearsal</th:block>
+          th:text="${item.id != null ? 'Edit Rehearsal' : (moreSession ? 'Add Session' : 'Add Rehearsal')}">Rehearsal</th:block>
 <div layout:fragment="content">
 <style>
 :root { --rh:#7c3aed; --rh-light:#a78bfa; --rh-bg:#faf5ff; }
-
-.rh-canvas { max-width: 780px; }
-
-/* Hero */
+.rh-canvas { max-width: 820px; }
 .rh-hero {
     border-radius: 18px;
     background: linear-gradient(135deg, #4c1d95 0%, #7c3aed 55%, #8b5cf6 100%);
@@ -20,136 +17,54 @@
     box-shadow: 0 8px 32px rgba(124,58,237,0.28);
     margin-bottom: 1.25rem; position: relative; overflow: hidden;
 }
-.rh-hero::before {
-    content: '';
-    position: absolute; inset: 0;
-    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/svg%3E");
-}
-.rh-hero-icon {
-    width: 58px; height: 58px; border-radius: 15px;
-    background: rgba(255,255,255,0.18); backdrop-filter: blur(4px);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.5rem; flex-shrink: 0;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.15); position: relative; z-index: 1;
-}
-.rh-hero-title { color: #fff; font-weight: 700; font-size: 1.1rem; position: relative; z-index: 1; }
-.rh-hero-sub   { color: rgba(255,255,255,0.65); font-size: 0.77rem; margin-top: 3px; position: relative; z-index: 1; }
-.rh-status-chip {
-    margin-left: auto; position: relative; z-index: 1;
-    border-radius: 20px; padding: 5px 14px; font-size: 0.72rem; font-weight: 700;
-    border: 1.5px solid rgba(255,255,255,0.25); backdrop-filter: blur(4px);
-}
-.chip-Scheduled { background: rgba(59,130,246,0.3);  color: #bfdbfe; }
-.chip-Completed { background: rgba(34,197,94,0.3);   color: #86efac; }
-.chip-Cancelled { background: rgba(239,68,68,0.3);   color: #fca5a5; }
-.chip-Postponed { background: rgba(245,158,11,0.3);  color: #fde68a; }
-
-/* Section cards */
-.sec-card { border: 1.5px solid #e2e8f0; border-radius: 14px; overflow: hidden; margin-bottom: 1rem; box-shadow: 0 1px 6px rgba(0,0,0,0.04); }
-.sec-head { background: #f8fafc; border-bottom: 1.5px solid #e2e8f0; padding: 13px 20px; display: flex; align-items: center; gap: 10px; }
-.sec-icon { width: 32px; height: 32px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 0.88rem; flex-shrink: 0; }
-.si-purple { background: #faf5ff; color: var(--rh); }
-.si-teal   { background: #f0fdfa; color: #0d9488; }
-.si-blue   { background: #eff6ff; color: #2563eb; }
-.si-slate  { background: #f1f5f9; color: #475569; }
-.sec-title { font-size: 0.82rem; font-weight: 700; color: #1e293b; }
-.sec-sub   { font-size: 0.7rem; color: #94a3b8; margin-left: auto; }
-.sec-body  { padding: 20px; }
-
-/* Inputs */
-.form-label { font-size: 0.78rem; font-weight: 600; color: #374151; margin-bottom: 5px; }
-.req { color: #ef4444; }
-.form-control, .form-select {
-    border-radius: 9px; border: 1.5px solid #e2e8f0;
-    font-size: 0.86rem; padding: 9px 13px; color: #1e293b;
-    transition: border-color 0.15s, box-shadow 0.15s;
-}
-.form-control:focus, .form-select:focus {
-    border-color: var(--rh); box-shadow: 0 0 0 3px rgba(124,58,237,0.12); outline: none;
-}
-.form-control.is-invalid, .form-select.is-invalid { border-color: #ef4444; }
-.input-group-text {
-    border-radius: 9px 0 0 9px; border: 1.5px solid #e2e8f0; border-right: 0;
-    background: #f8fafc; color: #94a3b8; font-size: 0.88rem; padding: 9px 13px;
-}
-.input-group .form-control { border-radius: 0 9px 9px 0; border-left: 0; }
-
-/* Status chips */
-.status-chips { display: flex; gap: 8px; flex-wrap: wrap; }
-.st-chip {
-    border-radius: 20px; padding: 7px 16px; font-size: 0.78rem; font-weight: 600;
-    border: 1.5px solid #e2e8f0; background: #fff; color: #64748b;
-    cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 6px;
-}
-.st-chip.sel-Scheduled { background: #dbeafe; border-color: #3b82f6; color: #1e40af; }
-.st-chip.sel-Completed { background: #dcfce7; border-color: #4ade80; color: #166534; }
-.st-chip.sel-Cancelled { background: #fef2f2; border-color: #f87171; color: #991b1b; }
-.st-chip.sel-Postponed { background: #fefce8; border-color: #fbbf24; color: #92400e; }
-
-/* Duration badge */
-.dur-badge {
-    display: inline-flex; align-items: center; gap: 6px;
-    background: #ede9fe; color: #6d28d9;
-    border-radius: 8px; padding: 5px 14px; font-size: 0.78rem; font-weight: 700;
-}
-
-/* Member rows */
-.member-row-card {
-    background: #fff; border: 1.5px solid #e2e8f0; border-radius: 12px;
-    padding: 12px 14px; transition: border-color 0.15s, box-shadow 0.15s;
-    display: flex; align-items: center; gap: 12px;
-}
-.member-row-card:hover { border-color: var(--rh-light); box-shadow: 0 2px 10px rgba(124,58,237,0.08); }
-.row-num {
-    width: 28px; height: 28px; border-radius: 50%;
-    background: #ede9fe; color: var(--rh);
-    font-size: 0.72rem; font-weight: 800;
-    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-}
-.add-member-btn {
-    border-radius: 10px;
-    background: var(--rh-bg); color: var(--rh);
-    border: 1.5px solid var(--rh-light);
-    font-size: 0.82rem; font-weight: 600; padding: 8px 18px;
-    transition: background 0.15s, color 0.15s;
-}
-.add-member-btn:hover { background: var(--rh); color: #fff; }
-
-/* Action bar */
-.action-bar {
-    background: #fff; border: 1.5px solid #e2e8f0; border-radius: 14px;
-    padding: 16px 20px; display: flex; align-items: center; gap: 10px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-}
-.btn-save {
-    border-radius: 10px;
-    background: linear-gradient(135deg, #4c1d95, var(--rh));
-    border: 0; color: #fff; font-weight: 600;
-    padding: 10px 28px; font-size: 0.86rem;
-    box-shadow: 0 4px 12px rgba(124,58,237,0.3);
-    transition: opacity 0.15s, transform 0.15s;
-}
-.btn-save:hover { opacity: 0.9; transform: translateY(-1px); color: #fff; }
-.btn-cancel {
-    border-radius: 10px; border: 1.5px solid #e2e8f0;
-    background: #fff; color: #64748b; font-size: 0.86rem; padding: 10px 22px;
-    transition: border-color 0.15s, color 0.15s;
-}
-.btn-cancel:hover { border-color: var(--rh-light); color: var(--rh); }
+.rh-hero::before { content:''; position:absolute; inset:0; background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/svg%3E"); }
+.rh-hero-icon { width:58px;height:58px;border-radius:15px;background:rgba(255,255,255,0.18);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;box-shadow:0 4px 16px rgba(0,0,0,0.15);position:relative;z-index:1; }
+.rh-hero-title { color:#fff;font-weight:700;font-size:1.1rem;position:relative;z-index:1; }
+.rh-hero-sub   { color:rgba(255,255,255,0.65);font-size:.77rem;margin-top:3px;position:relative;z-index:1; }
+.rh-status-chip { margin-left:auto;position:relative;z-index:1;border-radius:20px;padding:5px 14px;font-size:.72rem;font-weight:700;border:1.5px solid rgba(255,255,255,0.25);backdrop-filter:blur(4px); }
+.chip-Scheduled{background:rgba(59,130,246,.3);color:#bfdbfe;} .chip-Completed{background:rgba(34,197,94,.3);color:#86efac;} .chip-Cancelled{background:rgba(239,68,68,.3);color:#fca5a5;} .chip-Postponed{background:rgba(245,158,11,.3);color:#fde68a;}
+.sec-card{border:1.5px solid #e2e8f0;border-radius:14px;overflow:hidden;margin-bottom:1rem;box-shadow:0 1px 6px rgba(0,0,0,0.04);}
+.sec-head{background:#f8fafc;border-bottom:1.5px solid #e2e8f0;padding:13px 20px;display:flex;align-items:center;gap:10px;}
+.sec-icon{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:.88rem;flex-shrink:0;}
+.si-purple{background:#faf5ff;color:var(--rh);} .si-teal{background:#f0fdfa;color:#0d9488;} .si-blue{background:#eff6ff;color:#2563eb;} .si-slate{background:#f1f5f9;color:#475569;}
+.sec-title{font-size:.82rem;font-weight:700;color:#1e293b;} .sec-sub{font-size:.7rem;color:#94a3b8;margin-left:auto;}
+.sec-body{padding:20px;}
+.form-label{font-size:.78rem;font-weight:600;color:#374151;margin-bottom:5px;} .req{color:#ef4444;}
+.form-control,.form-select{border-radius:9px;border:1.5px solid #e2e8f0;font-size:.86rem;padding:9px 13px;color:#1e293b;transition:border-color .15s,box-shadow .15s;}
+.form-control:focus,.form-select:focus{border-color:var(--rh);box-shadow:0 0 0 3px rgba(124,58,237,.12);outline:none;}
+.form-control.is-invalid,.form-select.is-invalid{border-color:#ef4444;}
+.input-group-text{border-radius:9px 0 0 9px;border:1.5px solid #e2e8f0;border-right:0;background:#f8fafc;color:#94a3b8;font-size:.88rem;padding:9px 13px;}
+.input-group .form-control,.input-group .form-select{border-radius:0 9px 9px 0;border-left:0;}
+.status-chips{display:flex;gap:8px;flex-wrap:wrap;}
+.st-chip{border-radius:20px;padding:7px 16px;font-size:.78rem;font-weight:600;border:1.5px solid #e2e8f0;background:#fff;color:#64748b;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:6px;}
+.st-chip.sel-Scheduled{background:#dbeafe;border-color:#3b82f6;color:#1e40af;} .st-chip.sel-Completed{background:#dcfce7;border-color:#4ade80;color:#166534;} .st-chip.sel-Cancelled{background:#fef2f2;border-color:#f87171;color:#991b1b;} .st-chip.sel-Postponed{background:#fefce8;border-color:#fbbf24;color:#92400e;}
+.dur-badge{display:inline-flex;align-items:center;gap:6px;background:#ede9fe;color:#6d28d9;border-radius:8px;padding:5px 14px;font-size:.78rem;font-weight:700;}
+.locked-field{display:flex;align-items:center;gap:8px;padding:9px 14px;border-radius:9px;font-size:.86rem;font-weight:600;color:#1e293b;}
+.locked-purple{background:#eef2ff;border:1.5px solid #c7d2fe;}
+.locked-green{background:#f0fdf4;border:1.5px solid #bbf7d0;}
+.locked-blue{background:#eff6ff;border:1.5px solid #bfdbfe;}
+.lock-badge{margin-left:auto;font-size:.65rem;font-weight:700;padding:2px 7px;border-radius:20px;background:#c7d2fe;color:#4338ca;white-space:nowrap;}
+.member-row-card{background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;padding:12px 14px;transition:border-color .15s,box-shadow .15s;display:flex;align-items:center;gap:12px;}
+.member-row-card:hover{border-color:var(--rh-light);box-shadow:0 2px 10px rgba(124,58,237,.08);}
+.row-num{width:28px;height:28px;border-radius:50%;background:#ede9fe;color:var(--rh);font-size:.72rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.add-member-btn{display:inline-flex;align-items:center;gap:8px;border-radius:10px;background:var(--rh-bg);color:var(--rh);border:1.5px solid var(--rh-light);font-size:.82rem;font-weight:600;padding:8px 18px;cursor:pointer;transition:background .15s,color .15s,border-color .15s;}
+.add-member-btn:hover{background:var(--rh) !important;color:#fff !important;border-color:var(--rh) !important;}
+.action-bar{background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:16px 20px;display:flex;align-items:center;gap:10px;box-shadow:0 2px 10px rgba(0,0,0,0.05);}
+.btn-save{border-radius:10px;background:linear-gradient(135deg,#4c1d95,var(--rh));border:0;color:#fff;font-weight:600;padding:10px 28px;font-size:.86rem;box-shadow:0 4px 12px rgba(124,58,237,.3);transition:opacity .15s,transform .15s;}
+.btn-save:hover{opacity:.9;transform:translateY(-1px);color:#fff;}
+.btn-cancel{border-radius:10px;border:1.5px solid #e2e8f0;background:#fff;color:#64748b;font-size:.86rem;padding:10px 22px;transition:border-color .15s,color .15s;}
+.btn-cancel:hover{border-color:var(--rh-light);color:var(--rh);}
 </style>
 
 <div class="rh-canvas">
 
-<!-- Hero -->
 <div class="rh-hero">
-    <div class="rh-hero-icon">
-        <i class="bi bi-clock-history text-white"></i>
-    </div>
+    <div class="rh-hero-icon"><i class="bi bi-clock-history text-white"></i></div>
     <div>
         <div class="rh-hero-title"
              th:text="${item.id != null ? 'Edit Rehearsal' : (moreSession ? 'Add Another Session' : 'Schedule New Rehearsal')}"></div>
         <div class="rh-hero-sub"
-             th:text="${moreSession ? 'Pre-filled from last session — update date, time or venue as needed'
+             th:text="${moreSession ? 'Pre-filled from last session — review details and add new participants'
                       : (item.id != null ? 'Update rehearsal details, members and status'
                                         : 'Set date, time, venue and attach members to this session')}"></div>
     </div>
@@ -158,7 +73,7 @@
     </div>
 </div>
 
-<form th:action="${item.id == null ? '/rehearsals' : '/rehearsals/' + item.id}"
+<form th:action="${addMembersMode ? '/rehearsals/' + item.id + '/add-members' : (item.id == null ? '/rehearsals' : '/rehearsals/' + item.id)}"
       th:object="${item}" method="post">
 
     <!-- ── Section 1: Activity & Status ── -->
@@ -170,9 +85,17 @@
         </div>
         <div class="sec-body">
             <div class="row g-3">
+
+                <!-- Activity: locked in moreSession -->
                 <div class="col-12">
-                    <label class="form-label">Activity <span class="req">*</span></label>
-                    <div class="input-group">
+                    <label class="form-label">Activity <span class="req" th:unless="${moreSession}">*</span></label>
+                    <div th:if="${moreSession}" class="locked-field locked-purple">
+                        <i class="bi bi-bookmark-check-fill" style="color:#7c3aed;flex-shrink:0;"></i>
+                        <span th:text="${preselectedActivity != null ? preselectedActivity.activityName + ' [' + preselectedActivity.activityCategory.categoryName + ']' : 'Activity'}"></span>
+                        <input type="hidden" th:field="*{activityId}">
+                        <span class="lock-badge"><i class="bi bi-lock-fill me-1"></i>Locked</span>
+                    </div>
+                    <div th:unless="${moreSession}" class="input-group">
                         <span class="input-group-text"><i class="bi bi-bookmark-check"></i></span>
                         <select class="form-select" th:field="*{activityId}"
                                 th:classappend="${#fields.hasErrors('activityId')} ? ' is-invalid'">
@@ -185,32 +108,43 @@
                     <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('activityId')}"
                          th:errors="*{activityId}"></div>
                 </div>
+
+                <!-- Status: locked in moreSession -->
                 <div class="col-12">
-                    <label class="form-label">Status <span class="req">*</span></label>
-                    <div class="status-chips" id="statusChips">
-                        <span th:each="s : ${ {'Scheduled','Completed','Cancelled','Postponed'} }"
-                              th:class="'st-chip' + (${item.status == s} ? ' sel-' + ${s} : '')"
-                              th:attr="data-val=${s}"
-                              th:onclick="'selectStatus(this)'">
-                            <i class="bi"
-                               th:classappend="${s == 'Scheduled'} ? 'bi-calendar-check' :
-                                              (${s == 'Completed'} ? 'bi-check-circle-fill' :
-                                              (${s == 'Cancelled'} ? 'bi-x-circle-fill' : 'bi-clock-history'))"
-                               style="font-size:0.72rem;"></i>
-                            <span th:text="${s}"></span>
-                        </span>
+                    <label class="form-label">Status <span class="req" th:unless="${moreSession}">*</span></label>
+                    <div th:if="${moreSession}" class="locked-field locked-blue">
+                        <i class="bi bi-calendar-check" style="color:#2563eb;flex-shrink:0;"></i>
+                        <span th:text="${item.status != null ? item.status : 'Scheduled'}"></span>
+                        <input type="hidden" th:field="*{status}">
+                        <span class="lock-badge" style="background:#bfdbfe;color:#1e40af;"><i class="bi bi-lock-fill me-1"></i>Locked</span>
                     </div>
-                    <select th:field="*{status}" id="statusSelect" style="display:none;"
-                            th:classappend="${#fields.hasErrors('status')} ? ' is-invalid'">
-                        <option value="">— Select —</option>
-                        <option value="Scheduled">Scheduled</option>
-                        <option value="Completed">Completed</option>
-                        <option value="Cancelled">Cancelled</option>
-                        <option value="Postponed">Postponed</option>
-                    </select>
-                    <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('status')}"
-                         th:errors="*{status}"></div>
+                    <div th:unless="${moreSession}">
+                        <div class="status-chips" id="statusChips">
+                            <span th:each="s : ${ {'Scheduled','Completed','Cancelled','Postponed'} }"
+                                  th:class="'st-chip' + (${item.status == s} ? ' sel-' + ${s} : '')"
+                                  th:attr="data-val=${s}"
+                                  th:onclick="'selectStatus(this)'">
+                                <i class="bi"
+                                   th:classappend="${s == 'Scheduled'} ? 'bi-calendar-check' :
+                                                  (${s == 'Completed'} ? 'bi-check-circle-fill' :
+                                                  (${s == 'Cancelled'} ? 'bi-x-circle-fill' : 'bi-clock-history'))"
+                                   style="font-size:.72rem;"></i>
+                                <span th:text="${s}"></span>
+                            </span>
+                        </div>
+                        <select th:field="*{status}" id="statusSelect" style="display:none;"
+                                th:classappend="${#fields.hasErrors('status')} ? ' is-invalid'">
+                            <option value="">— Select —</option>
+                            <option value="Scheduled">Scheduled</option>
+                            <option value="Completed">Completed</option>
+                            <option value="Cancelled">Cancelled</option>
+                            <option value="Postponed">Postponed</option>
+                        </select>
+                        <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('status')}"
+                             th:errors="*{status}"></div>
+                    </div>
                 </div>
+
             </div>
         </div>
     </div>
@@ -223,7 +157,40 @@
             <span class="sec-sub">When is this session?</span>
         </div>
         <div class="sec-body">
-            <div class="row g-3">
+
+            <!-- Locked in moreSession -->
+            <div th:if="${moreSession}" class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Rehearsal Date</label>
+                    <div class="locked-field locked-green">
+                        <i class="bi bi-calendar-check-fill" style="color:#059669;flex-shrink:0;"></i>
+                        <span th:text="${item.rehearsalDate != null ? #temporals.format(item.rehearsalDate,'dd/MM/yyyy') : 'Not set'}"></span>
+                        <input type="hidden" th:field="*{rehearsalDate}">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Start Time</label>
+                    <div class="locked-field locked-green">
+                        <i class="bi bi-clock" style="color:#059669;flex-shrink:0;"></i>
+                        <span th:if="${item.startTime != null}" th:text="${#temporals.format(item.startTime,'HH:mm')}"></span>
+                        <span th:unless="${item.startTime != null}">Not set</span>
+                        <input type="hidden" th:field="*{startTime}">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">End Time</label>
+                    <div class="locked-field locked-green">
+                        <i class="bi bi-clock-fill" style="color:#059669;flex-shrink:0;"></i>
+                        <span th:if="${item.endTime != null}" th:text="${#temporals.format(item.endTime,'HH:mm')}"></span>
+                        <span th:unless="${item.endTime != null}">Not set</span>
+                        <input type="hidden" th:field="*{endTime}">
+                        <span class="lock-badge" style="background:#bbf7d0;color:#166534;"><i class="bi bi-lock-fill me-1"></i>Locked</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Editable in create/edit -->
+            <div th:unless="${moreSession}" class="row g-3">
                 <div class="col-md-4">
                     <label class="form-label">Rehearsal Date <span class="req">*</span></label>
                     <div class="input-group">
@@ -250,7 +217,7 @@
                     </div>
                 </div>
             </div>
-            <!-- Duration badge -->
+
             <div class="mt-3" id="durationWrap" style="display:none;">
                 <span class="dur-badge"><i class="bi bi-stopwatch"></i><span id="durationText"></span></span>
             </div>
@@ -265,7 +232,30 @@
             <span class="sec-sub">Where and who</span>
         </div>
         <div class="sec-body">
-            <div class="row g-3">
+
+            <!-- Locked in moreSession -->
+            <div th:if="${moreSession}" class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Venue</label>
+                    <div class="locked-field locked-blue">
+                        <i class="bi bi-geo-alt-fill" style="color:#2563eb;flex-shrink:0;"></i>
+                        <span th:text="${item.venue != null and !#strings.isEmpty(item.venue) ? item.venue : 'Not set'}"></span>
+                        <input type="hidden" th:field="*{venue}">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Conducted By</label>
+                    <div class="locked-field locked-blue">
+                        <i class="bi bi-person-fill" style="color:#2563eb;flex-shrink:0;"></i>
+                        <span th:text="${item.conductedBy != null and !#strings.isEmpty(item.conductedBy) ? item.conductedBy : 'Not set'}"></span>
+                        <input type="hidden" th:field="*{conductedBy}">
+                        <span class="lock-badge"><i class="bi bi-lock-fill me-1"></i>Locked</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Editable -->
+            <div th:unless="${moreSession}" class="row g-3">
                 <div class="col-md-6">
                     <label class="form-label">Venue</label>
                     <div class="input-group">
@@ -278,18 +268,24 @@
                     <label class="form-label">Conducted By <span class="req">*</span></label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="bi bi-person-fill"></i></span>
-                        <input type="text" class="form-control" th:field="*{conductedBy}"
-                               placeholder="Instructor or leader name"
-                               th:classappend="${#fields.hasErrors('conductedBy')} ? ' is-invalid'">
+                        <select class="form-select" th:field="*{conductedBy}"
+                                th:classappend="${#fields.hasErrors('conductedBy')} ? ' is-invalid'"
+                                style="border-radius:0 9px 9px 0;border-left:0;">
+                            <option value="">— Select Member —</option>
+                            <option th:each="m : ${members}"
+                                    th:value="${m.firstName + ' ' + m.lastName}"
+                                    th:text="${m.firstName + ' ' + m.lastName}"></option>
+                        </select>
                     </div>
                     <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('conductedBy')}"
                          th:errors="*{conductedBy}"></div>
                 </div>
             </div>
+
         </div>
     </div>
 
-    <!-- ── Section 4: Members ── -->
+    <!-- ── Section 4: Members & Roles ── -->
     <div class="sec-card">
         <div class="sec-head">
             <div class="sec-icon si-purple"><i class="bi bi-people-fill"></i></div>
@@ -298,26 +294,51 @@
         </div>
         <div class="sec-body">
 
-            <!-- Duplicate error -->
             <div th:if="${duplicateError}"
                  class="alert d-flex align-items-center gap-2 mb-3 py-2"
-                 style="border-radius:10px;background:#fef2f2;border:1.5px solid #fecaca;color:#dc2626;font-size:0.82rem;">
+                 style="border-radius:10px;background:#fef2f2;border:1.5px solid #fecaca;color:#dc2626;font-size:.82rem;">
                 <i class="bi bi-exclamation-triangle-fill flex-shrink-0"></i>
                 <span th:text="${duplicateError}"></span>
             </div>
 
+            <!-- Previous members (moreSession: read-only display) -->
+            <div th:if="${moreSession and existingMembers != null and not #lists.isEmpty(existingMembers)}" class="mb-3">
+                <div class="fw-semibold mb-2" style="font-size:.8rem;color:#374151;">
+                    <i class="bi bi-people-fill me-1" style="color:#7c3aed;"></i>
+                    Previous Session Members (<span th:text="${#lists.size(existingMembers)}"></span>)
+                </div>
+                <table class="table table-sm mb-0" style="font-size:.78rem;border-radius:8px;overflow:hidden;border:1.5px solid #ede9fe;">
+                    <thead style="background:#faf5ff;">
+                        <tr>
+                            <th style="font-size:.67rem;font-weight:700;text-transform:uppercase;color:#7c3aed;padding:6px 12px;">Member</th>
+                            <th style="font-size:.67rem;font-weight:700;text-transform:uppercase;color:#7c3aed;padding:6px 12px;">Role</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="em : ${existingMembers}" style="border-color:#ede9fe;">
+                            <td style="padding:6px 12px;font-weight:600;color:#1e1b4b;"
+                                th:text="${memberNameMap != null and memberNameMap[em.memberId] != null ? memberNameMap[em.memberId] : em.memberId}"></td>
+                            <td style="padding:6px 12px;color:#475569;" th:text="${em.role}"></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="mt-2" style="font-size:.75rem;color:#7c3aed;">
+                    <i class="bi bi-plus-circle me-1"></i>Add new members below to include them in this session
+                </div>
+            </div>
+
+            <!-- New member rows -->
             <div id="memberRows" class="d-flex flex-column gap-2 mb-3"></div>
 
-            <div class="text-center py-3" id="noMembersHint" style="font-size:0.78rem;color:#94a3b8;">
+            <div class="text-center py-3" id="noMembersHint" style="font-size:.78rem;color:#94a3b8;">
                 <i class="bi bi-person-plus d-block mb-1" style="font-size:1.6rem;color:#c4b5fd;"></i>
                 Click "Add Member" to attach members to this session
             </div>
 
-            <button type="button" class="add-member-btn btn" onclick="addMemberRow()">
-                <i class="bi bi-person-plus-fill me-2"></i>Add Member
+            <button type="button" class="add-member-btn" onclick="addMemberRow()">
+                <i class="bi bi-person-plus-fill"></i>Add Member
             </button>
 
-            <!-- Hidden source for JS -->
             <select id="memberSrc" style="display:none;">
                 <option value="">— Select Member —</option>
                 <option th:each="m : ${members}"
@@ -325,7 +346,8 @@
                         th:text="${m.firstName + ' ' + m.lastName}"></option>
             </select>
 
-            <th:block th:if="${existingMembers != null and not #lists.isEmpty(existingMembers)}">
+            <th:block th:unless="${moreSession}"
+                      th:if="${existingMembers != null and not #lists.isEmpty(existingMembers)}">
                 <input type="hidden" id="existingCount" th:value="${#lists.size(existingMembers)}">
                 <span th:each="em, s : ${existingMembers}"
                       th:attr="data-em-member=${em.memberId},data-em-role=${em.role},data-em-idx=${s.index}"
@@ -348,20 +370,18 @@
         </div>
     </div>
 
-    <!-- Action bar -->
     <div class="action-bar">
         <button type="submit" class="btn btn-save">
             <i class="bi bi-check-lg me-2"></i>
-            <span th:text="${item.id == null ? 'Save Rehearsal' : 'Save Changes'}">Save</span>
+            <span th:text="${addMembersMode ? 'Add Members' : (item.id == null ? (moreSession ? 'Save Session' : 'Save Rehearsal') : 'Save Changes')}">Save</span>
         </button>
         <a th:href="@{/rehearsals}" class="btn btn-cancel">
             <i class="bi bi-x me-1"></i>Cancel
         </a>
-        <span class="ms-auto text-muted" style="font-size:0.72rem;"><span class="req">*</span> Required</span>
+        <span class="ms-auto text-muted" style="font-size:.72rem;"><span class="req">*</span> Required</span>
     </div>
 
 </form>
-</div><!-- /rh-canvas -->
 </div>
 
 <th:block layout:fragment="page-scripts">
@@ -372,18 +392,28 @@ function selectStatus(chip) {
     document.getElementById('statusSelect').value = chip.dataset.val;
 }
 
+// Init status chip on load
+(function() {
+    var sel = document.getElementById('statusSelect');
+    if (sel && sel.value) {
+        var c = document.querySelector('#statusChips [data-val="' + sel.value + '"]');
+        if (c) c.classList.add('sel-' + sel.value);
+    }
+})();
+
 function calcDuration() {
-    var s = document.querySelector('[name="startTime"]').value;
-    var e = document.querySelector('[name="endTime"]').value;
+    var sEl = document.querySelector('[name="startTime"]');
+    var eEl = document.querySelector('[name="endTime"]');
     var wrap = document.getElementById('durationWrap');
+    if (!sEl || !eEl || !wrap) return;
+    var s = sEl.value, e = eEl.value;
     if (s && e) {
         var sm = parseInt(s.split(':')[0])*60 + parseInt(s.split(':')[1]);
         var em = parseInt(e.split(':')[0])*60 + parseInt(e.split(':')[1]);
         var diff = em - sm;
         if (diff > 0) {
             var h = Math.floor(diff/60), m = diff%60;
-            document.getElementById('durationText').textContent =
-                (h > 0 ? h + 'h ' : '') + (m > 0 ? m + 'min' : '') + ' duration';
+            document.getElementById('durationText').textContent = (h > 0 ? h + 'h ' : '') + (m > 0 ? m + 'min' : '') + ' duration';
             wrap.style.display = '';
             return;
         }
@@ -405,28 +435,43 @@ function calcDuration() {
         if (hint) hint.style.display = document.getElementById('memberRows').children.length === 0 ? '' : 'none';
     }
 
+    function getSelectedMemberIds() {
+        var ids = [];
+        document.querySelectorAll('#memberRows select[name="memberIds"]').forEach(function(s) { if (s.value) ids.push(s.value); });
+        return ids;
+    }
+
     window.addMemberRow = function (preselectedMemberId, preselectedRole) {
         var src = document.getElementById('memberSrc');
         var container = document.getElementById('memberRows');
         if (!src || !container) return;
         var n = container.children.length + 1;
-
         var opts = src.innerHTML;
         if (preselectedMemberId) {
             opts = opts.replace('value="' + preselectedMemberId + '"', 'value="' + preselectedMemberId + '" selected');
         }
-
         var card = document.createElement('div');
         card.className = 'member-row-card';
         card.innerHTML =
             '<div class="row-num">' + n + '</div>' +
-            '<div class="flex-grow-1"><select name="memberIds" class="form-select" style="font-size:.84rem;">' + opts + '</select></div>' +
+            '<div class="flex-grow-1">' +
+                '<select name="memberIds" class="form-select" style="font-size:.84rem;" onchange="checkDup(this)">' + opts + '</select>' +
+                '<div class="dup-warn" style="display:none;color:#dc2626;font-size:.72rem;margin-top:3px;"><i class="bi bi-exclamation-triangle-fill me-1"></i>Already added.</div>' +
+            '</div>' +
             '<div style="flex:0 0 160px;"><select name="memberRoles" class="form-select" style="font-size:.84rem;">' + buildRoleOptions(preselectedRole) + '</select></div>' +
-            '<button type="button" class="btn btn-sm btn-outline-danger flex-shrink-0 px-2" style="border-radius:8px;" onclick="removeRow(this)">' +
+            '<button type="button" style="border-radius:8px;border:1.5px solid #fca5a5;background:#fff6f6;color:#ef4444;padding:4px 8px;cursor:pointer;flex-shrink:0;" onclick="removeRow(this)">' +
                 '<i class="bi bi-x-lg"></i>' +
             '</button>';
         container.appendChild(card);
         updateHint();
+    };
+
+    window.checkDup = function(sel) {
+        var warn = sel.parentElement.querySelector('.dup-warn');
+        if (!sel.value) { if (warn) warn.style.display = 'none'; return; }
+        var count = 0;
+        document.querySelectorAll('#memberRows select[name="memberIds"]').forEach(function(s) { if (s.value === sel.value) count++; });
+        if (warn) warn.style.display = count > 1 ? '' : 'none';
     };
 
     window.removeRow = function (btn) {
@@ -434,6 +479,18 @@ function calcDuration() {
         document.querySelectorAll('#memberRows .row-num').forEach(function(el, i) { el.textContent = i + 1; });
         updateHint();
     };
+
+    // Block submit on duplicates
+    document.querySelectorAll('form').forEach(function(f) {
+        f.addEventListener('submit', function(e) {
+            var ids = getSelectedMemberIds();
+            if (new Set(ids).size < ids.length) {
+                e.preventDefault();
+                alert('Duplicate members detected. Each member can only appear once.');
+                return false;
+            }
+        });
+    });
 
     document.addEventListener('DOMContentLoaded', function () {
         document.querySelectorAll('.existing-member-data').forEach(function(el) {

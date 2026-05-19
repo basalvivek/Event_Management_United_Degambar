@@ -58,6 +58,20 @@ public class RehearsalService {
         }
     }
 
+    public void appendMembers(Long rehearsalId, List<Long> memberIds, List<String> memberRoles) {
+        if (memberIds == null) return;
+        for (int i = 0; i < memberIds.size(); i++) {
+            Long memberId = memberIds.get(i);
+            if (memberId == null) continue;
+            if (memberRepository.existsByRehearsalIdAndMemberId(rehearsalId, memberId)) continue;
+            RehearsalMember rm = new RehearsalMember();
+            rm.setRehearsalId(rehearsalId);
+            rm.setMemberId(memberId);
+            rm.setRole(memberRoles != null && i < memberRoles.size() ? memberRoles.get(i) : "Participant");
+            memberRepository.save(rm);
+        }
+    }
+
     public List<RehearsalMember> findMembers(Long rehearsalId) {
         return memberRepository.findByRehearsalIdOrderByIdAsc(rehearsalId);
     }

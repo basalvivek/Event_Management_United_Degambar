@@ -43,8 +43,9 @@ public class EventProgramController {
     }
 
     @GetMapping("/new")
-    public String showCreateForm(Model model) {
+    public String showCreateForm(@RequestParam(required = false) Long eventId, Model model) {
         model.addAttribute("item", null);
+        model.addAttribute("preselectedEventId", eventId);
         model.addAttribute("events", eventService.findExcludingStatus("Completed"));
         model.addAttribute("members", memberService.findAll());
         return "event-program/form";
@@ -202,7 +203,7 @@ public class EventProgramController {
         String msg = "Programs updated successfully.";
         if (!rowErrors.isEmpty()) msg += " Skipped: " + String.join(" ", rowErrors);
         attrs.addFlashAttribute("success", msg);
-        return "redirect:/event-programs/event/" + eventId;
+        return "redirect:/event-programs";
     }
 
     @GetMapping("/{id}/edit")

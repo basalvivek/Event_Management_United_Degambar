@@ -43,105 +43,39 @@ public class FoodRegistrationController {
     @GetMapping
     public String list(Model model) {
         List<FoodRegistration> registrations = repo.findAllOrdered();
-        List<FoodPaymentRow> rows = new ArrayList<>();
+
+        // Group by event name
+        java.util.LinkedHashMap<String, List<FoodRegistration>> groups = new java.util.LinkedHashMap<>();
+        registrations.stream()
+            .sorted(java.util.Comparator.comparing(f ->
+                f.getEvent() != null ? f.getEvent().getEventName().toLowerCase() : "zzz"))
+            .forEach(f -> {
+                String evKey = f.getEvent() != null ? f.getEvent().getEventName() : "— No Event —";
+                groups.computeIfAbsent(evKey, k -> new ArrayList<>()).add(f);
+            });
+
+        // Instalments and totals per registration
+        java.util.Map<Long, List<PaymentInstalment>> instalmentMap = new java.util.LinkedHashMap<>();
+        java.util.Map<Long, BigDecimal> totalPaidMap = new java.util.LinkedHashMap<>();
+        java.util.Map<Long, BigDecimal> remainingMap = new java.util.LinkedHashMap<>();
 
         for (FoodRegistration f : registrations) {
             List<PaymentInstalment> insts = instalmentRepo
                     .findBySourceTypeAndSourceIdOrderByPaymentDateAsc("Food", f.getId());
-            BigDecimal fullAmt = f.getFullAmount() != null ? f.getFullAmount() : BigDecimal.ZERO;
-            String eventName = f.getEvent() != null ? f.getEvent().getEventName() : "— No Event —";
-
-            if (insts.isEmpty()) {
-                FoodPaymentRow row = new FoodPaymentRow();
-                row.setRegistrationId(f.getId());
-                row.setEventName(eventName);
-                row.setVendorName(f.getVendorName());
-                row.setPostcode(f.getPostcode());
-                row.setHeadCount(f.getTotalExpectedHeadCount());
-                row.setFinalPricePerPlate(f.getFinalPricePerPlate());
-                row.setFullAmount(fullAmt);
-                row.setOverallRating(f.getOverallFoodRating());
-                row.setFoodSelectionStatus(f.getFoodSelectionStatus());
-                row.setPaymentStatus(f.getPaymentStatus());
-                row.setPaymentDate(null);
-                row.setPaymentMode("—");
-                BigDecimal dep = f.getDepositAmount() != null ? f.getDepositAmount() : BigDecimal.ZERO;
-                row.setAmountPaid(dep);
-                row.setRemaining(fullAmt.subtract(dep).max(BigDecimal.ZERO));
-                row.setNotes(f.getNotes());
-                rows.add(row);
-            } else {
-                BigDecimal running = BigDecimal.ZERO;
-
-                // Initial deposit row (first, before instalments)
-                BigDecimal deposit = f.getDepositAmount() != null ? f.getDepositAmount() : BigDecimal.ZERO;
-                if (deposit.compareTo(BigDecimal.ZERO) > 0) {
-                    running = running.add(deposit);
-                    FoodPaymentRow depRow = new FoodPaymentRow();
-                    depRow.setRegistrationId(f.getId());
-                    depRow.setEventName(eventName);
-                    depRow.setVendorName(f.getVendorName());
-                    depRow.setPostcode(f.getPostcode());
-                    depRow.setHeadCount(f.getTotalExpectedHeadCount());
-                    depRow.setFinalPricePerPlate(f.getFinalPricePerPlate());
-                    depRow.setFullAmount(fullAmt);
-                    depRow.setOverallRating(f.getOverallFoodRating());
-                    depRow.setFoodSelectionStatus(f.getFoodSelectionStatus());
-                    depRow.setPaymentStatus(f.getPaymentStatus());
-                    depRow.setPaymentDate(null);
-                    depRow.setPaymentMode("Initial Deposit");
-                    depRow.setAmountPaid(deposit);
-                    depRow.setRemaining(fullAmt.subtract(running).max(BigDecimal.ZERO));
-                    depRow.setNotes("Paid at registration");
-                    rows.add(depRow);
-                }
-
-                for (PaymentInstalment inst : insts) {
-                    running = running.add(inst.getAmount());
-                    FoodPaymentRow row = new FoodPaymentRow();
-                    row.setRegistrationId(f.getId());
-                    row.setEventName(eventName);
-                    row.setVendorName(f.getVendorName());
-                    row.setPostcode(f.getPostcode());
-                    row.setHeadCount(f.getTotalExpectedHeadCount());
-                    row.setFinalPricePerPlate(f.getFinalPricePerPlate());
-                    row.setFullAmount(fullAmt);
-                    row.setOverallRating(f.getOverallFoodRating());
-                    row.setFoodSelectionStatus(f.getFoodSelectionStatus());
-                    row.setPaymentStatus(f.getPaymentStatus());
-                    row.setPaymentDate(inst.getPaymentDate());
-                    row.setPaymentMode(inst.getPaymentMode());
-                    row.setAmountPaid(inst.getAmount());
-                    row.setRemaining(fullAmt.subtract(running).max(BigDecimal.ZERO));
-                    row.setNotes(inst.getNotes());
-                    rows.add(row);
-                }
-            }
+            instalmentMap.put(f.getId(), insts);
+            BigDecimal instSum = insts.stream().map(PaymentInstalment::getAmount)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            BigDecimal deposit = f.getDepositAmount() != null ? f.getDepositAmount() : BigDecimal.ZERO;
+            BigDecimal paid = deposit.add(instSum);
+            BigDecimal full = f.getFullAmount() != null ? f.getFullAmount() : BigDecimal.ZERO;
+            totalPaidMap.put(f.getId(), paid);
+            remainingMap.put(f.getId(), full.subtract(paid).max(BigDecimal.ZERO));
         }
 
-        // Sort: event name ASC (no event last), then vendor ASC, then payment date DESC
-        rows.sort((a, b) -> {
-            String ea = "— No Event —".equals(a.getEventName()) ? "￿" : a.getEventName();
-            String eb = "— No Event —".equals(b.getEventName()) ? "￿" : b.getEventName();
-            int cmp = ea.compareToIgnoreCase(eb);
-            if (cmp != 0) return cmp;
-            cmp = a.getVendorName().compareToIgnoreCase(b.getVendorName());
-            if (cmp != 0) return cmp;
-            java.time.LocalDate da = a.getPaymentDate() != null ? a.getPaymentDate() : java.time.LocalDate.MIN;
-            java.time.LocalDate db = b.getPaymentDate() != null ? b.getPaymentDate() : java.time.LocalDate.MIN;
-            return db.compareTo(da);
-        });
-
-        // Compute group-start indices by event name
-        java.util.Set<Integer> groupStarts = new java.util.HashSet<>();
-        String prev = null;
-        for (int i = 0; i < rows.size(); i++) {
-            String key = rows.get(i).getEventName().toLowerCase();
-            if (!key.equals(prev)) { groupStarts.add(i); prev = key; }
-        }
-
-        model.addAttribute("rows", rows);
-        model.addAttribute("groupStarts", groupStarts);
+        model.addAttribute("groups", groups);
+        model.addAttribute("instalmentMap", instalmentMap);
+        model.addAttribute("totalPaidMap", totalPaidMap);
+        model.addAttribute("remainingMap", remainingMap);
         return "food/list";
     }
 
@@ -168,6 +102,9 @@ public class FoodRegistrationController {
                          @RequestParam(value = "member3Rating", required = false) Integer m3r,
                          @RequestParam(value = "member4Rating", required = false) Integer m4r,
                          Model model, RedirectAttributes attrs) {
+        if (f.getEventId() == null) {
+            result.rejectValue("eventId", "required", "Please select an event.");
+        }
         if (result.hasErrors()) {
             model.addAttribute("events", eventRepo.findAll(org.springframework.data.domain.Sort.by("eventName")));
             return "food/form";
@@ -178,6 +115,9 @@ public class FoodRegistrationController {
         f.getFoodItems().clear();
         FoodRegistration saved = repo.save(f);
         saveFoodItemsDirect(saved, categories, names, qtys, ratings);
+        if (saved.getDepositAmount() != null && saved.getDepositAmount().compareTo(BigDecimal.ZERO) > 0) {
+            createDepositPayableEntry(saved);
+        }
         attrs.addFlashAttribute("success", "Food registration saved.");
         return "redirect:/food-registrations";
     }
@@ -202,7 +142,7 @@ public class FoodRegistrationController {
 
     @PostMapping("/{id}")
     public String update(@PathVariable Long id,
-                         @ModelAttribute("item") @Valid FoodRegistration f,
+                         @ModelAttribute("item") FoodRegistration f,
                          BindingResult result,
                          @RequestParam(value = "foodCategory", required = false) List<String> categories,
                          @RequestParam(value = "foodName",     required = false) List<String> names,
@@ -216,21 +156,25 @@ public class FoodRegistrationController {
                          @RequestParam(value = "member2Rating", required = false) Integer m2r,
                          @RequestParam(value = "member3Rating", required = false) Integer m3r,
                          @RequestParam(value = "member4Rating", required = false) Integer m4r,
-                         Model model, RedirectAttributes attrs) {
-        if (result.hasErrors()) {
-            model.addAttribute("events", eventRepo.findAll(org.springframework.data.domain.Sort.by("eventName")));
-            model.addAttribute("instalments", instalmentRepo.findBySourceTypeAndSourceIdOrderByPaymentDateAsc("Food", id));
-            model.addAttribute("totalPaid", BigDecimal.ZERO);
-            return "food/form";
-        }
-        f.setId(id);
-        wireEvent(f);
-        applyMemberPanel(f, m1n, m2n, m3n, m4n, m1r, m2r, m3r, m4r);
+                         RedirectAttributes attrs) {
+        // Load existing entity — vendor details and financial fields are locked after creation
+        FoodRegistration existing = repo.findByIdWithItems(id)
+                .orElseThrow(() -> new IllegalArgumentException("Not found: " + id));
+
+        // Apply only the editable fields onto the existing entity
+        applyMemberPanel(existing, m1n, m2n, m3n, m4n, m1r, m2r, m3r, m4r);
+        existing.setFoodSelectionStatus(f.getFoodSelectionStatus());
+        existing.setNotes(f.getNotes());
+        existing.setVendorPayableName(f.getVendorPayableName());
+        existing.setSortCode(f.getSortCode());
+        existing.setAccountNumber(f.getAccountNumber());
+        existing.setDepositDate(f.getDepositDate());
+
         BigDecimal instSum = instalmentRepo.sumBySourceTypeAndSourceId("Food", id);
-        computeDerived(f);
-        computePaymentStatus(f, instSum);
-        f.getFoodItems().clear();
-        FoodRegistration saved = repo.save(f);
+        computeDerived(existing);
+        computePaymentStatus(existing, instSum);
+        existing.getFoodItems().clear();
+        FoodRegistration saved = repo.save(existing);
         foodItemRepo.deleteByFoodRegistrationId(id);
         saveFoodItemsDirect(saved, categories, names, qtys, ratings);
         attrs.addFlashAttribute("success", "Food registration updated.");
@@ -244,7 +188,7 @@ public class FoodRegistrationController {
                               @RequestParam String paymentMode,
                               @RequestParam(required = false) String notes,
                               RedirectAttributes attrs) {
-        FoodRegistration f = repo.findById(id)
+        FoodRegistration f = repo.findByIdWithItems(id)
                 .orElseThrow(() -> new IllegalArgumentException("Not found: " + id));
         PaymentInstalment inst = new PaymentInstalment();
         inst.setSourceType("Food");
@@ -285,7 +229,13 @@ public class FoodRegistrationController {
     public String delete(@PathVariable Long id, RedirectAttributes attrs) {
         foodItemRepo.deleteByFoodRegistrationId(id);
         instalmentRepo.findBySourceTypeAndSourceIdOrderByPaymentDateAsc("Food", id)
-                .forEach(i -> instalmentRepo.deleteById(i.getId()));
+                .forEach(i -> {
+                    payableRepo.findBySourceTypeAndSourceId("FOOD_INST", i.getId())
+                            .ifPresent(pt -> payableRepo.delete(pt));
+                    instalmentRepo.deleteById(i.getId());
+                });
+        payableRepo.findBySourceTypeAndSourceId("FOOD_DEPOSIT", id)
+                .ifPresent(pt -> payableRepo.delete(pt));
         repo.deleteById(id);
         attrs.addFlashAttribute("success", "Food registration deleted.");
         return "redirect:/food-registrations";
@@ -356,6 +306,27 @@ public class FoodRegistrationController {
         f.setPaymentStatus(totalPaid.compareTo(f.getFullAmount()) >= 0 ? "Completed" : "InProgress");
     }
 
+    private void createDepositPayableEntry(FoodRegistration f) {
+        payableRepo.findBySourceTypeAndSourceId("FOOD_DEPOSIT", f.getId())
+                .ifPresent(pt -> payableRepo.delete(pt));
+        PayableTransaction pt = new PayableTransaction();
+        pt.setPaymentType("CATERER_BOOKING");
+        pt.setSourceType("FOOD_DEPOSIT");
+        pt.setSourceId(f.getId());
+        pt.setName(f.getVendorName() != null ? f.getVendorName() : "Catering / Food");
+        pt.setOrganisationName(f.getVendorName());
+        pt.setPayablePerson(f.getVendorPayableName());
+        pt.setSortCode(f.getSortCode());
+        pt.setAccountNumber(f.getAccountNumber());
+        pt.setTotalAmount(f.getFullAmount() != null ? f.getFullAmount() : f.getDepositAmount());
+        pt.setInitialDeposit(f.getDepositAmount());
+        pt.setPaymentDate(f.getDepositDate() != null ? f.getDepositDate() : LocalDate.now());
+        pt.setStatus("COMPLETED");
+        pt.setNotes("Initial Deposit");
+        pt.setEvent(f.getEvent());
+        payableRepo.save(pt);
+    }
+
     private void createPayableEntry(FoodRegistration f, PaymentInstalment inst) {
         PayableTransaction pt = new PayableTransaction();
         pt.setPaymentType("CATERER_BOOKING");
@@ -371,6 +342,7 @@ public class FoodRegistrationController {
         pt.setPaymentDate(inst.getPaymentDate());
         pt.setStatus("COMPLETED");
         pt.setNotes(inst.getPaymentMode() + (inst.getNotes() != null ? " — " + inst.getNotes() : ""));
+        pt.setEvent(f.getEvent());
         payableRepo.save(pt);
     }
 }

@@ -5,6 +5,7 @@ import com.udjcs.finance.PaymentInstalment;
 import com.udjcs.finance.PaymentInstalmentRepository;
 import com.udjcs.payable.PayableTransaction;
 import com.udjcs.payable.PayableTransactionRepository;
+import com.udjcs.venue.VenueRepository;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
@@ -26,119 +27,56 @@ public class HallRegistrationController {
     private final EventRepository eventRepo;
     private final PaymentInstalmentRepository instalmentRepo;
     private final PayableTransactionRepository payableRepo;
+    private final VenueRepository venueRepo;
 
     public HallRegistrationController(HallRegistrationRepository repo,
                                        EventRepository eventRepo,
                                        PaymentInstalmentRepository instalmentRepo,
-                                       PayableTransactionRepository payableRepo) {
+                                       PayableTransactionRepository payableRepo,
+                                       VenueRepository venueRepo) {
         this.repo          = repo;
         this.eventRepo     = eventRepo;
         this.instalmentRepo = instalmentRepo;
         this.payableRepo   = payableRepo;
+        this.venueRepo     = venueRepo;
     }
 
     @GetMapping
     public String list(Model model) {
         List<HallRegistration> bookings = repo.findAllWithEvent();
-        List<HallPaymentRow> rows = new java.util.ArrayList<>();
+
+        // Group bookings by event name
+        java.util.LinkedHashMap<String, List<HallRegistration>> groups = new java.util.LinkedHashMap<>();
+        bookings.stream()
+            .sorted(java.util.Comparator.comparing(h ->
+                h.getEvent() != null ? h.getEvent().getEventName().toLowerCase() : "zzz"))
+            .forEach(h -> {
+                String evKey = h.getEvent() != null ? h.getEvent().getEventName() : "— No Event —";
+                groups.computeIfAbsent(evKey, k -> new java.util.ArrayList<>()).add(h);
+            });
+
+        // Fetch instalments and totals for each booking
+        java.util.Map<Long, List<PaymentInstalment>> instalmentMap = new java.util.LinkedHashMap<>();
+        java.util.Map<Long, BigDecimal> totalPaidMap = new java.util.LinkedHashMap<>();
+        java.util.Map<Long, BigDecimal> remainingMap = new java.util.LinkedHashMap<>();
 
         for (HallRegistration h : bookings) {
             List<PaymentInstalment> insts = instalmentRepo
                     .findBySourceTypeAndSourceIdOrderByPaymentDateAsc("Hall", h.getId());
-            String eventName = h.getEvent() != null ? h.getEvent().getEventName() : "— No Event —";
+            instalmentMap.put(h.getId(), insts);
+            BigDecimal instSum = insts.stream().map(PaymentInstalment::getAmount)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            BigDecimal deposit = h.getInitialDeposit() != null ? h.getInitialDeposit() : BigDecimal.ZERO;
+            BigDecimal paid = deposit.add(instSum);
             BigDecimal charges = h.getHallCharges() != null ? h.getHallCharges() : BigDecimal.ZERO;
-
-            if (insts.isEmpty()) {
-                // No instalments — show booking as single row
-                HallPaymentRow row = new HallPaymentRow();
-                row.setBookingId(h.getId());
-                row.setEventName(eventName);
-                row.setHallName(h.getHallName());
-                row.setBookedBy(h.getBookedBy());
-                row.setPhone(h.getPhone());
-                row.setHireDate(h.getHireDate());
-                row.setFromTime(h.getFromTime());
-                row.setTillTime(h.getTillTime());
-                row.setHallCharges(charges);
-                row.setBookingStatus(h.getBookingStatus());
-                row.setPaymentStatus(h.getStatus());
-                row.setPaymentDate(h.getHireDate());
-                row.setPaymentMode("—");
-                BigDecimal deposit = h.getInitialDeposit() != null ? h.getInitialDeposit() : BigDecimal.ZERO;
-                row.setAmountPaid(deposit);
-                row.setRemaining(charges.subtract(deposit).max(BigDecimal.ZERO));
-                row.setNotes(h.getNotes());
-                rows.add(row);
-            } else {
-                BigDecimal running = BigDecimal.ZERO;
-
-                // Initial deposit row (first, before instalments)
-                BigDecimal deposit = h.getInitialDeposit() != null ? h.getInitialDeposit() : BigDecimal.ZERO;
-                if (deposit.compareTo(BigDecimal.ZERO) > 0) {
-                    running = running.add(deposit);
-                    HallPaymentRow depRow = new HallPaymentRow();
-                    depRow.setBookingId(h.getId());
-                    depRow.setEventName(eventName);
-                    depRow.setHallName(h.getHallName());
-                    depRow.setBookedBy(h.getBookedBy());
-                    depRow.setPhone(h.getPhone());
-                    depRow.setHireDate(h.getHireDate());
-                    depRow.setFromTime(h.getFromTime());
-                    depRow.setTillTime(h.getTillTime());
-                    depRow.setHallCharges(charges);
-                    depRow.setBookingStatus(h.getBookingStatus());
-                    depRow.setPaymentStatus(h.getStatus());
-                    depRow.setPaymentDate(h.getHireDate());
-                    depRow.setPaymentMode("Initial Deposit");
-                    depRow.setAmountPaid(deposit);
-                    depRow.setRemaining(charges.subtract(running).max(BigDecimal.ZERO));
-                    depRow.setNotes("Paid at booking");
-                    rows.add(depRow);
-                }
-
-                for (PaymentInstalment inst : insts) {
-                    running = running.add(inst.getAmount());
-                    HallPaymentRow row = new HallPaymentRow();
-                    row.setBookingId(h.getId());
-                    row.setEventName(eventName);
-                    row.setHallName(h.getHallName());
-                    row.setBookedBy(h.getBookedBy());
-                    row.setPhone(h.getPhone());
-                    row.setHireDate(h.getHireDate());
-                    row.setFromTime(h.getFromTime());
-                    row.setTillTime(h.getTillTime());
-                    row.setHallCharges(charges);
-                    row.setBookingStatus(h.getBookingStatus());
-                    row.setPaymentStatus(h.getStatus());
-                    row.setPaymentDate(inst.getPaymentDate());
-                    row.setPaymentMode(inst.getPaymentMode());
-                    row.setAmountPaid(inst.getAmount());
-                    row.setRemaining(charges.subtract(running).max(BigDecimal.ZERO));
-                    row.setNotes(inst.getNotes());
-                    rows.add(row);
-                }
-            }
+            totalPaidMap.put(h.getId(), paid);
+            remainingMap.put(h.getId(), charges.subtract(paid).max(BigDecimal.ZERO));
         }
 
-        // Sort: event name ASC, then payment date DESC within group
-        rows.sort((a, b) -> {
-            int cmp = a.getEventName().compareToIgnoreCase(b.getEventName());
-            if (cmp != 0) return cmp;
-            LocalDate da = a.getPaymentDate() != null ? a.getPaymentDate() : java.time.LocalDate.MIN;
-            LocalDate db = b.getPaymentDate() != null ? b.getPaymentDate() : java.time.LocalDate.MIN;
-            return db.compareTo(da);
-        });
-
-        // Compute group-start indices by event name
-        java.util.Set<Integer> groupStarts = new java.util.HashSet<>();
-        String prev = null;
-        for (int i = 0; i < rows.size(); i++) {
-            String key = rows.get(i).getEventName().toLowerCase();
-            if (!key.equals(prev)) { groupStarts.add(i); prev = key; }
-        }
-
-        model.addAttribute("rows", rows);
-        model.addAttribute("groupStarts", groupStarts);
+        model.addAttribute("groups", groups);
+        model.addAttribute("instalmentMap", instalmentMap);
+        model.addAttribute("totalPaidMap", totalPaidMap);
+        model.addAttribute("remainingMap", remainingMap);
         return "hall/list";
     }
 
@@ -146,19 +84,27 @@ public class HallRegistrationController {
     public String showCreateForm(Model model) {
         model.addAttribute("item", new HallRegistration());
         model.addAttribute("events", eventRepo.findAll(Sort.by("eventName")));
+        model.addAttribute("venues", venueRepo.findAll(Sort.by("venueName")));
         return "hall/form";
     }
 
     @PostMapping
     public String create(@ModelAttribute("item") @Valid HallRegistration h,
                          BindingResult result, Model model, RedirectAttributes attrs) {
+        if (h.getEventId() == null) {
+            result.rejectValue("eventId", "required", "Please select an event.");
+        }
         if (result.hasErrors()) {
             model.addAttribute("events", eventRepo.findAll(Sort.by("eventName")));
+            model.addAttribute("venues", venueRepo.findAll(Sort.by("venueName")));
             return "hall/form";
         }
         wireEvent(h);
         h.setStatus(computeStatus(h, BigDecimal.ZERO));
         repo.save(h);
+        if (h.getInitialDeposit() != null && h.getInitialDeposit().compareTo(BigDecimal.ZERO) > 0) {
+            createDepositPayableEntry(h);
+        }
         attrs.addFlashAttribute("success", "Hall registration saved.");
         return "redirect:/hall-registrations";
     }
@@ -170,6 +116,7 @@ public class HallRegistrationController {
         if (h.getEvent() != null) h.setEventId(h.getEvent().getId());
         model.addAttribute("item", h);
         model.addAttribute("events", eventRepo.findAll(Sort.by("eventName")));
+        model.addAttribute("venues", venueRepo.findAll(Sort.by("venueName")));
         List<PaymentInstalment> instalments = instalmentRepo
                 .findBySourceTypeAndSourceIdOrderByPaymentDateAsc("Hall", id);
         BigDecimal instalmentSum = instalmentRepo.sumBySourceTypeAndSourceId("Hall", id);
@@ -189,6 +136,7 @@ public class HallRegistrationController {
                          BindingResult result, Model model, RedirectAttributes attrs) {
         if (result.hasErrors()) {
             model.addAttribute("events", eventRepo.findAll(Sort.by("eventName")));
+            model.addAttribute("venues", venueRepo.findAll(Sort.by("venueName")));
             return "hall/form";
         }
         h.setId(id);
@@ -247,7 +195,13 @@ public class HallRegistrationController {
     @PostMapping("/{id}/delete")
     public String delete(@PathVariable Long id, RedirectAttributes attrs) {
         instalmentRepo.findBySourceTypeAndSourceIdOrderByPaymentDateAsc("Hall", id)
-                .forEach(i -> instalmentRepo.deleteById(i.getId()));
+                .forEach(i -> {
+                    payableRepo.findBySourceTypeAndSourceId("HALL_INST", i.getId())
+                            .ifPresent(pt -> payableRepo.delete(pt));
+                    instalmentRepo.deleteById(i.getId());
+                });
+        payableRepo.findBySourceTypeAndSourceId("HALL_DEPOSIT", id)
+                .ifPresent(pt -> payableRepo.delete(pt));
         repo.deleteById(id);
         attrs.addFlashAttribute("success", "Hall registration deleted.");
         return "redirect:/hall-registrations";
@@ -268,13 +222,33 @@ public class HallRegistrationController {
         return total.compareTo(h.getHallCharges()) >= 0 ? "Completed" : "InProgress";
     }
 
+    private void createDepositPayableEntry(HallRegistration h) {
+        payableRepo.findBySourceTypeAndSourceId("HALL_DEPOSIT", h.getId())
+                .ifPresent(pt -> payableRepo.delete(pt));
+        PayableTransaction pt = new PayableTransaction();
+        pt.setPaymentType("HALL_BOOKING");
+        pt.setSourceType("HALL_DEPOSIT");
+        pt.setSourceId(h.getId());
+        pt.setName(h.getHallName() != null ? h.getHallName() : "Hall Booking");
+        pt.setOrganisationName(h.getBookedBy());
+        pt.setPayablePerson(h.getPayableName());
+        pt.setSortCode(h.getSortCode());
+        pt.setAccountNumber(h.getAccountNumber());
+        pt.setTotalAmount(h.getHallCharges());
+        pt.setInitialDeposit(h.getInitialDeposit());
+        pt.setPaymentDate(h.getHireDate());
+        pt.setStatus("COMPLETED");
+        pt.setNotes("Initial Deposit");
+        pt.setEvent(h.getEvent());
+        payableRepo.save(pt);
+    }
+
     private void createPayableEntry(HallRegistration h, PaymentInstalment inst) {
         PayableTransaction pt = new PayableTransaction();
         pt.setPaymentType("HALL_BOOKING");
         pt.setSourceType("HALL_INST");
         pt.setSourceId(inst.getId());
-        pt.setName((h.getHallName() != null ? h.getHallName() : "Hall Booking") +
-                   (h.getEvent() != null ? " — " + h.getEvent().getEventName() : ""));
+        pt.setName(h.getHallName() != null ? h.getHallName() : "Hall Booking");
         pt.setOrganisationName(h.getBookedBy());
         pt.setPayablePerson(h.getPayableName());
         pt.setSortCode(h.getSortCode());
@@ -284,6 +258,7 @@ public class HallRegistrationController {
         pt.setPaymentDate(inst.getPaymentDate());
         pt.setStatus("COMPLETED");
         pt.setNotes(inst.getPaymentMode() + (inst.getNotes() != null ? " — " + inst.getNotes() : ""));
+        pt.setEvent(h.getEvent());
         payableRepo.save(pt);
     }
 }

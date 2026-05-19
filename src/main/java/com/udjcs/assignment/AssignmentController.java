@@ -43,7 +43,15 @@ public class AssignmentController {
     @GetMapping("/new")
     public String showCreateForm(@RequestParam(required = false) Long activityId, Model model) {
         Assignment item = new Assignment();
-        if (activityId != null) item.setActivityId(activityId);
+        item.setStatus("Assigned");
+        if (activityId != null) {
+            item.setActivityId(activityId);
+            com.udjcs.activity.Activity act = activityService.findById(activityId);
+            item.setActivityId(activityId);
+            if (act.getStartDate() != null) item.setAssignedDate(act.getStartDate());
+            model.addAttribute("preselectedActivity", act);
+            model.addAttribute("existingAssignments", service.findByActivityId(activityId));
+        }
         model.addAttribute("item", item);
         addFormData(model);
         return "assignment/form";

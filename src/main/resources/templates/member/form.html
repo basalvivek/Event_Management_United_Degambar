@@ -592,6 +592,296 @@
     </div>
 
 </form>
+
+<!-- ── Event Registration (edit mode only) ── -->
+<div th:if="${item.id != null}" class="mt-4" style="border:1.5px solid #c7d2fe;border-radius:16px;padding:24px;background:#fafbff;">
+    <div style="font-size:.7rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#4f46e5;margin-bottom:16px;display:flex;align-items:center;gap:8px;">
+        <i class="bi bi-calendar-check-fill fs-6"></i>Event Registrations
+    </div>
+
+    <!-- Existing registrations -->
+    <div th:if="${memberTickets != null and not #lists.isEmpty(memberTickets)}" class="mb-4">
+        <div style="font-size:.75rem;font-weight:700;color:#374151;margin-bottom:8px;">Current Registrations</div>
+        <table class="table table-sm mb-0" style="font-size:.8rem;border-radius:8px;overflow:hidden;">
+            <thead style="background:#eef2ff;">
+                <tr>
+                    <th style="font-size:.67rem;font-weight:700;text-transform:uppercase;color:#4f46e5;padding:7px 12px;">Event</th>
+                    <th style="font-size:.67rem;font-weight:700;text-transform:uppercase;color:#4f46e5;padding:7px 12px;">Tickets</th>
+                    <th style="font-size:.67rem;font-weight:700;text-transform:uppercase;color:#4f46e5;padding:7px 12px;">Total</th>
+                    <th style="font-size:.67rem;font-weight:700;text-transform:uppercase;color:#4f46e5;padding:7px 12px;">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="t : ${memberTickets}" style="border-color:#e0e7ff;">
+                    <td style="padding:7px 12px;font-weight:600;color:#1e1b4b;" th:text="${t.event.eventName}"></td>
+                    <td style="padding:7px 12px;color:#475569;">
+                        <span th:if="${t.adultCount > 0}" th:text="${t.adultCount + ' Adult'+(t.adultCount>1?'s':'')}"></span>
+                        <span th:if="${t.youngerCount > 0}" th:text="${' ' + t.youngerCount + ' Youth'}"></span>
+                        <span th:if="${t.childCount > 0}"  th:text="${' ' + t.childCount + ' Child'}"></span>
+                    </td>
+                    <td style="padding:7px 12px;font-family:monospace;font-weight:700;color:#166534;"
+                        th:text="${'£' + t.totalAmount}"></td>
+                    <td style="padding:7px 12px;">
+                        <span th:class="${t.status == 'Accepted' ? 'badge bg-success' : (t.status == 'Rejected' ? 'badge bg-danger' : 'badge bg-warning text-dark')}"
+                              style="font-size:.68rem;" th:text="${t.status}"></span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Register for new event -->
+    <div th:if="${availableEvents != null and not #lists.isEmpty(availableEvents)}">
+        <div style="font-size:.75rem;font-weight:700;color:#374151;margin-bottom:10px;">Register for an Event</div>
+        <div class="row g-3">
+            <th:block th:each="ev : ${availableEvents}">
+                <div class="col-md-6" th:if="${!registeredEventIds.contains(ev.id)}">
+                    <div style="border:1.5px solid #c7d2fe;border-radius:12px;padding:14px 16px;background:#fff;">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <div class="fw-semibold" style="font-size:.85rem;color:#1e1b4b;" th:text="${ev.eventName}"></div>
+                                <div style="font-size:.72rem;color:#64748b;">
+                                    <i class="bi bi-calendar3 me-1"></i>
+                                    <span th:text="${#temporals.format(ev.eventDate,'dd/MM/yyyy')}"></span>
+                                    <span class="ms-2" th:class="${ev.status == 'Active'} ? 'badge bg-success' : 'badge bg-primary'"
+                                          style="font-size:.63rem;" th:text="${ev.status}"></span>
+                                </div>
+                            </div>
+                            <div th:if="${ev.ticketAdult != null and ev.ticketAdult > 0}"
+                                 style="font-size:.72rem;color:#4f46e5;font-weight:700;white-space:nowrap;">
+                                £<span th:text="${ev.ticketAdult}"></span>/adult
+                            </div>
+                        </div>
+                        <form th:action="@{/members/{id}/register-event(id=${item.id})}" method="post" class="d-flex gap-2 flex-wrap align-items-end">
+                            <input type="hidden" name="eventId" th:value="${ev.id}">
+                            <div>
+                                <label style="font-size:.68rem;font-weight:600;color:#475569;display:block;">Adults</label>
+                                <input type="number" name="adultCount" value="1" min="0" max="20"
+                                       style="width:60px;border-radius:7px;border:1.5px solid #e0e7ff;padding:4px 8px;font-size:.82rem;text-align:center;">
+                            </div>
+                            <div th:if="${ev.ticketYounger != null and ev.ticketYounger > 0}">
+                                <label style="font-size:.68rem;font-weight:600;color:#475569;display:block;">Youth</label>
+                                <input type="number" name="youngerCount" value="0" min="0" max="20"
+                                       style="width:60px;border-radius:7px;border:1.5px solid #e0e7ff;padding:4px 8px;font-size:.82rem;text-align:center;">
+                            </div>
+                            <div th:if="${ev.ticketChild != null and ev.ticketChild > 0}">
+                                <label style="font-size:.68rem;font-weight:600;color:#475569;display:block;">Child</label>
+                                <input type="number" name="childCount" value="0" min="0" max="20"
+                                       style="width:60px;border-radius:7px;border:1.5px solid #e0e7ff;padding:4px 8px;font-size:.82rem;text-align:center;">
+                            </div>
+                            <button type="submit" class="btn btn-sm btn-primary"
+                                    style="border-radius:8px;font-size:.78rem;padding:5px 14px;">
+                                <i class="bi bi-calendar-plus me-1"></i>Register
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                <!-- Already registered indicator -->
+                <div class="col-md-6" th:if="${registeredEventIds.contains(ev.id)}">
+                    <div style="border:1.5px solid #bbf7d0;border-radius:12px;padding:14px 16px;background:#f0fdf4;">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="fw-semibold" style="font-size:.85rem;color:#166534;" th:text="${ev.eventName}"></div>
+                                <div style="font-size:.72rem;color:#059669;margin-top:3px;">
+                                    <i class="bi bi-check-circle-fill me-1"></i>Already registered
+                                </div>
+                            </div>
+                            <span class="badge bg-success" style="font-size:.68rem;">Registered</span>
+                        </div>
+                    </div>
+                </div>
+            </th:block>
+        </div>
+    </div>
+    <div th:if="${availableEvents == null or #lists.isEmpty(availableEvents)}"
+         class="text-muted" style="font-size:.8rem;">
+        <i class="bi bi-info-circle me-1"></i>No Planned or Active events available for registration.
+    </div>
+
+    <!-- Completed events — Feedback -->
+    <div th:if="${completedEvents != null and not #lists.isEmpty(completedEvents)}" class="mt-4">
+        <div style="font-size:.75rem;font-weight:700;color:#374151;margin-bottom:10px;">
+            <i class="bi bi-check2-all me-1" style="color:#059669;"></i>Completed Events
+        </div>
+        <div class="row g-3">
+            <div class="col-md-6" th:each="ev : ${completedEvents}">
+                <div th:if="${feedbackGivenEventIds.contains(ev.id)}"
+                     style="border:1.5px solid #bbf7d0;border-radius:12px;padding:14px 16px;background:#f0fdf4;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="fw-semibold" style="font-size:.85rem;color:#166534;" th:text="${ev.eventName}"></div>
+                            <div style="font-size:.72rem;color:#059669;margin-top:3px;">
+                                <i class="bi bi-chat-dots-fill me-1"></i>Feedback submitted
+                            </div>
+                        </div>
+                        <span class="badge bg-success" style="font-size:.68rem;">Done</span>
+                    </div>
+                </div>
+                <div th:unless="${feedbackGivenEventIds.contains(ev.id)}"
+                     style="border:1.5px solid #e0e7ff;border-radius:12px;padding:14px 16px;background:#fff;">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <div class="fw-semibold" style="font-size:.85rem;color:#1e1b4b;" th:text="${ev.eventName}"></div>
+                            <div style="font-size:.72rem;color:#64748b;">
+                                <i class="bi bi-calendar3 me-1"></i>
+                                <span th:text="${#temporals.format(ev.eventDate,'dd/MM/yyyy')}"></span>
+                                <span class="ms-2 badge bg-secondary" style="font-size:.63rem;">Completed</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-success"
+                            style="border-radius:8px;font-size:.78rem;padding:5px 14px;"
+                            th:attr="data-bs-toggle='modal',data-bs-target='#feedbackModal' + ${ev.id}">
+                        <i class="bi bi-star-fill me-1"></i>Give Feedback
+                    </button>
+                </div>
+
+                <!-- Feedback Modal -->
+                <div th:unless="${feedbackGivenEventIds.contains(ev.id)}"
+                     class="modal fade" th:id="'feedbackModal' + ${ev.id}"
+                     tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content" style="border-radius:16px;">
+                            <div class="modal-header" style="background:linear-gradient(135deg,#4f46e5,#7c3aed);border-radius:16px 16px 0 0;">
+                                <h6 class="modal-title text-white fw-bold">
+                                    <i class="bi bi-star-fill me-2"></i>Event Feedback —
+                                    <span th:text="${ev.eventName}"></span>
+                                </h6>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                            </div>
+                            <form th:action="@{/members/{id}/feedback(id=${item.id})}" method="post">
+                                <input type="hidden" name="eventId" th:value="${ev.id}">
+                                <div class="modal-body p-4">
+                                    <div class="row g-3">
+
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-semibold" style="font-size:.8rem;">Overall Experience</label>
+                                            <select name="overallExperience" class="form-select form-select-sm">
+                                                <option value="">— Select —</option>
+                                                <option value="Excellent">Excellent</option>
+                                                <option value="Very Good">Very Good</option>
+                                                <option value="Good">Good</option>
+                                                <option value="Fair">Fair</option>
+                                                <option value="Poor">Poor</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-semibold" style="font-size:.8rem;">Satisfaction Level</label>
+                                            <select name="satisfactionLevel" class="form-select form-select-sm">
+                                                <option value="">— Select —</option>
+                                                <option value="Very Satisfied">Very Satisfied</option>
+                                                <option value="Satisfied">Satisfied</option>
+                                                <option value="Neutral">Neutral</option>
+                                                <option value="Dissatisfied">Dissatisfied</option>
+                                                <option value="Very Dissatisfied">Very Dissatisfied</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="col-12">
+                                            <label class="form-label fw-semibold" style="font-size:.8rem;">Ratings (1 = Poor, 5 = Excellent)</label>
+                                            <div class="row g-2 mt-1">
+                                                <div class="col-md-4">
+                                                    <label style="font-size:.72rem;color:#475569;">Venue</label>
+                                                    <select name="venueRating" class="form-select form-select-sm">
+                                                        <option value="">—</option>
+                                                        <option value="1">1</option><option value="2">2</option>
+                                                        <option value="3">3</option><option value="4">4</option><option value="5">5</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label style="font-size:.72rem;color:#475569;">Programme</label>
+                                                    <select name="programCoordinationRating" class="form-select form-select-sm">
+                                                        <option value="">—</option>
+                                                        <option value="1">1</option><option value="2">2</option>
+                                                        <option value="3">3</option><option value="4">4</option><option value="5">5</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label style="font-size:.72rem;color:#475569;">Hospitality</label>
+                                                    <select name="hospitalityRating" class="form-select form-select-sm">
+                                                        <option value="">—</option>
+                                                        <option value="1">1</option><option value="2">2</option>
+                                                        <option value="3">3</option><option value="4">4</option><option value="5">5</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label style="font-size:.72rem;color:#475569;">Food</label>
+                                                    <select name="foodRating" class="form-select form-select-sm">
+                                                        <option value="">—</option>
+                                                        <option value="1">1</option><option value="2">2</option>
+                                                        <option value="3">3</option><option value="4">4</option><option value="5">5</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label style="font-size:.72rem;color:#475569;">Spiritual</label>
+                                                    <select name="spiritualRating" class="form-select form-select-sm">
+                                                        <option value="">—</option>
+                                                        <option value="1">1</option><option value="2">2</option>
+                                                        <option value="3">3</option><option value="4">4</option><option value="5">5</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-semibold" style="font-size:.8rem;">Were timings managed well?</label>
+                                            <select name="timingsManaged" class="form-select form-select-sm">
+                                                <option value="">— Select —</option>
+                                                <option value="Yes">Yes</option>
+                                                <option value="Mostly">Mostly</option>
+                                                <option value="No">No</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-semibold" style="font-size:.8rem;">Will you participate in future events?</label>
+                                            <select name="participateFuture" class="form-select form-select-sm">
+                                                <option value="">— Select —</option>
+                                                <option value="Definitely">Definitely</option>
+                                                <option value="Likely">Likely</option>
+                                                <option value="Not Sure">Not Sure</option>
+                                                <option value="Unlikely">Unlikely</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="col-12">
+                                            <label class="form-label fw-semibold" style="font-size:.8rem;">What did you enjoy most?</label>
+                                            <textarea name="enjoyedMost" class="form-control form-control-sm" rows="2"
+                                                      placeholder="Describe the highlights…"></textarea>
+                                        </div>
+
+                                        <div class="col-12">
+                                            <label class="form-label fw-semibold" style="font-size:.8rem;">Suggestions for improvement</label>
+                                            <textarea name="suggestions" class="form-control form-control-sm" rows="2"
+                                                      placeholder="Any suggestions?"></textarea>
+                                        </div>
+
+                                        <div class="col-12">
+                                            <label class="form-label fw-semibold" style="font-size:.8rem;">Additional Comments</label>
+                                            <textarea name="additionalComments" class="form-control form-control-sm" rows="2"
+                                                      placeholder="Anything else you'd like to share…"></textarea>
+                                        </div>
+
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="submit" class="btn btn-success btn-sm px-4">
+                                        <i class="bi bi-send me-1"></i>Submit Feedback
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</div>
+
 </div>
 </div>
 

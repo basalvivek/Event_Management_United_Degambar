@@ -63,11 +63,16 @@ public class RehearsalController {
     @GetMapping("/new")
     public String showCreateForm(@RequestParam(required = false) Long activityId, Model model) {
         Rehearsal item = new Rehearsal();
+        item.setStatus("Scheduled");
         if (activityId != null) item.setActivityId(activityId);
         model.addAttribute("item", item);
         model.addAttribute("activities", activityService.findAll());
         model.addAttribute("members", memberService.findAll());
         model.addAttribute("existingMembers", List.of());
+        model.addAttribute("memberNameMap", Map.of());
+        model.addAttribute("preselectedActivity", null);
+        model.addAttribute("moreSession", false);
+        model.addAttribute("addMembersMode", false);
         return "rehearsal/form";
     }
 
@@ -82,21 +87,34 @@ public class RehearsalController {
         java.util.List<RehearsalMember> existingMembers = List.of();
         if (!past.isEmpty()) {
             Rehearsal src = past.get(0);
-            // Auto-mark the most recent session as Completed (unless already terminal)
             if (!"Completed".equals(src.getStatus()) && !"Cancelled".equals(src.getStatus())) {
                 src.setStatus("Completed");
                 rehearsalRepo.save(src);
             }
-            // Carry over everything except date, time and venue — user fills those in
+            // Carry over all fields from last session
+            item.setRehearsalDate(src.getRehearsalDate());
+            item.setStartTime(src.getStartTime());
+            item.setEndTime(src.getEndTime());
+            item.setVenue(src.getVenue());
             item.setConductedBy(src.getConductedBy());
             item.setNotes(src.getNotes());
             existingMembers = service.findMembers(src.getId());
         }
+        Map<Long, String> memberNameMap = new LinkedHashMap<>();
+        for (RehearsalMember rm : existingMembers) {
+            try {
+                com.udjcs.member.Member m = memberService.findById(rm.getMemberId());
+                memberNameMap.put(rm.getMemberId(), m.getFirstName() + " " + m.getLastName());
+            } catch (Exception ignored) {}
+        }
         model.addAttribute("item", item);
+        model.addAttribute("preselectedActivity", activityService.findById(activityId));
         model.addAttribute("activities", activityService.findAll());
         model.addAttribute("members", memberService.findAll());
         model.addAttribute("existingMembers", existingMembers);
+        model.addAttribute("memberNameMap", memberNameMap);
         model.addAttribute("moreSession", true);
+        model.addAttribute("addMembersMode", false);
         return "rehearsal/form";
     }
 
@@ -114,6 +132,10 @@ public class RehearsalController {
             model.addAttribute("activities", activityService.findAll());
             model.addAttribute("members", memberService.findAll());
             model.addAttribute("existingMembers", List.of());
+            model.addAttribute("memberNameMap", Map.of());
+            model.addAttribute("preselectedActivity", null);
+            model.addAttribute("moreSession", false);
+            model.addAttribute("addMembersMode", false);
             return "rehearsal/form";
         }
         if (service.isDuplicate(rehearsal.getActivityId(), rehearsal.getRehearsalDate())) {
@@ -122,6 +144,10 @@ public class RehearsalController {
             model.addAttribute("activities", activityService.findAll());
             model.addAttribute("members", memberService.findAll());
             model.addAttribute("existingMembers", List.of());
+            model.addAttribute("memberNameMap", Map.of());
+            model.addAttribute("preselectedActivity", null);
+            model.addAttribute("moreSession", false);
+            model.addAttribute("addMembersMode", false);
             return "rehearsal/form";
         }
 
@@ -144,6 +170,10 @@ public class RehearsalController {
         model.addAttribute("activities", activityService.findAll());
         model.addAttribute("members", memberService.findAll());
         model.addAttribute("existingMembers", service.findMembers(id));
+        model.addAttribute("memberNameMap", Map.of());
+        model.addAttribute("preselectedActivity", null);
+        model.addAttribute("moreSession", false);
+        model.addAttribute("addMembersMode", false);
         return "rehearsal/form";
     }
 
@@ -162,6 +192,10 @@ public class RehearsalController {
             model.addAttribute("activities", activityService.findAll());
             model.addAttribute("members", memberService.findAll());
             model.addAttribute("existingMembers", service.findMembers(id));
+            model.addAttribute("memberNameMap", Map.of());
+            model.addAttribute("preselectedActivity", null);
+            model.addAttribute("moreSession", false);
+            model.addAttribute("addMembersMode", false);
             return "rehearsal/form";
         }
         if (service.isDuplicateExcluding(rehearsal.getActivityId(), rehearsal.getRehearsalDate(), id)) {
@@ -170,6 +204,10 @@ public class RehearsalController {
             model.addAttribute("activities", activityService.findAll());
             model.addAttribute("members", memberService.findAll());
             model.addAttribute("existingMembers", service.findMembers(id));
+            model.addAttribute("memberNameMap", Map.of());
+            model.addAttribute("preselectedActivity", null);
+            model.addAttribute("moreSession", false);
+            model.addAttribute("addMembersMode", false);
             return "rehearsal/form";
         }
 
@@ -177,6 +215,34 @@ public class RehearsalController {
         service.save(rehearsal);
         service.saveMembers(id, memberIds, memberRoles);
         attrs.addFlashAttribute("success", "Rehearsal updated successfully.");
+        return "redirect:/rehearsals";
+    }
+
+    @GetMapping("/{id}/add-members")
+    public String showAddMembersForm(@PathVariable Long id, Model model) {
+        Rehearsal rehearsal = service.findById(id);
+        List<RehearsalMember> existing = service.findMembers(id);
+        Map<Long, String> memberNameMap = new LinkedHashMap<>();
+        for (RehearsalMember rm : existing) {
+            try {
+                com.udjcs.member.Member m = memberService.findById(rm.getMemberId());
+                memberNameMap.put(rm.getMemberId(), m.getFirstName() + " " + m.getLastName());
+            } catch (Exception ignored) {}
+        }
+        model.addAttribute("rehearsal", rehearsal);
+        model.addAttribute("existingMembers", existing);
+        model.addAttribute("memberNameMap", memberNameMap);
+        model.addAttribute("members", memberService.findAll());
+        return "rehearsal/add-members";
+    }
+
+    @PostMapping("/{id}/add-members")
+    public String addMembers(@PathVariable Long id,
+                             @RequestParam(value = "memberIds",   required = false) List<Long>   memberIds,
+                             @RequestParam(value = "memberRoles", required = false) List<String> memberRoles,
+                             RedirectAttributes attrs) {
+        service.appendMembers(id, memberIds, memberRoles);
+        attrs.addFlashAttribute("success", "Members added successfully.");
         return "redirect:/rehearsals";
     }
 

@@ -1,5 +1,6 @@
 package com.udjcs.invitation;
 
+import com.udjcs.event.EventRepository;
 import com.udjcs.organization.OrganizationRepository;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -16,11 +17,14 @@ public class InvitationService {
 
     private final InvitationRepository repository;
     private final OrganizationRepository organizationRepository;
+    private final EventRepository eventRepository;
 
     public InvitationService(InvitationRepository repository,
-                              OrganizationRepository organizationRepository) {
+                              OrganizationRepository organizationRepository,
+                              EventRepository eventRepository) {
         this.repository = repository;
         this.organizationRepository = organizationRepository;
+        this.eventRepository = eventRepository;
     }
 
     public List<Invitation> findAll() {
@@ -58,6 +62,7 @@ public class InvitationService {
             inv.setPostcode(formData.getPostcode());
             inv.setEventDate(formData.getEventDate());
             inv.setAboutEvent(formData.getAboutEvent());
+            wireEvent(inv, formData.getEventId());
             if (bannerFile != null && !bannerFile.isEmpty()) {
                 inv.setBannerImage(bannerFile.getBytes());
                 inv.setBannerMimeType(bannerFile.getContentType());
@@ -66,6 +71,7 @@ public class InvitationService {
             inv = formData;
             organizationRepository.findAll().stream().findFirst()
                     .ifPresent(inv::setOrganization);
+            wireEvent(inv, formData.getEventId());
             if (bannerFile != null && !bannerFile.isEmpty()) {
                 inv.setBannerImage(bannerFile.getBytes());
                 inv.setBannerMimeType(bannerFile.getContentType());
@@ -119,6 +125,11 @@ public class InvitationService {
             slug = base + "-" + suffix++;
         }
         return slug;
+    }
+
+    private void wireEvent(Invitation inv, Long eventId) {
+        if (eventId != null) eventRepository.findById(eventId).ifPresent(inv::setEvent);
+        else inv.setEvent(null);
     }
 
     private String safeGet(List<String> list, int index) {

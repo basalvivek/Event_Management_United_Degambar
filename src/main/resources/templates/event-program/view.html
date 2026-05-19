@@ -43,9 +43,22 @@
                     <span th:with="s=${event.status}"
                           th:class="${s == 'Active'} ? 'badge bg-success px-3 py-2' : (${s == 'Planned'} ? 'badge bg-primary px-3 py-2' : (${s == 'Completed'} ? 'badge bg-secondary px-3 py-2' : 'badge bg-danger px-3 py-2'))"
                           style="font-size:0.8rem;" th:text="${event.status}"></span>
-                    <a th:href="@{/event-programs/new}" class="btn btn-primary btn-sm">
+                    <a th:href="@{/event-programs/new(eventId=${event.id})}" class="btn btn-primary btn-sm">
                         <i class="bi bi-plus-lg me-1"></i>Add More Programs
                     </a>
+                    <!-- Quick status change -->
+                    <form th:action="@{/events/{id}/status(id=${event.id})}" method="post" class="d-flex gap-1 align-items-center">
+                        <input type="hidden" name="returnTo" th:value="'event-programs/event/' + ${event.id}">
+                        <select name="status" class="form-select form-select-sm" style="border-radius:8px;font-size:.75rem;min-width:100px;">
+                            <option value="Planned"   th:selected="${event.status == 'Planned'}">Planned</option>
+                            <option value="Active"    th:selected="${event.status == 'Active'}">Active</option>
+                            <option value="Completed" th:selected="${event.status == 'Completed'}">Completed</option>
+                            <option value="Cancelled" th:selected="${event.status == 'Cancelled'}">Cancelled</option>
+                        </select>
+                        <button type="submit" class="btn btn-outline-secondary btn-sm" title="Update status">
+                            <i class="bi bi-check-lg"></i>
+                        </button>
+                    </form>
                     <a th:href="@{/event-programs}" class="btn btn-outline-secondary btn-sm">
                         <i class="bi bi-arrow-left me-1"></i>Back
                     </a>
