@@ -1,5 +1,8 @@
 package com.udjcs.member;
 
+import com.udjcs.activity.ActivityRepository;
+import com.udjcs.assignment.Assignment;
+import com.udjcs.assignment.AssignmentRepository;
 import com.udjcs.event.EventRepository;
 import com.udjcs.feedback.EventFeedbackService;
 import com.udjcs.ticket.EventTicket;
@@ -27,15 +30,21 @@ public class MemberController {
     private final EventRepository eventRepository;
     private final EventTicketRepository ticketRepository;
     private final EventFeedbackService feedbackService;
+    private final AssignmentRepository assignmentRepository;
+    private final ActivityRepository activityRepository;
 
     public MemberController(MemberService service, MemberRepository memberRepository,
                              EventRepository eventRepository, EventTicketRepository ticketRepository,
-                             EventFeedbackService feedbackService) {
+                             EventFeedbackService feedbackService,
+                             AssignmentRepository assignmentRepository,
+                             ActivityRepository activityRepository) {
         this.service = service;
         this.memberRepository = memberRepository;
         this.eventRepository = eventRepository;
         this.ticketRepository = ticketRepository;
         this.feedbackService = feedbackService;
+        this.assignmentRepository = assignmentRepository;
+        this.activityRepository = activityRepository;
     }
 
     @GetMapping
@@ -97,6 +106,13 @@ public class MemberController {
         model.addAttribute("memberTickets", memberTickets);
         model.addAttribute("registeredEventIds", registeredEventIds);
         model.addAttribute("feedbackGivenEventIds", feedbackGivenEventIds);
+        List<Assignment> memberAssignments = assignmentRepository.findByMemberIdWithDetails(id);
+        java.util.Set<Long> assignedActivityIds = memberAssignments.stream()
+                .map(a -> a.getActivity().getId()).collect(java.util.stream.Collectors.toSet());
+        model.addAttribute("memberAssignments", memberAssignments);
+        model.addAttribute("availableActivities", activityRepository.findByStatusInWithDetails(
+                java.util.List.of("Planned", "In Progress")));
+        model.addAttribute("assignedActivityIds", assignedActivityIds);
         return "member/form";
     }
 

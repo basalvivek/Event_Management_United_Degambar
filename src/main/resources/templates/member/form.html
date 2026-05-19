@@ -698,6 +698,96 @@
         <i class="bi bi-info-circle me-1"></i>No Planned or Active events available for registration.
     </div>
 
+    <!-- Activity Zone -->
+    <div class="mt-4" style="border-top:1.5px solid #e0e7ff;padding-top:20px;">
+        <div style="font-size:.7rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#4f46e5;margin-bottom:14px;display:flex;align-items:center;gap:8px;">
+            <i class="bi bi-list-task fs-6"></i>Activity Zone
+        </div>
+
+        <!-- Available activities (Planned / In Progress) -->
+        <div th:if="${availableActivities != null and not #lists.isEmpty(availableActivities)}" class="mb-4">
+            <div style="font-size:.75rem;font-weight:700;color:#374151;margin-bottom:8px;">Activities</div>
+            <div class="row g-3">
+                <th:block th:each="act : ${availableActivities}">
+                    <!-- NOT yet assigned -->
+                    <div class="col-md-6" th:if="${!assignedActivityIds.contains(act.id)}">
+                        <div style="border:1.5px solid #c7d2fe;border-radius:12px;padding:14px 16px;background:#fff;">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <div class="fw-semibold" style="font-size:.85rem;color:#1e1b4b;" th:text="${act.activityName}"></div>
+                                    <div style="font-size:.72rem;color:#64748b;margin-top:3px;">
+                                        <i class="bi bi-tags me-1"></i>
+                                        <span th:text="${act.activityCategory.categoryName}"></span>
+                                    </div>
+                                    <div th:if="${act.startDate != null}" style="font-size:.72rem;color:#64748b;margin-top:2px;">
+                                        <i class="bi bi-calendar3 me-1"></i>
+                                        <span th:text="${#temporals.format(act.startDate,'dd/MM/yyyy')}"></span>
+                                    </div>
+                                </div>
+                                <span th:class="${act.status == 'In Progress'} ? 'badge bg-success' : 'badge bg-primary'"
+                                      style="font-size:.63rem;white-space:nowrap;" th:text="${act.status}"></span>
+                            </div>
+                            <div class="mt-2">
+                                <a th:href="@{/assignments/new}" style="font-size:.75rem;"
+                                   class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-person-plus me-1"></i>Assign Member
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Already assigned -->
+                    <div class="col-md-6" th:if="${assignedActivityIds.contains(act.id)}">
+                        <div style="border:1.5px solid #bbf7d0;border-radius:12px;padding:14px 16px;background:#f0fdf4;">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <div class="fw-semibold" style="font-size:.85rem;color:#166534;" th:text="${act.activityName}"></div>
+                                    <div style="font-size:.72rem;color:#059669;margin-top:3px;">
+                                        <i class="bi bi-check-circle-fill me-1"></i>Already assigned
+                                    </div>
+                                    <div style="font-size:.72rem;color:#64748b;margin-top:2px;">
+                                        <i class="bi bi-tags me-1"></i>
+                                        <span th:text="${act.activityCategory.categoryName}"></span>
+                                    </div>
+                                </div>
+                                <span class="badge bg-success" style="font-size:.63rem;">Assigned</span>
+                            </div>
+                        </div>
+                    </div>
+                </th:block>
+            </div>
+        </div>
+        <div th:if="${availableActivities == null or #lists.isEmpty(availableActivities)}"
+             class="text-muted mb-4" style="font-size:.8rem;">
+            <i class="bi bi-info-circle me-1"></i>No Planned or In-Progress activities available.
+        </div>
+
+        <!-- Existing assignments detail table -->
+        <div th:if="${memberAssignments != null and not #lists.isEmpty(memberAssignments)}">
+            <div style="font-size:.75rem;font-weight:700;color:#374151;margin-bottom:8px;">Assignment Details</div>
+            <table class="table table-sm mb-0" style="font-size:.8rem;border-radius:8px;overflow:hidden;">
+                <thead style="background:#eef2ff;">
+                    <tr>
+                        <th style="font-size:.67rem;font-weight:700;text-transform:uppercase;color:#4f46e5;padding:7px 12px;">Activity</th>
+                        <th style="font-size:.67rem;font-weight:700;text-transform:uppercase;color:#4f46e5;padding:7px 12px;">Role</th>
+                        <th style="font-size:.67rem;font-weight:700;text-transform:uppercase;color:#4f46e5;padding:7px 12px;">Date</th>
+                        <th style="font-size:.67rem;font-weight:700;text-transform:uppercase;color:#4f46e5;padding:7px 12px;">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="a : ${memberAssignments}" style="border-color:#e0e7ff;">
+                        <td style="padding:7px 12px;font-weight:600;color:#1e1b4b;" th:text="${a.activity.activityName}"></td>
+                        <td style="padding:7px 12px;color:#475569;" th:text="${a.role}"></td>
+                        <td style="padding:7px 12px;color:#475569;" th:text="${a.assignedDate != null ? #temporals.format(a.assignedDate,'dd/MM/yyyy') : '—'}"></td>
+                        <td style="padding:7px 12px;">
+                            <span th:class="${a.status == 'Active'} ? 'badge bg-success' : (${a.status == 'Completed'} ? 'badge bg-secondary' : (${a.status == 'Withdrawn'} ? 'badge bg-danger' : 'badge bg-warning text-dark'))"
+                                  style="font-size:.68rem;" th:text="${a.status}"></span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
     <!-- Completed events — Feedback -->
     <div th:if="${completedEvents != null and not #lists.isEmpty(completedEvents)}" class="mt-4">
         <div style="font-size:.75rem;font-weight:700;color:#374151;margin-bottom:10px;">

@@ -129,7 +129,7 @@ public class MemberPortalController {
 
         LocalDate today = LocalDate.now();
         model.addAttribute("activeActivities",
-                activityRepository.findVisibleOnPortal(today));
+                activityRepository.findByStatusInWithDetails(java.util.List.of("Planned", "In Progress")));
 
         model.addAttribute("announcements", announcementService.findActiveForPortal());
 
