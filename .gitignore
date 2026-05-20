@@ -23,3 +23,17 @@ Temp*.txt
 cookies.tmp
 test_cookies.txt
 Founder/
+*.tmp
+cookies*.txt
+login_resp*
+member_edit*
+phdr.tmp
+portal.tmp
+
+# YouTube OAuth — never commit
+client_secrets.json
+yt_token*.json
+yt_channels.json
+
+# Local tool settings
+.claude/settings.local.json

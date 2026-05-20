@@ -33,40 +33,41 @@
             border-right: 1px solid #e2e8f0;
             box-shadow: 2px 0 12px rgba(79,70,229,0.06);
             z-index: 1000; overflow-y: auto;
+            display: flex; flex-direction: column;
         }
 
         /* Brand strip — indigo-to-violet gradient */
         .sb-brand {
-            padding: 16px 14px;
-            display: flex; align-items: center; gap: 12px;
+            padding: 11px 14px;
+            display: flex; align-items: center; gap: 10px;
             background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-            border-bottom: none;
+            border-bottom: none; flex-shrink: 0;
         }
         .sb-brand img {
-            width: 46px; height: 46px; object-fit: contain; border-radius: 10px;
-            box-shadow: 0 4px 14px rgba(0,0,0,0.25), 0 0 0 2px rgba(255,255,255,0.3);
+            width: 38px; height: 38px; object-fit: contain; border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.25), 0 0 0 2px rgba(255,255,255,0.3);
         }
-        .sb-brand-text { color: #fff; font-size: 0.78rem; font-weight: 700; line-height: 1.35; }
-        .sb-brand-text small { display: block; color: rgba(255,255,255,0.65); font-size: 0.63rem; font-weight: 400; }
+        .sb-brand-text { color: #fff; font-size: 0.74rem; font-weight: 700; line-height: 1.3; }
+        .sb-brand-text small { display: block; color: rgba(255,255,255,0.65); font-size: 0.60rem; font-weight: 400; }
 
         /* Section labels */
         .sb-label {
             color: #94a3b8;
-            font-size: 0.59rem; font-weight: 700;
-            letter-spacing: 1.6px; text-transform: uppercase;
-            padding: 14px 16px 5px; display: block;
+            font-size: 0.56rem; font-weight: 700;
+            letter-spacing: 1.4px; text-transform: uppercase;
+            padding: 7px 16px 3px; display: block;
         }
 
         /* Nav links */
-        .sb-nav { list-style: none; padding: 0; margin: 0; }
+        .sb-nav { list-style: none; padding: 0; margin: 0; flex: 1; }
         .sb-nav li a {
-            color: #475569; padding: 9px 16px;
-            font-size: 0.81rem; display: flex; align-items: center; gap: 10px;
+            color: #475569; padding: 6px 16px;
+            font-size: 0.78rem; display: flex; align-items: center; gap: 9px;
             border-left: 3px solid transparent;
             transition: all 0.15s ease; text-decoration: none;
         }
         .sb-nav li a i {
-            font-size: 1rem; width: 20px; text-align: center;
+            font-size: 0.9rem; width: 18px; text-align: center;
             color: #94a3b8; transition: color 0.15s;
         }
         .sb-nav li a:hover {
@@ -84,11 +85,11 @@
         .sb-badge {
             margin-left: auto;
             background: #f1f5f9; color: #94a3b8;
-            font-size: 0.59rem; padding: 1px 7px; border-radius: 10px;
+            font-size: 0.56rem; padding: 1px 6px; border-radius: 10px;
         }
         .sb-nav li a.active .sb-badge { background: #c7d2fe; color: var(--accent); }
 
-        .sb-divider { border-color: #e2e8f0; margin: 4px 14px; }
+        .sb-divider { border-color: #e2e8f0; margin: 2px 14px; }
 
         #sidebar::-webkit-scrollbar { width: 3px; }
         #sidebar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 4px; }
@@ -120,7 +121,77 @@
         #content { padding: 24px; flex: 1; }
 
         .alert { border: none; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+
+        /* ── Theme Toggle Button ── */
+        .theme-btn {
+            background: none; border: 1px solid #e2e8f0; border-radius: 20px;
+            width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;
+            color: #64748b; cursor: pointer; transition: all 0.15s; flex-shrink: 0;
+        }
+        .theme-btn:hover { border-color: var(--accent-light); background: var(--accent-bg); color: var(--accent); }
+        .theme-btn i { font-size: 0.95rem; }
+
+        /* ── Dark Theme ── */
+        html.dark { color-scheme: dark; }
+        html.dark body { background: linear-gradient(160deg,#0d0d20 0%,#0f0f24 60%,#111128 100%); color: #e2e2f0; }
+        html.dark #sidebar { background: #0e0e20; border-right-color: #1e1e3a; }
+        html.dark .sb-label { color: #44445a; }
+        html.dark .sb-nav li a { color: #7a7a9a; }
+        html.dark .sb-nav li a i { color: #44445a; }
+        html.dark .sb-nav li a:hover { color: #818cf8; background: rgba(79,70,229,.12); border-left-color: #6366f1; }
+        html.dark .sb-nav li a:hover i { color: #818cf8; }
+        html.dark .sb-nav li a.active { color: #818cf8; background: rgba(79,70,229,.18); border-left-color: #4f46e5; }
+        html.dark .sb-nav li a.active i { color: #818cf8; }
+        html.dark .sb-badge { background: #1a1a32; color: #44445a; }
+        html.dark .sb-nav li a.active .sb-badge { background: rgba(99,102,241,.22); color: #818cf8; }
+        html.dark .sb-divider { border-color: #1a1a32; }
+        html.dark #sidebar::-webkit-scrollbar-thumb { background: #1e1e3a; }
+        html.dark #topbar { background: #0e0e20; border-bottom-color: #1e1e3a; box-shadow: 0 1px 8px rgba(0,0,0,.35); }
+        html.dark .topbar-title { color: #e2e2f0; }
+        html.dark .topbar-sub { color: #44445a; }
+        html.dark .theme-btn { border-color: #1e1e3a; color: #7a7a9a; background: #111124; }
+        html.dark .theme-btn:hover { border-color: #4f46e5; color: #818cf8; background: rgba(79,70,229,.12); }
+        html.dark .user-btn { background: #111124; border-color: #1e1e3a; color: #c0c0e0; }
+        html.dark .user-btn:hover { border-color: #4f46e5; background: rgba(79,70,229,.12); color: #818cf8; }
+        html.dark .user-btn i { color: #818cf8; }
+        html.dark .dropdown-menu { background: #111124 !important; border: 1px solid #1e1e3a !important; }
+        html.dark .dropdown-item { color: #c0c0e0; }
+        html.dark .dropdown-item:hover { background: rgba(79,70,229,.12) !important; color: #818cf8; }
+        html.dark .dropdown-divider { border-color: #1e1e3a; }
+        html.dark #content { color: #e2e2f0; }
+        html.dark #content .card { background: #111124 !important; border: 1px solid #1e1e3a !important; color: #e2e2f0; }
+        html.dark #content .card-header { background: #0e0e20 !important; border-bottom-color: #1e1e3a !important; color: #c0c0e0; }
+        html.dark #content .card-body { color: #e2e2f0; }
+        html.dark #content h5, html.dark #content .fw-semibold { color: #e2e2f0; }
+        html.dark #content .text-muted { color: #44445a !important; }
+        html.dark #content .table { color: #c0c0e0; --bs-table-bg: transparent; }
+        html.dark #content .table thead th, html.dark #content .table-dark th { background: #1a1a32 !important; color: #7a7a9a !important; border-color: #272748 !important; }
+        html.dark #content .table td, html.dark #content .table th { border-color: #1e1e3a; }
+        html.dark #content .table-hover tbody tr:hover td { background: rgba(79,70,229,.07); }
+        html.dark #content .form-control, html.dark #content .form-select { background: #191932; border-color: #272748; color: #e2e2f0; }
+        html.dark #content .form-control:focus, html.dark #content .form-select:focus { background: #191932; color: #e2e2f0; border-color: #4f46e5; box-shadow: 0 0 0 .2rem rgba(79,70,229,.22); }
+        html.dark #content .form-control::placeholder { color: #33334a; }
+        html.dark #content .form-label { color: #7a7a9a; }
+        html.dark #content .input-group-text { background: #191932; border-color: #272748; color: #7a7a9a; }
+        html.dark #content .btn-outline-warning { color: #fbbf24; border-color: #fbbf24; }
+        html.dark #content .btn-outline-warning:hover { background: #fbbf24; color: #111; }
+        html.dark #content .btn-outline-danger { color: #f87171; border-color: #f87171; }
+        html.dark #content .btn-outline-danger:hover { background: #f87171; color: #fff; }
+        html.dark #content .btn-outline-secondary { color: #7a7a9a; border-color: #272748; }
+        html.dark #content .btn-outline-secondary:hover { background: #272748; color: #e2e2f0; border-color: #272748; }
+        html.dark #content .border-bottom { border-bottom-color: #1e1e3a !important; }
+        html.dark #content select option { background: #191932; color: #e2e2f0; }
+        html.dark #content .alert-success { background: rgba(76,175,130,.1); border-color: rgba(76,175,130,.3); color: #4caf82; }
+        html.dark #content .alert-danger  { background: rgba(224,80,106,.1); border-color: rgba(224,80,106,.3); color: #e0506a; }
+        html.dark .modal-content { background: #111124; color: #e2e2f0; border-color: #1e1e3a; }
+        html.dark .modal-footer { border-top-color: #1e1e3a; }
+        html.dark .modal-header { border-bottom-color: #1e1e3a; }
+        html.dark #confirmTitle { color: #e2e2f0 !important; }
+        html.dark .btn-close { filter: invert(1); }
     </style>
+    <script>
+        (function(){ if(localStorage.getItem('udjcs-theme')==='dark') document.documentElement.classList.add('dark'); })();
+    </script>
 </head>
 <body>
 
@@ -136,7 +207,7 @@
         </div>
     </div>
 
-    <ul class="sb-nav mt-1 pb-4">
+    <ul class="sb-nav mt-1 pb-1">
 
         <li><a th:href="@{/}"
                th:class="${currentUri != null and currentUri == '/'} ? 'active'">
@@ -196,12 +267,17 @@
 
         <li><hr class="sb-divider"></li>
 
+        <li><span class="sb-label">Production</span></li>
         <li><a th:href="@{/rehearsals}"
                th:class="${currentUri != null and currentUri.startsWith('/rehearsals')} ? 'active'">
             <i class="bi bi-clock-history"></i> Rehearsal Schedule <span class="sb-badge">14</span></a></li>
         <li><a th:href="@{/progress}"
                th:class="${currentUri != null and currentUri.startsWith('/progress')} ? 'active'">
             <i class="bi bi-bar-chart-steps"></i> Activities Progress <span class="sb-badge">15</span></a></li>
+        <li><span class="sb-label">House Keeping</span></li>
+        <li><a th:href="@{/digital-cinematics}"
+               th:class="${currentUri != null and currentUri.startsWith('/digital-cinematics')} ? 'active'">
+            <i class="bi bi-camera-reels"></i> Digital Cinematics <span class="sb-badge">16</span></a></li>
 
     </ul>
 </nav>
@@ -213,6 +289,9 @@
         <h6 class="topbar-title" layout:fragment="page-title">Dashboard</h6>
         <div class="d-flex align-items-center gap-3">
             <span class="topbar-sub d-none d-md-inline" th:text="${siteOrgName}">UDJCS</span>
+            <button class="theme-btn" id="theme-toggle" title="Toggle dark / light theme" onclick="toggleTheme()">
+                <i class="bi bi-moon-stars-fill" id="theme-icon"></i>
+            </button>
             <div class="dropdown">
                 <button class="user-btn dropdown-toggle" type="button"
                         data-bs-toggle="dropdown" aria-expanded="false">
@@ -440,5 +519,21 @@
 </script>
 
 <th:block layout:fragment="page-scripts"></th:block>
+<script>
+(function(){
+    function applyTheme(t){
+        var dark = t === 'dark';
+        document.documentElement.classList.toggle('dark', dark);
+        var icon = document.getElementById('theme-icon');
+        if(icon) icon.className = dark ? 'bi bi-sun-fill' : 'bi bi-moon-stars-fill';
+    }
+    applyTheme(localStorage.getItem('udjcs-theme') || 'light');
+    window.toggleTheme = function(){
+        var next = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
+        localStorage.setItem('udjcs-theme', next);
+        applyTheme(next);
+    };
+})();
+</script>
 </body>
 </html>
