@@ -144,15 +144,38 @@ public class DigitalCinematicsService {
                     }).sorted().forEach(images::add);
                 }
                 if (images.isEmpty()) { job.finish(true, "No images found in: " + picsFolder); return; }
-                job.setProgress(5, "Found " + images.size() + " photos. Building filter complex…");
+                job.setProgress(5, "Found " + images.size() + " photo(s). Probing audio duration…");
+
+                double audioDur = probeDuration(audioPath);
+
+                List<Path> effective;
+                if (audioDur > 0 && images.size() >= 1) {
+                    int slotsNeeded = (int) Math.ceil((audioDur - XFADE_DUR) / (PHOTO_DUR - XFADE_DUR));
+                    slotsNeeded = Math.max(slotsNeeded, images.size());
+                    effective = new ArrayList<>();
+                    Random rnd = new Random();
+                    List<Path> pool = new ArrayList<>(images);
+                    Collections.shuffle(pool, rnd);
+                    for (int i = 0; effective.size() < slotsNeeded; i++) {
+                        if (i > 0 && i % pool.size() == 0) Collections.shuffle(pool, rnd);
+                        effective.add(pool.get(i % pool.size()));
+                    }
+                    if (effective.size() > images.size()) {
+                        job.setProgress(8, "Cycling " + images.size() + " photos randomly across "
+                            + effective.size() + " slots to fill audio…");
+                    }
+                } else {
+                    effective = new ArrayList<>(images);
+                    Collections.shuffle(effective, new Random());
+                }
 
                 String defaultOut = pics.getParent() != null
                     ? pics.getParent().resolve("album.mp4").toString()
                     : pics.resolve("album.mp4").toString();
                 String out = resolveOutput(outputPath, defaultOut, ".mp4");
 
-                double totalDur = images.size() * PHOTO_DUR - (images.size() - 1) * XFADE_DUR;
-                List<String> cmd = buildAlbumCmd(images, audioPath, out);
+                double totalDur = effective.size() * PHOTO_DUR - (effective.size() - 1) * XFADE_DUR;
+                List<String> cmd = buildAlbumCmd(effective, audioPath, out);
                 if (runFfmpeg(job, cmd, totalDur)) job.finish(false, out);
             } catch (Exception e) { job.finish(true, e.getMessage()); }
         }).start();

@@ -1,6 +1,7 @@
 package com.udjcs.common;
 
 import com.udjcs.eventprogram.EventProgramService;
+import com.udjcs.gallery.GalleryService;
 import com.udjcs.organization.Organization;
 import com.udjcs.organization.OrganizationService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -30,11 +31,14 @@ public class GlobalControllerAdvice {
 
     private final EventProgramService eventProgramService;
     private final OrganizationService organizationService;
+    private final GalleryService galleryService;
 
     public GlobalControllerAdvice(EventProgramService eventProgramService,
-                                  OrganizationService organizationService) {
+                                  OrganizationService organizationService,
+                                  GalleryService galleryService) {
         this.eventProgramService = eventProgramService;
         this.organizationService = organizationService;
+        this.galleryService = galleryService;
     }
 
     public String resolveBaseUrl(HttpServletRequest request) {
@@ -83,6 +87,7 @@ public class GlobalControllerAdvice {
         Organization siteOrg = orgs.isEmpty() ? null : orgs.get(0);
         model.addAttribute("siteOrg", siteOrg);
         model.addAttribute("siteOrgName", siteOrg != null ? siteOrg.getName() : "UDJCS");
+        model.addAttribute("galleryImageIds", galleryService.findAllIds());
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

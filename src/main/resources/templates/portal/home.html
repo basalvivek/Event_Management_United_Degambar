@@ -944,6 +944,137 @@
 
         </div>
 
+        <!-- ── Community Photo Gallery — 3D Carousel ── -->
+        <div th:unless="${#lists.isEmpty(galleryImageIds)}" class="mt-4"
+             style="border-radius:16px;overflow:hidden;border:1px solid #e2c97e;
+                    box-shadow:0 6px 32px rgba(0,0,0,0.14);">
+
+            <!-- Header -->
+            <div style="padding:14px 20px;background:linear-gradient(90deg,#1a1a2e,#16213e);
+                        display:flex;align-items:center;justify-content:space-between;">
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <i class="bi bi-images" style="color:#c8a84b;font-size:1.1rem;"></i>
+                    <span style="font-weight:700;font-size:0.92rem;color:#fff;">Community Photo Gallery</span>
+                    <span style="background:rgba(200,168,75,0.18);color:#c8a84b;
+                                 border:1px solid rgba(200,168,75,0.35);border-radius:20px;
+                                 padding:2px 10px;font-size:0.7rem;font-weight:700;"
+                          th:text="${#lists.size(galleryImageIds)} + ' photos'"></span>
+                </div>
+                <span id="carCounter" style="color:rgba(255,255,255,0.45);font-size:0.75rem;font-weight:600;"></span>
+            </div>
+
+            <!-- 3D Carousel stage -->
+            <div style="background:radial-gradient(ellipse at 50% 60%,#1c1535 0%,#0d0d1a 65%);
+                        padding:36px 0 28px;position:relative;overflow:hidden;user-select:none;">
+
+                <!-- Subtle ambient glow -->
+                <div style="position:absolute;top:45%;left:50%;transform:translate(-50%,-50%);
+                             width:340px;height:180px;border-radius:50%;
+                             background:rgba(200,168,75,0.07);filter:blur(50px);pointer-events:none;"></div>
+
+                <!-- 3D stage — items injected by JS -->
+                <div id="carStage"
+                     style="position:relative;height:330px;
+                            perspective:1100px;perspective-origin:50% 48%;"></div>
+
+                <!-- Prev -->
+                <button onclick="carGo(-1)"
+                        style="position:absolute;left:14px;top:50%;transform:translateY(-50%);
+                               width:46px;height:46px;border-radius:50%;cursor:pointer;z-index:20;
+                               background:rgba(200,168,75,0.13);border:1.5px solid rgba(200,168,75,0.42);
+                               color:#c8a84b;font-size:1.2rem;
+                               display:flex;align-items:center;justify-content:center;
+                               transition:background 0.18s,border-color 0.18s;"
+                        onmouseover="this.style.background='rgba(200,168,75,0.28)'"
+                        onmouseout="this.style.background='rgba(200,168,75,0.13)'">
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+
+                <!-- Next -->
+                <button onclick="carGo(1)"
+                        style="position:absolute;right:14px;top:50%;transform:translateY(-50%);
+                               width:46px;height:46px;border-radius:50%;cursor:pointer;z-index:20;
+                               background:rgba(200,168,75,0.13);border:1.5px solid rgba(200,168,75,0.42);
+                               color:#c8a84b;font-size:1.2rem;
+                               display:flex;align-items:center;justify-content:center;
+                               transition:background 0.18s,border-color 0.18s;"
+                        onmouseover="this.style.background='rgba(200,168,75,0.28)'"
+                        onmouseout="this.style.background='rgba(200,168,75,0.13)'">
+                    <i class="bi bi-chevron-right"></i>
+                </button>
+            </div>
+
+            <!-- Footer -->
+            <div style="background:#111121;padding:10px 18px;border-top:1px solid rgba(200,168,75,0.18);
+                        display:flex;align-items:center;justify-content:center;gap:8px;">
+                <i class="bi bi-camera" style="color:#c8a84b;font-size:0.8rem;"></i>
+                <span style="font-size:0.7rem;color:rgba(255,255,255,0.3);">
+                    ← → keys to navigate &nbsp;·&nbsp; Click centre photo to fullscreen
+                </span>
+            </div>
+        </div>
+
+        <!-- Lightbox overlay -->
+        <div id="glbx" onclick="glbxBgClick(event)"
+             style="display:none;position:fixed;inset:0;z-index:9999;
+                    background:rgba(0,0,0,0.96);
+                    flex-direction:column;align-items:center;justify-content:center;">
+
+            <!-- Close -->
+            <button onclick="closeLightbox()"
+                    style="position:absolute;top:14px;right:18px;z-index:10000;
+                           width:40px;height:40px;border-radius:50%;cursor:pointer;
+                           background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);
+                           color:#fff;font-size:1rem;display:flex;align-items:center;justify-content:center;">
+                <i class="bi bi-x-lg"></i>
+            </button>
+
+            <!-- Prev -->
+            <button id="glbxPrev" onclick="lightboxGo(-1)"
+                    style="position:absolute;left:14px;top:50%;transform:translateY(-50%);
+                           width:50px;height:50px;border-radius:50%;cursor:pointer;
+                           background:rgba(200,168,75,0.15);border:1.5px solid rgba(200,168,75,0.45);
+                           color:#c8a84b;font-size:1.3rem;
+                           display:flex;align-items:center;justify-content:center;
+                           transition:background 0.18s;">
+                <i class="bi bi-chevron-left"></i>
+            </button>
+
+            <!-- Image + spinner -->
+            <div style="position:relative;display:flex;align-items:center;justify-content:center;
+                        max-height:85vh;max-width:90vw;">
+                <div id="glbxSpinner" style="position:absolute;color:#c8a84b;font-size:2rem;display:none;">
+                    <i class="bi bi-arrow-repeat glbx-spin"></i>
+                </div>
+                <img id="glbxImg" src="" alt="Gallery photo"
+                     style="max-height:85vh;max-width:90vw;border-radius:10px;
+                            object-fit:contain;opacity:0;transition:opacity 0.3s ease;
+                            box-shadow:0 24px 64px rgba(0,0,0,0.8);">
+            </div>
+
+            <!-- Next -->
+            <button id="glbxNext" onclick="lightboxGo(1)"
+                    style="position:absolute;right:14px;top:50%;transform:translateY(-50%);
+                           width:50px;height:50px;border-radius:50%;cursor:pointer;
+                           background:rgba(200,168,75,0.15);border:1.5px solid rgba(200,168,75,0.45);
+                           color:#c8a84b;font-size:1.3rem;
+                           display:flex;align-items:center;justify-content:center;
+                           transition:background 0.18s;">
+                <i class="bi bi-chevron-right"></i>
+            </button>
+
+            <!-- Counter -->
+            <div style="position:absolute;bottom:18px;display:flex;flex-direction:column;
+                        align-items:center;gap:5px;">
+                <span id="glbxCounter"
+                      style="color:rgba(255,255,255,0.75);font-size:0.85rem;font-weight:600;
+                             background:rgba(0,0,0,0.45);padding:4px 16px;border-radius:20px;"></span>
+                <span style="color:rgba(255,255,255,0.25);font-size:0.67rem;letter-spacing:0.5px;">
+                    ← → to navigate &nbsp;·&nbsp; Esc to close
+                </span>
+            </div>
+        </div>
+
         <!-- ── Meet Our Founders CTA — Bootstrap success-subtle ── -->
         <div class="mt-4 d-flex align-items-center justify-content-between flex-wrap gap-3"
              style="border-radius:16px;background:#d1e7dd;border:1px solid #a3cfbb;
@@ -1067,6 +1198,140 @@
         if (cur) cur.textContent = e.to + 1;
     });
 })();
+</script>
+<style>
+.car-item {
+    position: absolute;
+    width: 240px; height: 300px;
+    border-radius: 14px; overflow: hidden;
+    left: 50%; top: 50%;
+    cursor: pointer;
+    transition: transform 0.55s cubic-bezier(0.4,0,0.2,1),
+                opacity  0.55s cubic-bezier(0.4,0,0.2,1),
+                box-shadow 0.55s ease;
+    will-change: transform, opacity;
+}
+.car-item img {
+    width: 100%; height: 100%; object-fit: cover;
+    display: block; pointer-events: none;
+}
+@keyframes glbx-spin { to { transform: rotate(360deg); } }
+.glbx-spin { display:inline-block; animation: glbx-spin 0.85s linear infinite; }
+</style>
+<script th:inline="javascript">
+/*<![CDATA[*/
+var galIds = /*[[${galleryImageIds}]]*/ [];
+/*]]>*/
+var galPage = 0;
+var carItems = [];
+
+/* ── 3D depth configs: far-left, left, centre, right, far-right ── */
+var CFG = [
+    { x:-490, sc:0.50, ry: 48, op:0.18, z:2,  shadow:'0 12px 40px rgba(0,0,0,0.7)' },
+    { x:-272, sc:0.73, ry: 26, op:0.55, z:8,  shadow:'0 16px 50px rgba(0,0,0,0.65)' },
+    { x:   0, sc:1.00, ry:  0, op:1.00, z:12, shadow:'0 28px 72px rgba(0,0,0,0.75),0 0 0 3px rgba(200,168,75,0.55)' },
+    { x: 272, sc:0.73, ry:-26, op:0.55, z:8,  shadow:'0 16px 50px rgba(0,0,0,0.65)' },
+    { x: 490, sc:0.50, ry:-48, op:0.18, z:2,  shadow:'0 12px 40px rgba(0,0,0,0.7)' },
+];
+
+function initCarousel() {
+    if (!galIds || galIds.length === 0) return;
+    var stage = document.getElementById('carStage');
+    for (var i = 0; i < 5; i++) {
+        var el = document.createElement('div');
+        el.className = 'car-item';
+        var img = document.createElement('img');
+        img.alt = 'Community photo';
+        el.appendChild(img);
+        (function(slot) {
+            el.onclick = slot === 0
+                ? function() { openLightbox(galPage); }
+                : function() { carGo(slot); };
+        })(i - 2);
+        stage.appendChild(el);
+        carItems.push(el);
+    }
+    renderCar();
+
+    /* Touch swipe */
+    var tx = 0;
+    stage.addEventListener('touchstart', function(e){ tx = e.touches[0].clientX; }, {passive:true});
+    stage.addEventListener('touchend',   function(e){
+        var dx = e.changedTouches[0].clientX - tx;
+        if (Math.abs(dx) > 45) carGo(dx < 0 ? 1 : -1);
+    }, {passive:true});
+}
+
+function renderCar() {
+    var n = galIds.length;
+    for (var i = 0; i < 5; i++) {
+        var offset = i - 2;
+        var idx = ((galPage + offset) % n + n) % n;
+        var c   = CFG[i];
+        var el  = carItems[i];
+        var img = el.querySelector('img');
+        var src = '/gallery/' + galIds[idx] + '/image';
+        if (img.src.indexOf('/gallery/' + galIds[idx] + '/image') === -1) img.src = src;
+        el.style.transform  = 'translate(calc(-50% + '+c.x+'px),-50%) scale('+c.sc+') rotateY('+c.ry+'deg)';
+        el.style.opacity    = c.op;
+        el.style.zIndex     = c.z;
+        el.style.boxShadow  = c.shadow;
+    }
+    var counter = document.getElementById('carCounter');
+    if (counter) counter.textContent = (galPage + 1) + ' / ' + n;
+}
+
+function carGo(dir) {
+    var n = galIds.length;
+    galPage = ((galPage + dir) % n + n) % n;
+    renderCar();
+}
+
+/* ── Lightbox ── */
+function openLightbox(idx) {
+    galPage = idx;
+    document.getElementById('glbx').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    loadGlbx();
+}
+function closeLightbox() {
+    document.getElementById('glbx').style.display = 'none';
+    document.body.style.overflow = '';
+    document.getElementById('glbxImg').src = '';
+    renderCar();
+}
+function glbxBgClick(e) { if (e.target === document.getElementById('glbx')) closeLightbox(); }
+function lightboxGo(dir) {
+    var n = galIds.length;
+    galPage = ((galPage + dir) % n + n) % n;
+    loadGlbx();
+}
+function loadGlbx() {
+    var img  = document.getElementById('glbxImg');
+    var spin = document.getElementById('glbxSpinner');
+    img.style.opacity = '0';
+    if (spin) spin.style.display = 'block';
+    img.onload = function() { img.style.opacity = '1'; if (spin) spin.style.display = 'none'; };
+    img.src = '/gallery/' + galIds[galPage] + '/image';
+    document.getElementById('glbxCounter').textContent = (galPage + 1) + ' / ' + galIds.length;
+    document.getElementById('glbxPrev').style.opacity = '1';
+    document.getElementById('glbxNext').style.opacity = '1';
+}
+
+/* Keyboard */
+document.addEventListener('keydown', function(e) {
+    var lb = document.getElementById('glbx');
+    if (lb && lb.style.display === 'flex') {
+        if (e.key === 'ArrowLeft')  lightboxGo(-1);
+        if (e.key === 'ArrowRight') lightboxGo(1);
+        if (e.key === 'Escape')     closeLightbox();
+    } else {
+        if (e.key === 'ArrowLeft')  carGo(-1);
+        if (e.key === 'ArrowRight') carGo(1);
+    }
+});
+
+document.addEventListener('DOMContentLoaded', initCarousel);
 </script>
 </th:block>
 

@@ -68,6 +68,43 @@
 
     /* Date cell */
     .date-cell { font-size:0.78rem; color:#64748b; white-space:nowrap; }
+
+    /* Photo Book */
+    .book-wrap {
+        background: linear-gradient(160deg,#1a1a2e 0%,#16213e 60%,#0f3460 100%);
+        border-radius: 0 0 16px 16px;
+        position: relative; min-height: 400px;
+        display: flex; align-items: center;
+    }
+    .book-nav {
+        background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.14);
+        color: #fff; width: 46px; height: 46px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer; transition: all 0.18s; flex-shrink: 0; margin: 0 14px;
+        font-size: 1.1rem;
+    }
+    .book-nav:hover { background: rgba(99,102,241,0.5); border-color: #6366f1; }
+    .book-nav:disabled { opacity: 0.25; cursor: not-allowed; }
+    .book-frame {
+        flex: 1; display: flex; align-items: center; justify-content: center;
+        padding: 24px 0; min-height: 380px;
+    }
+    .book-img {
+        max-height: 340px; max-width: 100%;
+        border-radius: 10px;
+        box-shadow: 0 8px 40px rgba(0,0,0,0.55), 0 2px 8px rgba(0,0,0,0.35),
+                    6px 6px 0 rgba(0,0,0,0.25), 12px 12px 0 rgba(0,0,0,0.1);
+        transition: opacity 0.3s ease;
+        object-fit: contain;
+        display: block;
+    }
+    .book-img.fading { opacity: 0; }
+    .book-footer {
+        background: #fff; border-radius: 0 0 16px 16px;
+        padding: 10px 20px;
+        display: flex; align-items: center; justify-content: space-between;
+    }
+    html.dark .book-footer { background: #0e0e20; }
 </style>
 </head>
 <body>
@@ -255,9 +292,105 @@
         </div>
     </div>
 
+    <!-- ═══ Community Photo Gallery / Book ═══ -->
+    <div class="mt-5">
+        <div class="d-flex align-items-center gap-2 mb-3">
+            <i class="bi bi-images" style="color:#6366f1;font-size:1.15rem;"></i>
+            <h5 class="fw-bold mb-0" style="color:#1e1b4b;">Community Photo Gallery</h5>
+            <span class="count-badge ms-1"
+                  th:text="${#lists.size(galleryImageIds)} + ' photo' + (${#lists.size(galleryImageIds)} != 1 ? 's' : '')"></span>
+            <a th:href="@{/gallery}" class="btn btn-outline-primary btn-sm ms-auto"
+               style="font-size:0.76rem;border-radius:20px;">
+                <i class="bi bi-pencil-square me-1"></i>Manage Gallery
+            </a>
+        </div>
+
+        <!-- Empty -->
+        <div th:if="${#lists.isEmpty(galleryImageIds)}"
+             class="card border-0 shadow-sm text-center py-5" style="border-radius:16px;">
+            <i class="bi bi-camera d-block mb-2" style="font-size:2.8rem;color:#c7d2fe;"></i>
+            <div class="fw-semibold" style="color:#6366f1;">No photos in the gallery yet</div>
+            <p class="text-muted small mt-1 mb-3">Upload community photos to display them here.</p>
+            <a th:href="@{/gallery}" class="btn btn-primary btn-sm mx-auto" style="width:fit-content;">
+                <i class="bi bi-cloud-upload me-1"></i>Upload Photos
+            </a>
+        </div>
+
+        <!-- Book -->
+        <div th:unless="${#lists.isEmpty(galleryImageIds)}"
+             class="card border-0 shadow-sm" style="border-radius:16px;overflow:hidden;">
+
+            <div class="book-wrap">
+                <button class="book-nav" id="bookPrev" onclick="bookGo(-1)" title="Previous">
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+
+                <div class="book-frame">
+                    <img id="bookImg" class="book-img" src="" alt="Gallery photo">
+                </div>
+
+                <button class="book-nav" id="bookNext" onclick="bookGo(1)" title="Next">
+                    <i class="bi bi-chevron-right"></i>
+                </button>
+            </div>
+
+            <div class="book-footer">
+                <span id="bookCounter" class="text-muted" style="font-size:0.8rem;"></span>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-outline-secondary" onclick="bookGo(-1)"
+                            style="border-radius:20px;font-size:0.75rem;">
+                        <i class="bi bi-arrow-left me-1"></i>Prev
+                    </button>
+                    <button class="btn btn-sm btn-primary" onclick="bookGo(1)"
+                            style="border-radius:20px;font-size:0.75rem;">
+                        Next<i class="bi bi-arrow-right ms-1"></i>
+                    </button>
+                </div>
+                <a th:href="@{/gallery}" class="btn btn-sm btn-outline-primary"
+                   style="border-radius:20px;font-size:0.75rem;">
+                    <i class="bi bi-plus-lg me-1"></i>Add More
+                </a>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <th:block layout:fragment="page-scripts">
+<script th:inline="javascript">
+/*<![CDATA[*/
+var galleryIds = /*[[${galleryImageIds}]]*/ [];
+/*]]>*/
+var bookPage = 0;
+
+function bookGo(dir) {
+    if (!galleryIds || galleryIds.length === 0) return;
+    var next = bookPage + dir;
+    if (next < 0 || next >= galleryIds.length) return;
+    var img = document.getElementById('bookImg');
+    img.classList.add('fading');
+    setTimeout(function() {
+        bookPage = next;
+        img.src = '/gallery/' + galleryIds[bookPage] + '/image';
+        img.classList.remove('fading');
+        updateBookUI();
+    }, 280);
+}
+
+function updateBookUI() {
+    var total = galleryIds.length;
+    document.getElementById('bookCounter').textContent = 'Photo ' + (bookPage + 1) + ' of ' + total;
+    document.getElementById('bookPrev').disabled = bookPage === 0;
+    document.getElementById('bookNext').disabled = bookPage === total - 1;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    if (galleryIds && galleryIds.length > 0) {
+        document.getElementById('bookImg').src = '/gallery/' + galleryIds[0] + '/image';
+        updateBookUI();
+    }
+});
+</script>
 <script>
 var currentFilter = 'all';
 

@@ -24,6 +24,7 @@ public class WebConfig implements WebMvcConfigurer {
                         "/organization/*/banner", "/organization/*/logo", "/organization/display-pictures/*",
                         "/invitations/*/banner",
                         "/members/*/photo",
+                        "/gallery/*/image",
                         "/images/**", "/uploads/**", "/css/**", "/js/**", "/error");
 
         registry.addInterceptor(new MemberAuthInterceptor())

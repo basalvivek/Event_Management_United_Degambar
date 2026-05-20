@@ -5,6 +5,7 @@ import com.udjcs.assignment.Assignment;
 import com.udjcs.assignment.AssignmentRepository;
 import com.udjcs.event.EventRepository;
 import com.udjcs.feedback.EventFeedbackService;
+import com.udjcs.gallery.GalleryService;
 import com.udjcs.ticket.EventTicket;
 import com.udjcs.ticket.EventTicketRepository;
 import jakarta.validation.Valid;
@@ -32,12 +33,14 @@ public class MemberController {
     private final EventFeedbackService feedbackService;
     private final AssignmentRepository assignmentRepository;
     private final ActivityRepository activityRepository;
+    private final GalleryService galleryService;
 
     public MemberController(MemberService service, MemberRepository memberRepository,
                              EventRepository eventRepository, EventTicketRepository ticketRepository,
                              EventFeedbackService feedbackService,
                              AssignmentRepository assignmentRepository,
-                             ActivityRepository activityRepository) {
+                             ActivityRepository activityRepository,
+                             GalleryService galleryService) {
         this.service = service;
         this.memberRepository = memberRepository;
         this.eventRepository = eventRepository;
@@ -45,11 +48,13 @@ public class MemberController {
         this.feedbackService = feedbackService;
         this.assignmentRepository = assignmentRepository;
         this.activityRepository = activityRepository;
+        this.galleryService = galleryService;
     }
 
     @GetMapping
     public String list(Model model) {
         model.addAttribute("items", service.findAll());
+        model.addAttribute("galleryImageIds", galleryService.findAllIds());
         return "member/list";
     }
 
