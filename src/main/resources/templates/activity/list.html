@@ -1,108 +1,657 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout/base}">
-<head><title>Activities</title></head>
+<head><title>Activity Hub</title></head>
 <body>
-<th:block layout:fragment="page-title">Activities</th:block>
+<th:block layout:fragment="page-title">Activity Hub</th:block>
 <div layout:fragment="content">
 <style>
-.act-table th{font-size:.7rem;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:#6366f1;padding:11px 14px;background:#f8f7ff;border-bottom:2px solid #e0e7ff;}
-.act-table td{padding:12px 14px;vertical-align:middle;border-color:#f1f5f9;}
-.act-row:hover{background:#fafafe;}
-.act-row.s-In-Progress{border-left:3px solid #3b82f6;}
-.act-row.s-Planned{border-left:3px solid #6366f1;}
-.act-row.s-Completed{border-left:3px solid #059669;}
-.act-row.s-Cancelled{border-left:3px solid #ef4444;}
-.cat-badge{display:inline-flex;align-items:center;gap:4px;border-radius:20px;padding:2px 10px;font-size:.7rem;font-weight:700;background:#eef2ff;color:#4f46e5;}
-.st-tag{display:inline-flex;align-items:center;gap:5px;border-radius:20px;padding:3px 12px;font-size:.72rem;font-weight:700;}
-.st-In-Progress{background:#dbeafe;color:#1e40af;}
-.st-Planned{background:#ede9fe;color:#5b21b6;}
-.st-Completed{background:#dcfce7;color:#166534;}
-.st-Cancelled{background:#fee2e2;color:#991b1b;}
-.fp{border-radius:20px;padding:5px 14px;font-size:.78rem;font-weight:600;border:1.5px solid #e5e7eb;background:#fff;color:#475569;cursor:pointer;transition:all .15s;}
+/* ── Filter pills ── */
+.fp{border-radius:20px;padding:5px 14px;font-size:.77rem;font-weight:600;
+  border:1.5px solid #e5e7eb;background:#fff;color:#475569;cursor:pointer;transition:all .15s;white-space:nowrap;}
 .fp:hover{border-color:#6366f1;color:#6366f1;}
 .fp.fa{background:#1e1b4b;border-color:#1e1b4b;color:#fff;}
 .fp.fp-ip.fa{background:#3b82f6;border-color:#3b82f6;}
 .fp.fp-done.fa{background:#059669;border-color:#059669;}
 .sw{position:relative;}.sw i{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:.8rem;}
-.sb{border-radius:20px;border:1.5px solid #e5e7eb;padding:6px 14px 6px 32px;font-size:.84rem;width:220px;}
+.sb{border-radius:20px;border:1.5px solid #e5e7eb;padding:6px 14px 6px 32px;font-size:.83rem;width:220px;}
 .sb:focus{border-color:#6366f1;box-shadow:0 0 0 3px rgba(99,102,241,.1);outline:none;}
+
+/* ── Activity cards ── */
+.act-card{
+  background:#fff; border:1px solid #e8ecf0; border-radius:16px;
+  overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,.05),0 3px 12px rgba(0,0,0,.04);
+  transition:box-shadow .18s,transform .18s;
+}
+.act-card:hover{box-shadow:0 4px 20px rgba(0,0,0,.1);transform:translateY(-1px);}
+
+/* status left bar */
+.act-card.s-In-Progress .act-bar{background:#3b82f6;}
+.act-card.s-Planned      .act-bar{background:#6366f1;}
+.act-card.s-Completed    .act-bar{background:#059669;}
+.act-card.s-Cancelled    .act-bar{background:#ef4444;}
+.act-bar{width:4px;flex-shrink:0;align-self:stretch;min-height:100%;}
+
+/* category + status badges */
+.cat-badge{display:inline-flex;align-items:center;gap:4px;border-radius:20px;
+  padding:2px 10px;font-size:.68rem;font-weight:700;background:#eef2ff;color:#4f46e5;}
+.st-tag{display:inline-flex;align-items:center;gap:4px;border-radius:20px;
+  padding:3px 10px;font-size:.68rem;font-weight:700;}
+.st-In-Progress{background:#dbeafe;color:#1e40af;}
+.st-Planned    {background:#ede9fe;color:#5b21b6;}
+.st-Completed  {background:#dcfce7;color:#166534;}
+.st-Cancelled  {background:#fee2e2;color:#991b1b;}
+
+/* ── Section divider inside card ── */
+.card-sec{padding:11px 18px;border-top:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.card-sec-lbl{font-size:.59rem;font-weight:800;letter-spacing:1.3px;text-transform:uppercase;color:#94a3b8;display:flex;align-items:center;gap:5px;}
+
+/* ── Member chips ── */
+.member-chips{display:flex;flex-wrap:wrap;gap:7px;padding:10px 18px 14px;}
+.m-chip{display:flex;align-items:center;gap:7px;background:#f8f9fa;border:1px solid #e8ecf0;
+  border-radius:20px;padding:4px 12px 4px 4px;text-decoration:none;transition:all .14s;}
+.m-chip:hover{border-color:#6366f1;background:#f0f0ff;}
+.m-avatar{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:.65rem;font-weight:800;color:#fff;flex-shrink:0;}
+.m-name{font-size:.76rem;font-weight:600;color:#1e293b;}
+.m-role{font-size:.65rem;color:#94a3b8;}
+.m-status-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+
+/* ── Rehearsal progress ── */
+.reh-section{padding:10px 18px 16px;}
+.reh-bar-wrap{background:#f1f5f9;border-radius:6px;height:10px;overflow:hidden;flex:1;}
+.reh-bar-fill{height:100%;border-radius:6px;transition:width .4s ease;}
+.reh-pct-lbl{font-size:.82rem;font-weight:800;min-width:42px;text-align:right;}
+
+/* empty state */
+.empty-chip{font-size:.74rem;color:#94a3b8;padding:8px 0;font-style:italic;}
+
+/* ── Rehearsal rows ── */
+.reh-list{border-top:1px solid #f1f5f9;margin-top:10px;}
+.reh-row{display:flex;align-items:center;gap:10px;padding:7px 18px;border-bottom:1px solid #f8fafc;font-size:.76rem;}
+.reh-row:last-child{border-bottom:none;}
+.reh-row:hover{background:#fafbff;}
+.reh-date{font-weight:700;color:#1e293b;white-space:nowrap;min-width:80px;}
+.reh-time{color:#64748b;white-space:nowrap;font-size:.72rem;}
+.reh-venue{color:#94a3b8;font-size:.7rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;}
+.reh-st{border-radius:20px;padding:2px 8px;font-size:.64rem;font-weight:700;white-space:nowrap;flex-shrink:0;}
+.reh-st-Scheduled {background:#dbeafe;color:#1e40af;}
+.reh-st-Completed {background:#dcfce7;color:#166534;}
+.reh-st-Cancelled {background:#fee2e2;color:#991b1b;}
+.reh-st-Postponed {background:#fef3c7;color:#92400e;}
+html.dark .reh-list{border-top-color:#1a1a32;}
+html.dark .reh-row{border-bottom-color:#1a1a32;}
+html.dark .reh-row:hover{background:rgba(79,70,229,.04);}
+html.dark .reh-date{color:#e2e2f0;}
+html.dark .reh-time{color:#7a7a9a;}
+html.dark .reh-venue{color:#44445a;}
+html.dark .reh-st-Scheduled{background:rgba(29,78,216,.15);color:#818cf8;}
+html.dark .reh-st-Completed{background:rgba(5,150,105,.15);color:#4caf82;}
+html.dark .reh-st-Cancelled{background:rgba(153,27,27,.15);color:#f87171;}
+html.dark .reh-st-Postponed{background:rgba(146,64,14,.15);color:#fbbf24;}
+
+/* ── Attendance rows ── */
+.att-row:hover{background:#faf5ff;}
+.att-row.att-checked{background:#f0fdf4;}
+.att-row.att-checked:hover{background:#dcfce7;}
+html.dark .att-row:hover{background:rgba(124,58,237,.07);}
+html.dark .att-row.att-checked{background:rgba(5,150,105,.08);}
+html.dark .att-row.att-checked:hover{background:rgba(5,150,105,.14);}
+
+/* ── Dark mode ── */
+html.dark .act-card{background:#111124;border-color:#1e1e3a;}
+html.dark .act-card:hover{box-shadow:0 4px 20px rgba(0,0,0,.3);}
+html.dark .card-sec{border-top-color:#1a1a32;}
+html.dark .m-chip{background:#191932;border-color:#272748;}
+html.dark .m-chip:hover{border-color:#4f46e5;background:rgba(79,70,229,.08);}
+html.dark .m-name{color:#e2e2f0;}
+html.dark .reh-bar-wrap{background:#1e1e3a;}
+html.dark .fp{background:#111124;border-color:#272748;color:#7a7a9a;}
+html.dark .fp:hover{border-color:#6366f1;color:#818cf8;}
+html.dark .fp.fa{background:#1e1e3a;border-color:#4f46e5;color:#818cf8;}
+html.dark .sb{background:#111124;border-color:#272748;color:#e2e2f0;}
+html.dark .sb:focus{border-color:#4f46e5;}
+html.dark .cat-badge{background:#1a1a32;color:#818cf8;}
+html.dark .empty-chip{color:#44445a;}
 </style>
-<div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
-    <div>
-        <h5 class="fw-bold mb-0" style="color:#1e1b4b;">Activities</h5>
-        <p class="text-muted mb-0" style="font-size:.78rem;">Manage community activity records</p>
-    </div>
-    <a th:href="@{/activities/new}" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>Add Activity</a>
+
+<!-- ══ PAGE HEADER ══ -->
+<div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
+  <div>
+    <h5 class="fw-bold mb-0" style="color:#1e1b4b;">Activity Hub</h5>
+    <p class="text-muted mb-0" style="font-size:.77rem;">
+      Activities · Assigned Members · Rehearsal Progress
+    </p>
+  </div>
+  <a th:href="@{/activities/new}" class="btn btn-primary">
+    <i class="bi bi-plus-lg me-1"></i>Add Activity
+  </a>
 </div>
+
+<!-- ══ FILTER BAR ══ -->
 <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-    <div class="d-flex gap-2 flex-wrap">
-        <span class="fp fa" onclick="afilter('all',this)">All <span class="ms-1 badge rounded-pill text-bg-dark" style="font-size:.65rem;" th:text="${#lists.size(items)}"></span></span>
-        <span class="fp fp-ip"   onclick="afilter('In Progress',this)"><i class="bi bi-circle-fill me-1" style="font-size:.45rem;color:#3b82f6;"></i>In Progress</span>
-        <span class="fp"          onclick="afilter('Planned',this)"><i class="bi bi-circle-fill me-1" style="font-size:.45rem;color:#6366f1;"></i>Planned</span>
-        <span class="fp fp-done" onclick="afilter('Completed',this)"><i class="bi bi-circle-fill me-1" style="font-size:.45rem;color:#059669;"></i>Completed</span>
+  <div class="d-flex gap-2 flex-wrap">
+    <span class="fp fa"      onclick="afilter('all',this)">
+      All <span class="ms-1 badge rounded-pill text-bg-secondary" style="font-size:.62rem;" th:text="${#lists.size(items)}"></span>
+    </span>
+    <span class="fp fp-ip"   onclick="afilter('In Progress',this)">
+      <i class="bi bi-circle-fill me-1" style="font-size:.42rem;color:#3b82f6;"></i>In Progress
+    </span>
+    <span class="fp"         onclick="afilter('Planned',this)">
+      <i class="bi bi-circle-fill me-1" style="font-size:.42rem;color:#6366f1;"></i>Planned
+    </span>
+    <span class="fp fp-done" onclick="afilter('Completed',this)">
+      <i class="bi bi-circle-fill me-1" style="font-size:.42rem;color:#059669;"></i>Completed
+    </span>
+  </div>
+  <div class="sw">
+    <i class="bi bi-search"></i>
+    <input type="text" class="sb form-control" id="actSearch"
+           placeholder="Search activities…" oninput="asearch(this.value)">
+  </div>
+</div>
+
+<!-- ══ EMPTY STATE ══ -->
+<div th:if="${#lists.isEmpty(items)}"
+     class="text-center py-5" style="background:#fff;border-radius:16px;border:1px solid #e8ecf0;">
+  <i class="bi bi-list-task d-block mb-2" style="font-size:3rem;color:#c7d2fe;"></i>
+  <div class="fw-semibold text-muted">No activities yet</div>
+  <a th:href="@{/activities/new}" class="btn btn-primary btn-sm mt-3">
+    <i class="bi bi-plus-lg me-1"></i>Add First Activity
+  </a>
+</div>
+
+<!-- ══ ACTIVITY CARDS ══ -->
+<div class="d-flex flex-column gap-3" id="actList">
+
+  <div th:each="item,stat : ${items}"
+       th:class="'act-card s-' + ${item.status.replace(' ','-')}"
+       th:attr="data-s=${item.status},data-q=${(item.activityName + ' ' + item.activityCategory.categoryName + ' ' + (item.responsiblePerson ?: '')).toLowerCase()}">
+
+    <!-- ─── ACTIVITY HEADER ─── -->
+    <div class="d-flex" style="min-height:0;">
+      <div class="act-bar"></div>
+      <div class="flex-grow-1 p-3">
+
+        <div class="d-flex align-items-start justify-content-between gap-2 flex-wrap">
+          <!-- Title block -->
+          <div class="d-flex align-items-start gap-3 flex-grow-1">
+            <!-- Number badge -->
+            <div class="d-flex align-items-center justify-content-center flex-shrink-0"
+                 style="width:34px;height:34px;border-radius:10px;background:#eef2ff;margin-top:1px;">
+              <span style="font-size:.72rem;font-weight:800;color:#4f46e5;"
+                    th:text="${stat.count}"></span>
+            </div>
+            <div>
+              <div class="fw-bold mb-1" style="font-size:.95rem;color:#1e1b4b;line-height:1.3;"
+                   th:text="${item.activityName}"></div>
+              <div class="d-flex align-items-center gap-2 flex-wrap">
+                <span class="cat-badge">
+                  <i class="bi bi-tags-fill" style="font-size:.62rem;"></i>
+                  <span th:text="${item.activityCategory.categoryName}"></span>
+                </span>
+                <span th:class="'st-tag st-' + ${item.status.replace(' ','-')}"
+                      th:text="${item.status}"></span>
+                <span th:if="${item.responsiblePerson != null}"
+                      style="font-size:.72rem;color:#94a3b8;">
+                  <i class="bi bi-person-fill me-1"></i>
+                  <span th:text="${item.responsiblePerson}"></span>
+                </span>
+              </div>
+            </div>
+          </div>
+          <!-- Action buttons -->
+          <div class="d-flex gap-1 flex-shrink-0">
+            <a th:href="@{/activities/{id}/edit(id=${item.id})}"
+               class="btn btn-sm btn-outline-secondary" title="Edit activity"
+               style="border-radius:8px;padding:4px 10px;">
+              <i class="bi bi-pencil-fill"></i>
+            </a>
+            <form th:action="@{/activities/{id}/delete(id=${item.id})}" method="post" class="d-inline"
+                  data-confirm="Delete this activity and all associated data?">
+              <button type="submit" class="btn btn-sm btn-outline-danger"
+                      style="border-radius:8px;padding:4px 10px;" title="Delete activity">
+                <i class="bi bi-trash-fill"></i>
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Meta row: dates, venue -->
+        <div class="d-flex align-items-center gap-3 flex-wrap mt-2" style="font-size:.74rem;color:#64748b;">
+          <span th:if="${item.startDate != null}">
+            <i class="bi bi-calendar3 me-1" style="color:#94a3b8;"></i>
+            <span th:text="${#temporals.format(item.startDate,'dd/MM/yyyy')}"></span>
+            <span th:if="${item.endDate != null}">
+              → <span th:text="${#temporals.format(item.endDate,'dd/MM/yyyy')}"></span>
+            </span>
+          </span>
+          <span th:if="${item.venue != null}">
+            <i class="bi bi-geo-alt-fill me-1" style="color:#94a3b8;"></i>
+            <span th:text="${item.venue}"></span>
+          </span>
+          <span th:if="${item.description != null}" class="text-muted"
+                style="max-width:400px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"
+                th:text="${item.description}"></span>
+        </div>
+
+      </div>
     </div>
-    <div class="sw"><i class="bi bi-search"></i><input type="text" class="sb form-control" id="actSearch" placeholder="Search activities…" oninput="asearch(this.value)"></div>
-</div>
-<div class="card border-0 shadow-sm" style="border-radius:14px;overflow:hidden;">
-    <div class="table-responsive">
-        <table class="table act-table mb-0" id="actTable">
-            <thead><tr>
-                <th style="width:36px;">#</th>
-                <th>Activity</th>
-                <th>Category</th>
-                <th>Dates</th>
-                <th>Venue</th>
-                <th>Responsible</th>
-                <th>Status</th>
-                <th class="text-end" style="padding-right:16px;">Actions</th>
-            </tr></thead>
-            <tbody>
-                <tr th:each="item,stat : ${items}"
-                    th:class="'act-row s-' + ${item.status.replace(' ','-')}"
-                    th:attr="data-s=${item.status}, data-q=${(item.activityName + ' ' + item.activityCategory.categoryName).toLowerCase()}">
-                    <td class="text-muted fw-medium" th:text="${stat.count}"></td>
-                    <td>
-                        <div class="fw-semibold" style="font-size:.88rem;color:#1e1b4b;" th:text="${item.activityName}"></div>
-                        <div th:if="${item.responsiblePerson != null}" style="font-size:.72rem;color:#94a3b8;">
-                            <i class="bi bi-person-fill me-1"></i><span th:text="${item.responsiblePerson}"></span>
-                        </div>
-                    </td>
-                    <td><span class="cat-badge" th:text="${item.activityCategory.categoryName}"></span></td>
-                    <td>
-                        <div style="font-size:.8rem;">
-                            <i class="bi bi-calendar3 me-1" style="color:#94a3b8;font-size:.72rem;"></i>
-                            <span th:text="${item.startDate != null ? #temporals.format(item.startDate,'dd/MM/yyyy') : '—'}"></span>
-                        </div>
-                        <div th:if="${item.endDate != null}" style="font-size:.72rem;color:#94a3b8;">
-                            to <span th:text="${#temporals.format(item.endDate,'dd/MM/yyyy')}"></span>
-                        </div>
-                    </td>
-                    <td>
-                        <div th:if="${item.venue != null}" style="font-size:.8rem;"><i class="bi bi-geo-alt-fill me-1" style="color:#94a3b8;font-size:.72rem;"></i><span th:text="${item.venue}"></span></div>
-                        <span th:unless="${item.venue != null}" class="text-muted">—</span>
-                    </td>
-                    <td style="font-size:.8rem;" th:text="${item.responsiblePerson != null ? item.responsiblePerson : '—'}"></td>
-                    <td><span th:class="'st-tag st-' + ${item.status.replace(' ','-')}" th:text="${item.status}"></span></td>
-                    <td class="text-end" style="padding-right:16px;white-space:nowrap;">
-                        <a th:href="@{/activities/{id}/edit(id=${item.id})}" class="btn btn-sm btn-outline-warning me-1"><i class="bi bi-pencil-fill"></i></a>
-                        <form th:action="@{/activities/{id}/delete(id=${item.id})}" method="post" class="d-inline" onsubmit="return confirm('Delete this activity?')">
-                            <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash-fill"></i></button>
-                        </form>
-                    </td>
-                </tr>
-                <tr id="actEmpty" style="display:none;"><td colspan="8" class="text-center py-4 text-muted">No records match</td></tr>
-                <tr th:if="${#lists.isEmpty(items)}"><td colspan="8" class="text-center py-5"><i class="bi bi-list-task d-block mb-2" style="font-size:2.5rem;color:#c7d2fe;"></i><div class="fw-semibold text-muted">No activities yet</div></td></tr>
-            </tbody>
-        </table>
+
+    <!-- ─── ASSIGNED MEMBERS SECTION ─── -->
+    <div class="card-sec">
+      <div class="card-sec-lbl">
+        <i class="bi bi-people-fill" style="color:#4f46e5;font-size:.7rem;"></i>
+        Assigned Members
+        <span th:with="mc=${assignMap.get(item.id)}"
+              th:if="${mc != null and not #lists.isEmpty(mc)}"
+              class="badge rounded-pill"
+              style="background:#eef2ff;color:#4f46e5;font-size:.58rem;padding:2px 7px;"
+              th:text="${#lists.size(mc)}"></span>
+      </div>
+      <button type="button" class="btn btn-sm"
+              style="border-radius:20px;font-size:.68rem;padding:2px 10px;background:#eef2ff;color:#4f46e5;border:1px solid #c7d2fe;"
+              data-bs-toggle="modal" th:data-bs-target="'#mgmt-' + ${item.id}">
+        <i class="bi bi-pencil-fill me-1"></i>Edit Members
+      </button>
     </div>
+
+    <div class="member-chips" th:with="members=${assignMap.get(item.id)}">
+      <div th:if="${members == null or #lists.isEmpty(members)}" class="empty-chip">
+        No members assigned yet
+      </div>
+      <th:block th:unless="${members == null or #lists.isEmpty(members)}">
+        <a th:href="@{/assignments}" th:each="a,ai : ${members}" class="m-chip">
+          <div class="m-avatar"
+               th:style="'background:hsl(' + ${(a.member.id * 67) % 360} + ',55%,50%);'">
+            <span th:text="${#strings.substring(a.member.firstName,0,1) + #strings.substring(a.member.lastName,0,1)}"></span>
+          </div>
+          <div>
+            <div class="m-name"
+                 th:text="${a.member.firstName + ' ' + a.member.lastName}"></div>
+            <div class="m-role" th:text="${a.role + ' · ' + a.status}"></div>
+          </div>
+        </a>
+      </th:block>
+    </div>
+
+
+    <div class="reh-section"
+         th:with="total=${rehTotal.get(item.id) ?: 0},
+                  done=${rehDone.get(item.id) ?: 0},
+                  pct=${rehPct.get(item.id) ?: 0}">
+
+      <!-- ── 1. Rehearsal rows FIRST ── -->
+      <div th:if="${rehRows.get(item.id) != null and not #lists.isEmpty(rehRows.get(item.id))}">
+
+        <!-- Heading strip -->
+        <div class="d-flex align-items-center justify-content-between px-3 pb-1"
+             style="background:#f8f7ff;border-top:1px solid #ede9fe;padding-top:8px;">
+          <div class="d-flex align-items-center gap-2">
+            <span style="font-size:.6rem;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:#7c3aed;">
+              <i class="bi bi-clock-history me-1"></i>Activity Rehearsals
+            </span>
+            <span class="badge rounded-pill"
+                  style="background:#ede9fe;color:#5b21b6;font-size:.58rem;"
+                  th:text="${#lists.size(rehRows.get(item.id))} + ' session' + (${#lists.size(rehRows.get(item.id))} != 1 ? 's' : '')"></span>
+          </div>
+          <a th:href="@{/rehearsals/new(activityId=${item.id})}" class="btn btn-sm"
+             style="border-radius:20px;font-size:.67rem;padding:2px 10px;background:#f5f3ff;color:#7c3aed;border:1px solid #ddd6fe;">
+            <i class="bi bi-plus-circle-fill me-1"></i>Add Rehearsal
+          </a>
+        </div>
+
+        <!-- Column header -->
+        <div class="d-flex align-items-center gap-2 px-3 py-1"
+             style="font-size:.59rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#94a3b8;border-bottom:1px solid #f1f5f9;">
+          <span style="width:88px;">Status</span>
+          <span style="width:80px;">Date</span>
+          <span style="width:52px;">From</span>
+          <span style="width:52px;">To</span>
+          <span class="flex-grow-1">Venue</span>
+          <span style="min-width:110px;">Conducted By</span>
+          <span style="width:80px;text-align:center;">Members</span>
+          <span style="width:126px;"></span>
+        </div>
+
+        <div class="reh-list">
+          <div th:each="r : ${rehRows.get(item.id)}" class="reh-row">
+            <span th:class="'reh-st reh-st-' + ${r.status}" th:text="${r.status}"
+                  style="width:88px;flex-shrink:0;text-align:center;"></span>
+            <span class="reh-date" style="width:80px;flex-shrink:0;"
+                  th:text="${#temporals.format(r.rehearsalDate,'dd/MM/yyyy')}"></span>
+            <span class="reh-time" style="width:52px;flex-shrink:0;"
+                  th:text="${r.startTime != null ? r.startTime : '—'}"></span>
+            <span class="reh-time" style="width:52px;flex-shrink:0;"
+                  th:text="${r.endTime != null ? r.endTime : '—'}"></span>
+            <span class="reh-venue flex-grow-1"
+                  th:text="${r.venue != null ? r.venue : '—'}"></span>
+            <span style="min-width:110px;flex-shrink:0;font-size:.7rem;color:#64748b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"
+                  th:text="${r.conductedBy != null ? r.conductedBy : '—'}"></span>
+            <!-- Members: total / attended -->
+            <div style="width:80px;flex-shrink:0;text-align:center;"
+                 th:with="tm=${rehTotalMbr.get(r.id) ?: 0}, am=${rehAttMbr.get(r.id) ?: 0}">
+              <div th:if="${tm > 0}"
+                   style="display:inline-flex;flex-direction:column;align-items:center;gap:1px;">
+                <span style="font-size:.68rem;color:#475569;">
+                  <i class="bi bi-people-fill" style="color:#7c3aed;font-size:.6rem;"></i>
+                  <span th:text="${tm}"></span>
+                </span>
+                <span style="font-size:.65rem;"
+                      th:style="${am == tm} ? 'color:#059669;font-weight:700;' : 'color:#94a3b8;'">
+                  <i class="bi bi-check-circle-fill" style="font-size:.58rem;"></i>
+                  <span th:text="${am}"></span>
+                </span>
+              </div>
+              <span th:unless="${tm > 0}" style="font-size:.68rem;color:#d1d5db;">—</span>
+            </div>
+            <div class="d-flex gap-1 flex-shrink-0" style="width:126px;justify-content:flex-end;">
+              <!-- Members -->
+              <button type="button" class="btn btn-sm"
+                      style="border-radius:8px;padding:2px 7px;font-size:.67rem;background:#f5f3ff;color:#7c3aed;border:1px solid #ddd6fe;"
+                      data-bs-toggle="modal" th:data-bs-target="'#rm-' + ${r.id}"
+                      title="View session members">
+                <i class="bi bi-people-fill"></i>
+              </button>
+              <!-- Edit -->
+              <a th:href="@{/rehearsals/{id}/edit(id=${r.id},returnUrl='/activities')}"
+                 class="btn btn-sm"
+                 style="border-radius:8px;padding:2px 7px;font-size:.67rem;background:#eef2ff;color:#4f46e5;border:1px solid #c7d2fe;"
+                 title="Edit rehearsal">
+                <i class="bi bi-pencil-fill"></i>
+              </a>
+              <!-- Delete -->
+              <form th:action="@{/rehearsals/{id}/delete(id=${r.id})}" method="post" class="d-inline"
+                    data-confirm="Delete this rehearsal session? This cannot be undone.">
+                <input type="hidden" name="returnUrl" value="/activities">
+                <button type="submit" class="btn btn-sm"
+                        style="border-radius:8px;padding:2px 7px;font-size:.67rem;background:#fef2f2;color:#dc2626;border:1px solid #fecaca;"
+                        title="Delete rehearsal">
+                  <i class="bi bi-trash-fill"></i>
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ── 2. Empty state (no rehearsals at all) ── -->
+      <div th:if="${total == 0}" class="empty-chip">No rehearsals scheduled yet</div>
+
+      <!-- ── 3. Progress bar with icon — read-only ── -->
+      <div th:unless="${total == 0}"
+           style="border-top:1px solid #f1f5f9;padding:11px 18px 14px;display:flex;align-items:center;gap:12px;">
+        <!-- Icon -->
+        <div style="width:36px;height:36px;border-radius:10px;flex-shrink:0;
+                    background:linear-gradient(135deg,#7c3aed,#4f46e5);
+                    display:flex;align-items:center;justify-content:center;
+                    box-shadow:0 2px 8px rgba(124,58,237,.28);">
+          <i class="bi bi-bar-chart-steps text-white" style="font-size:.9rem;"></i>
+        </div>
+        <!-- Bar + stats -->
+        <div class="flex-grow-1">
+          <div class="d-flex align-items-center gap-3 mb-1">
+            <div class="reh-bar-wrap">
+              <div class="reh-bar-fill"
+                   th:style="'width:' + ${pct} + '%;'"
+                   th:classappend="${pct > 75} ? ' bg-success' :
+                                   (${pct > 25} ? ' bg-warning' : ' bg-danger')"></div>
+            </div>
+            <span class="reh-pct-lbl"
+                  th:style="${pct > 75} ? 'color:#059669;' :
+                             (${pct > 25} ? 'color:#d97706;' : 'color:#dc2626;')"
+                  th:text="${pct} + '%'"></span>
+          </div>
+        <div class="d-flex align-items-center justify-content-between" style="font-size:.73rem;color:#64748b;">
+          <span>
+            <span class="fw-bold" th:style="${done > 0} ? 'color:#059669;'" th:text="${done}"></span>
+            of
+            <span class="fw-bold" th:text="${total}"></span>
+            rehearsal<span th:if="${total != 1}">s</span> completed
+          </span>
+          <span th:if="${done == total and total > 0}"
+                style="color:#059669;font-size:.68rem;font-weight:700;">
+            <i class="bi bi-check-circle-fill me-1"></i>All done!
+          </span>
+          <span th:if="${done < total and total > 0}"
+                style="font-size:.68rem;"
+                th:text="${total - done} + ' remaining'"></span>
+        </div>
+        </div><!-- /bar+stats -->
+      </div><!-- /progress flex row -->
+
+    </div>
+
+  </div><!-- /act-card -->
+
+</div><!-- /actList -->
+
+<!-- ══ MANAGE MEMBERS MODALS (outside cards — avoids transform/overflow clipping) ══ -->
+<div th:each="item : ${items}">
+<div class="modal fade" th:id="'mgmt-' + ${item.id}" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" style="max-width:520px;">
+    <div class="modal-content border-0" style="border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.18);">
+
+      <!-- Header -->
+      <div class="modal-header border-0 pb-2"
+           style="background:linear-gradient(135deg,#1e1b4b 0%,#4f46e5 100%);padding:16px 20px;">
+        <div>
+          <div class="fw-bold text-white mb-0" style="font-size:.9rem;">
+            <i class="bi bi-people-fill me-2"></i>Manage Members
+          </div>
+          <div style="font-size:.72rem;color:rgba(255,255,255,.6);" th:text="${item.activityName}"></div>
+        </div>
+        <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="modal"></button>
+      </div>
+
+      <!-- Body: current members list -->
+      <div style="max-height:52vh;overflow-y:auto;">
+
+        <div th:if="${assignMap.get(item.id) == null or #lists.isEmpty(assignMap.get(item.id))}"
+             class="text-center py-4 text-muted" style="font-size:.8rem;">
+          <i class="bi bi-people d-block mb-2" style="font-size:1.6rem;color:#c7d2fe;"></i>
+          No members assigned yet
+        </div>
+
+        <div th:unless="${assignMap.get(item.id) == null or #lists.isEmpty(assignMap.get(item.id))}">
+          <div th:each="a : ${assignMap.get(item.id)}"
+               class="d-flex align-items-center gap-3 px-4 py-2"
+               style="border-bottom:1px solid #f1f5f9;">
+            <!-- Avatar -->
+            <div class="d-flex align-items-center justify-content-center flex-shrink-0"
+                 style="width:32px;height:32px;border-radius:50%;font-size:.66rem;font-weight:800;color:#fff;"
+                 th:style="'width:32px;height:32px;border-radius:50%;font-size:.66rem;font-weight:800;color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:hsl(' + ${(a.member.id * 67) % 360} + ',55%,50%);'">
+              <span th:text="${#strings.substring(a.member.firstName,0,1) + #strings.substring(a.member.lastName,0,1)}"></span>
+            </div>
+            <!-- Name + role -->
+            <div class="flex-grow-1 min-w-0">
+              <div style="font-size:.82rem;font-weight:600;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"
+                   th:text="${a.member.firstName + ' ' + a.member.lastName}"></div>
+              <div style="font-size:.68rem;color:#94a3b8;" th:text="${a.role + ' · ' + a.status}"></div>
+            </div>
+            <!-- Remove -->
+            <form th:action="@{/assignments/manage/{actId}/remove/{id}(actId=${item.id},id=${a.id})}"
+                  method="post" class="d-inline flex-shrink-0"
+                  data-confirm="Remove this member from the activity?">
+              <button type="submit" class="btn btn-sm btn-outline-danger"
+                      style="border-radius:8px;padding:2px 8px;font-size:.75rem;">
+                <i class="bi bi-person-dash-fill"></i>
+              </button>
+            </form>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Footer: add member -->
+      <div class="p-3 border-top" style="background:#fafbfc;">
+        <div class="fw-semibold mb-2" style="font-size:.72rem;color:#374151;">
+          <i class="bi bi-person-plus-fill me-1" style="color:#4f46e5;"></i>Add Member
+        </div>
+        <form th:action="@{/assignments/manage/{id}/add(id=${item.id})}" method="post">
+          <div class="d-flex gap-2">
+            <select class="form-select form-select-sm flex-grow-1" name="memberId" required
+                    style="border-radius:8px;font-size:.8rem;">
+              <option value="">— Select Member —</option>
+              <option th:each="m : ${members}"
+                      th:unless="${assignMap.get(item.id) != null and #lists.contains(assignMap.get(item.id).![member.id], m.id)}"
+                      th:value="${m.id}"
+                      th:text="${m.firstName + ' ' + m.lastName}"></option>
+            </select>
+            <select class="form-select form-select-sm" name="role"
+                    style="border-radius:8px;width:120px;font-size:.8rem;">
+              <option value="Volunteer">Volunteer</option>
+              <option value="Lead">Lead</option>
+              <option value="Co-Lead">Co-Lead</option>
+              <option value="Coordinator">Coordinator</option>
+              <option value="Support">Support</option>
+            </select>
+            <button type="submit" class="btn btn-primary btn-sm"
+                    style="border-radius:8px;white-space:nowrap;font-size:.8rem;">
+              <i class="bi bi-plus-lg me-1"></i>Add
+            </button>
+          </div>
+        </form>
+      </div>
+
+    </div>
+  </div>
 </div>
+</div><!-- /manage-members modals loop -->
+
+<!-- ══ REHEARSAL MEMBERS + ATTENDANCE MODALS ══ -->
+<th:block th:each="item : ${items}">
+  <th:block th:if="${rehRows.get(item.id) != null}" th:each="r : ${rehRows.get(item.id)}">
+    <div class="modal fade" th:id="'rm-' + ${r.id}" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered" style="max-width:480px;">
+        <div class="modal-content border-0" style="border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.18);">
+
+          <!-- Header -->
+          <div class="modal-header border-0"
+               style="background:linear-gradient(135deg,#4c1d95,#7c3aed);padding:14px 18px;">
+            <div>
+              <div class="fw-bold text-white mb-0" style="font-size:.88rem;">
+                <i class="bi bi-people-fill me-2"></i>Session Members
+              </div>
+              <div style="font-size:.7rem;color:rgba(255,255,255,.62);">
+                <span th:text="${item.activityName}"></span>
+                &nbsp;·&nbsp;
+                <span th:text="${#temporals.format(r.rehearsalDate,'dd/MM/yyyy')}"></span>
+                <span th:if="${r.startTime != null}">&nbsp;<span th:text="${r.startTime}"></span></span>
+                <span class="ms-2" style="background:rgba(255,255,255,.15);border-radius:20px;padding:1px 8px;font-size:.65rem;">
+                  Mark attendance below
+                </span>
+              </div>
+            </div>
+            <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="modal"></button>
+          </div>
+
+          <!-- No members state -->
+          <div th:if="${rehMemberMap.get(r.id) == null or #lists.isEmpty(rehMemberMap.get(r.id))}"
+               class="text-center py-4 text-muted" style="font-size:.8rem;">
+            <i class="bi bi-person-x d-block mb-2" style="font-size:1.5rem;color:#c4b5fd;"></i>
+            No members attached to this session
+          </div>
+
+          <!-- Attendance form -->
+          <div th:unless="${rehMemberMap.get(r.id) == null or #lists.isEmpty(rehMemberMap.get(r.id))}">
+            <form th:action="@{/rehearsals/{id}/attendance(id=${r.id})}" method="post">
+              <input type="hidden" name="returnUrl" value="/activities">
+
+              <!-- Column header -->
+              <div class="d-flex align-items-center gap-3 px-4 py-1"
+                   style="font-size:.59rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;
+                          color:#94a3b8;border-bottom:1px solid #f1f5f9;background:#fafbfc;">
+                <span style="width:32px;text-align:center;">✓</span>
+                <span class="flex-grow-1">Member</span>
+                <span style="width:90px;">Role</span>
+              </div>
+
+              <!-- Member rows (scrollable) -->
+              <div style="max-height:48vh;overflow-y:auto;">
+                <label th:each="row : ${rehMemberMap.get(r.id)}"
+                       class="att-row d-flex align-items-center gap-3 px-4 py-2"
+                       th:classappend="${row[4]} ? ' att-checked'"
+                       style="cursor:pointer;border-bottom:1px solid #f8fafc;transition:background .13s;margin:0;">
+
+                  <!-- Checkbox -->
+                  <input type="checkbox" name="attendedMemberIds" th:value="${row[5]}"
+                         th:checked="${row[4]}"
+                         style="width:18px;height:18px;accent-color:#7c3aed;cursor:pointer;flex-shrink:0;"
+                         onchange="toggleAttRow(this)">
+
+                  <!-- Avatar -->
+                  <div style="width:32px;height:32px;border-radius:50%;flex-shrink:0;
+                              display:flex;align-items:center;justify-content:center;
+                              font-size:.64rem;font-weight:800;color:#fff;background:#7c3aed;">
+                    <span th:text="${#strings.substring(row[1].toString(),0,1) + #strings.substring(row[2].toString(),0,1)}"></span>
+                  </div>
+
+                  <!-- Name -->
+                  <span class="flex-grow-1 fw-semibold" style="font-size:.83rem;color:#1e293b;"
+                        th:text="${row[1] + ' ' + row[2]}"></span>
+
+                  <!-- Role -->
+                  <span style="width:90px;flex-shrink:0;font-size:.72rem;color:#64748b;"
+                        th:text="${row[3]}"></span>
+
+                </label>
+              </div>
+
+              <!-- Footer -->
+              <div class="d-flex align-items-center justify-content-between px-4 py-3"
+                   style="border-top:1px solid #f1f5f9;background:#fafbfc;">
+                <span style="font-size:.73rem;color:#94a3b8;">
+                  <i class="bi bi-info-circle me-1"></i>Tick to mark attended
+                </span>
+                <div class="d-flex gap-2">
+                  <button type="button" class="btn btn-sm btn-outline-secondary"
+                          style="border-radius:20px;font-size:.77rem;"
+                          data-bs-dismiss="modal">Cancel</button>
+                  <button type="submit" class="btn btn-sm btn-primary"
+                          style="border-radius:20px;font-size:.77rem;
+                                 background:linear-gradient(135deg,#4c1d95,#7c3aed);border:none;">
+                    <i class="bi bi-check-lg me-1"></i>Save Attendance
+                  </button>
+                </div>
+              </div>
+
+            </form>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </th:block>
+</th:block>
+
 </div>
-<th:block layout:fragment="page-scripts"><script>
-var af='all';
-function afilter(s,p){af=s;document.querySelectorAll('.fp').forEach(x=>x.classList.remove('fa'));p.classList.add('fa');adof();}
-function asearch(q){adof(q);}
-function adof(q){q=(q!==undefined?q:document.getElementById('actSearch').value).toLowerCase();var rows=document.querySelectorAll('#actTable tbody tr.act-row'),v=0;rows.forEach(r=>{var ok=(af==='all'||r.dataset.s===af)&&(!q||r.dataset.q.includes(q));r.style.display=ok?'':'none';if(ok)v++;});document.getElementById('actEmpty').style.display=v===0&&rows.length>0?'':'none';}
-</script></th:block>
-</body></html>
+<th:block layout:fragment="page-scripts">
+<script>
+var af = 'all';
+function afilter(s, p) {
+  af = s;
+  document.querySelectorAll('.fp').forEach(x => x.classList.remove('fa'));
+  p.classList.add('fa');
+  applyFilter();
+}
+function asearch(q) { applyFilter(); }
+function toggleAttRow(cb) {
+    cb.closest('.att-row').classList.toggle('att-checked', cb.checked);
+}
+function applyFilter() {
+  var q = document.getElementById('actSearch').value.toLowerCase();
+  var cards = document.querySelectorAll('#actList .act-card');
+  var visible = 0;
+  cards.forEach(c => {
+    var ok = (af === 'all' || c.dataset.s === af) && (!q || c.dataset.q.includes(q));
+    c.style.display = ok ? '' : 'none';
+    if (ok) visible++;
+  });
+}
+</script>
+</th:block>
+</body>
+</html>

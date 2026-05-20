@@ -164,8 +164,21 @@
             <span class="sec-sub">Which activity is this progress for?</span>
         </div>
         <div class="sec-body">
-            <label class="form-label">Activity <span class="req">*</span></label>
-            <div class="input-group">
+            <label class="form-label">Activity <span class="req" th:unless="${preselectedActivity != null}">*</span></label>
+            <!-- Locked display when coming from Activity Hub -->
+            <div th:if="${preselectedActivity != null}"
+                 class="d-flex align-items-center gap-2 px-3 py-2 rounded-3"
+                 style="background:#f0fdf4;border:1.5px solid #bbf7d0;">
+                <i class="bi bi-bookmark-check-fill" style="color:#059669;flex-shrink:0;"></i>
+                <span class="fw-semibold" style="font-size:.88rem;color:#1e293b;"
+                      th:text="${preselectedActivity.activityName + ' [' + preselectedActivity.activityCategory.categoryName + ']'}"></span>
+                <input type="hidden" th:field="*{activityId}">
+                <span class="ms-auto badge" style="background:#bbf7d0;color:#166534;font-size:.68rem;">
+                    <i class="bi bi-lock-fill me-1"></i>Locked
+                </span>
+            </div>
+            <!-- Editable dropdown -->
+            <div th:unless="${preselectedActivity != null}" class="input-group">
                 <span class="input-group-text"><i class="bi bi-bookmark-check"></i></span>
                 <select class="form-select" th:field="*{activityId}"
                         th:classappend="${#fields.hasErrors('activityId')} ? ' is-invalid'">

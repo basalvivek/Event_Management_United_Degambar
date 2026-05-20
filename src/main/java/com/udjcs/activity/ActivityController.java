@@ -1,14 +1,22 @@
 package com.udjcs.activity;
 
 import com.udjcs.activity.category.ActivityCategoryService;
+import com.udjcs.assignment.Assignment;
+import com.udjcs.assignment.AssignmentRepository;
 import com.udjcs.event.EventRepository;
 import com.udjcs.member.MemberService;
+import com.udjcs.rehearsal.Rehearsal;
+import com.udjcs.rehearsal.RehearsalMemberRepository;
+import com.udjcs.rehearsal.RehearsalRepository;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/activities")
@@ -18,18 +26,92 @@ public class ActivityController {
     private final ActivityCategoryService categoryService;
     private final MemberService memberService;
     private final EventRepository eventRepository;
+    private final AssignmentRepository assignmentRepository;
+    private final RehearsalRepository rehearsalRepository;
+    private final RehearsalMemberRepository rehearsalMemberRepository;
 
     public ActivityController(ActivityService service, ActivityCategoryService categoryService,
-                               MemberService memberService, EventRepository eventRepository) {
+                               MemberService memberService, EventRepository eventRepository,
+                               AssignmentRepository assignmentRepository,
+                               RehearsalRepository rehearsalRepository,
+                               RehearsalMemberRepository rehearsalMemberRepository) {
         this.service = service;
         this.categoryService = categoryService;
         this.memberService = memberService;
         this.eventRepository = eventRepository;
+        this.assignmentRepository = assignmentRepository;
+        this.rehearsalRepository = rehearsalRepository;
+        this.rehearsalMemberRepository = rehearsalMemberRepository;
     }
 
     @GetMapping
     public String list(Model model) {
-        model.addAttribute("items", service.findAll());
+        List<Activity> activities = service.findAll();
+        model.addAttribute("items", activities);
+
+        // Assignments grouped by activity id
+        Map<Long, List<Assignment>> assignMap = new HashMap<>();
+        if (!activities.isEmpty()) {
+            List<Long> ids = activities.stream().map(Activity::getId).collect(Collectors.toList());
+            for (Assignment a : assignmentRepository.findByActivityIds(ids)) {
+                assignMap.computeIfAbsent(a.getActivity().getId(), k -> new ArrayList<>()).add(a);
+            }
+        }
+        model.addAttribute("assignMap", assignMap);
+
+        // Rehearsal stats: total & completed per activity → pre-compute pct
+        Map<Long, Integer> rehTotal = new HashMap<>();
+        Map<Long, Integer> rehDone  = new HashMap<>();
+        Map<Long, Integer> rehPct   = new HashMap<>();
+        for (Object[] row : rehearsalRepository.countAllByActivity())
+            rehTotal.put((Long) row[0], ((Number) row[1]).intValue());
+        for (Object[] row : rehearsalRepository.countCompletedByActivity())
+            rehDone.put((Long) row[0], ((Number) row[1]).intValue());
+        for (Activity a : activities) {
+            int total = rehTotal.getOrDefault(a.getId(), 0);
+            int done  = rehDone.getOrDefault(a.getId(), 0);
+            rehPct.put(a.getId(), total > 0 ? done * 100 / total : 0);
+        }
+        model.addAttribute("rehTotal", rehTotal);
+        model.addAttribute("rehDone",  rehDone);
+        model.addAttribute("rehPct",   rehPct);
+        model.addAttribute("members",  memberService.findAll());
+
+        // Rehearsal rows per activity (sorted ascending by date)
+        Map<Long, List<Rehearsal>> rehRows = new HashMap<>();
+        List<Rehearsal> allRehearsals = rehearsalRepository.findAllWithDetails();
+        for (Rehearsal r : allRehearsals) {
+            rehRows.computeIfAbsent(r.getActivity().getId(), k -> new ArrayList<>()).add(r);
+        }
+        rehRows.values().forEach(list ->
+            list.sort(java.util.Comparator.comparing(Rehearsal::getRehearsalDate)));
+        model.addAttribute("rehRows", rehRows);
+
+        // Members per rehearsal (batch load: [rehearsalId, firstName, lastName, role, attended])
+        List<Long> rehearsalIds = allRehearsals.stream()
+            .map(r -> r.getId()).collect(Collectors.toList());
+        Map<Long, List<Object[]>> rehMemberMap = new HashMap<>();
+        if (!rehearsalIds.isEmpty()) {
+            for (Object[] row : rehearsalMemberRepository.findAllMembersForRehearsalIds(rehearsalIds)) {
+                Long rid = (Long) row[0];
+                rehMemberMap.computeIfAbsent(rid, k -> new ArrayList<>()).add(row);
+            }
+        }
+        model.addAttribute("rehMemberMap", rehMemberMap);
+
+        // Member counts per rehearsal: total & attended
+        Map<Long, Integer> rehTotalMbr = new HashMap<>();
+        Map<Long, Integer> rehAttMbr   = new HashMap<>();
+        for (Map.Entry<Long, List<Object[]>> e : rehMemberMap.entrySet()) {
+            Long rid = e.getKey();
+            List<Object[]> rows = e.getValue();
+            rehTotalMbr.put(rid, rows.size());
+            int att = (int) rows.stream().filter(row -> Boolean.TRUE.equals(row[4])).count();
+            rehAttMbr.put(rid, att);
+        }
+        model.addAttribute("rehTotalMbr", rehTotalMbr);
+        model.addAttribute("rehAttMbr",   rehAttMbr);
+
         return "activity/list";
     }
 

@@ -64,13 +64,19 @@ public class RehearsalController {
     public String showCreateForm(@RequestParam(required = false) Long activityId, Model model) {
         Rehearsal item = new Rehearsal();
         item.setStatus("Scheduled");
-        if (activityId != null) item.setActivityId(activityId);
+        if (activityId != null) {
+            item.setActivityId(activityId);
+            model.addAttribute("preselectedActivity", activityService.findById(activityId));
+            model.addAttribute("returnUrl", "/activities");
+        } else {
+            model.addAttribute("preselectedActivity", null);
+            model.addAttribute("returnUrl", "/rehearsals");
+        }
         model.addAttribute("item", item);
         model.addAttribute("activities", activityService.findAll());
         model.addAttribute("members", memberService.findAll());
         model.addAttribute("existingMembers", List.of());
         model.addAttribute("memberNameMap", Map.of());
-        model.addAttribute("preselectedActivity", null);
         model.addAttribute("moreSession", false);
         model.addAttribute("addMembersMode", false);
         return "rehearsal/form";
@@ -123,6 +129,7 @@ public class RehearsalController {
                          BindingResult result,
                          @RequestParam(value = "memberIds",   required = false) List<Long>   memberIds,
                          @RequestParam(value = "memberRoles", required = false) List<String> memberRoles,
+                         @RequestParam(value = "returnUrl",   required = false, defaultValue = "/rehearsals") String returnUrl,
                          Model model,
                          RedirectAttributes attrs) {
         if (rehearsal.getActivityId() == null)
@@ -154,7 +161,8 @@ public class RehearsalController {
         service.save(rehearsal);
         service.saveMembers(rehearsal.getId(), memberIds, memberRoles);
         attrs.addFlashAttribute("success", "Rehearsal saved successfully.");
-        return "redirect:/rehearsals";
+        String redirectTo = "/activities".equals(returnUrl) ? "/activities" : "/rehearsals";
+        return "redirect:" + redirectTo;
     }
 
     @GetMapping("/{id}")
@@ -163,7 +171,9 @@ public class RehearsalController {
     }
 
     @GetMapping("/{id}/edit")
-    public String showEditForm(@PathVariable Long id, Model model) {
+    public String showEditForm(@PathVariable Long id,
+                               @RequestParam(required = false, defaultValue = "/rehearsals") String returnUrl,
+                               Model model) {
         Rehearsal item = service.findById(id);
         item.setActivityId(item.getActivity().getId());
         model.addAttribute("item", item);
@@ -171,7 +181,8 @@ public class RehearsalController {
         model.addAttribute("members", memberService.findAll());
         model.addAttribute("existingMembers", service.findMembers(id));
         model.addAttribute("memberNameMap", Map.of());
-        model.addAttribute("preselectedActivity", null);
+        model.addAttribute("preselectedActivity", item.getActivity());
+        model.addAttribute("returnUrl", returnUrl);
         model.addAttribute("moreSession", false);
         model.addAttribute("addMembersMode", false);
         return "rehearsal/form";
@@ -183,6 +194,7 @@ public class RehearsalController {
                          BindingResult result,
                          @RequestParam(value = "memberIds",   required = false) List<Long>   memberIds,
                          @RequestParam(value = "memberRoles", required = false) List<String> memberRoles,
+                         @RequestParam(value = "returnUrl",   required = false, defaultValue = "/rehearsals") String returnUrl,
                          Model model,
                          RedirectAttributes attrs) {
         if (rehearsal.getActivityId() == null)
@@ -215,7 +227,8 @@ public class RehearsalController {
         service.save(rehearsal);
         service.saveMembers(id, memberIds, memberRoles);
         attrs.addFlashAttribute("success", "Rehearsal updated successfully.");
-        return "redirect:/rehearsals";
+        String redirectTo = "/activities".equals(returnUrl) ? "/activities" : "/rehearsals";
+        return "redirect:" + redirectTo;
     }
 
     @GetMapping("/{id}/add-members")
@@ -264,16 +277,21 @@ public class RehearsalController {
     @PostMapping("/{id}/attendance")
     public String saveAttendance(@PathVariable Long id,
                                  @RequestParam(value = "attendedMemberIds", required = false) List<Long> attendedMemberIds,
+                                 @RequestParam(required = false, defaultValue = "/rehearsals") String returnUrl,
                                  RedirectAttributes attrs) {
         service.saveAttendance(id, attendedMemberIds);
         attrs.addFlashAttribute("success", "Attendance saved successfully.");
-        return "redirect:/rehearsals";
+        String redirectTo = "/activities".equals(returnUrl) ? "/activities" : "/rehearsals";
+        return "redirect:" + redirectTo;
     }
 
     @PostMapping("/{id}/delete")
-    public String delete(@PathVariable Long id, RedirectAttributes attrs) {
+    public String delete(@PathVariable Long id,
+                         @RequestParam(required = false, defaultValue = "/rehearsals") String returnUrl,
+                         RedirectAttributes attrs) {
         service.deleteById(id);
         attrs.addFlashAttribute("success", "Rehearsal deleted successfully.");
-        return "redirect:/rehearsals";
+        String redirectTo = "/activities".equals(returnUrl) ? "/activities" : "/rehearsals";
+        return "redirect:" + redirectTo;
     }
 }

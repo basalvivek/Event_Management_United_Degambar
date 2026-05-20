@@ -259,27 +259,49 @@
 
         <li><span class="sb-label">Activity Zone</span></li>
         <li><a th:href="@{/activities}"
-               th:class="${currentUri != null and currentUri.startsWith('/activities')} ? 'active'">
-            <i class="bi bi-list-task"></i> Activity Zone <span class="sb-badge">12</span></a></li>
-        <li><a th:href="@{/assignments}"
-               th:class="${currentUri != null and currentUri.startsWith('/assignments')} ? 'active'">
-            <i class="bi bi-person-lines-fill"></i> Assign Activities <span class="sb-badge">13</span></a></li>
+               th:class="${currentUri != null and (currentUri.startsWith('/activities') or currentUri.startsWith('/assignments') or currentUri.startsWith('/rehearsals') or currentUri.startsWith('/progress'))} ? 'active'">
+            <i class="bi bi-list-task"></i> Activity Hub <span class="sb-badge">12</span></a></li>
 
         <li><hr class="sb-divider"></li>
 
-        <li><span class="sb-label">Production</span></li>
-        <li><a th:href="@{/rehearsals}"
-               th:class="${currentUri != null and currentUri.startsWith('/rehearsals')} ? 'active'">
-            <i class="bi bi-clock-history"></i> Rehearsal Schedule <span class="sb-badge">14</span></a></li>
-        <li><a th:href="@{/progress}"
-               th:class="${currentUri != null and currentUri.startsWith('/progress')} ? 'active'">
-            <i class="bi bi-bar-chart-steps"></i> Activities Progress <span class="sb-badge">15</span></a></li>
         <li><span class="sb-label">House Keeping</span></li>
         <li><a th:href="@{/digital-cinematics}"
                th:class="${currentUri != null and currentUri.startsWith('/digital-cinematics')} ? 'active'">
             <i class="bi bi-camera-reels"></i> Digital Cinematics <span class="sb-badge">16</span></a></li>
 
+        <li><hr class="sb-divider"></li>
+
+        <li><span class="sb-label">Data Insights</span></li>
+        <li><a th:href="@{/analytics}"
+               th:class="${currentUri != null and currentUri.startsWith('/analytics')} ? 'active'">
+            <i class="bi bi-graph-up-arrow"></i> Analytics <span class="sb-badge">★</span></a></li>
+
+        <li><hr class="sb-divider"></li>
+
+        <li><span class="sb-label">Your Agent</span></li>
+        <li><a th:href="@{/ai-agent}"
+               th:class="${currentUri != null and currentUri.startsWith('/ai-agent')} ? 'active'">
+            <i class="bi bi-robot"></i> Ask Me <span class="sb-badge">AI</span></a></li>
+
     </ul>
+
+    <!-- Digital Clock -->
+    <div id="sb-clock"
+         style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);
+                padding:12px 14px; flex-shrink:0; text-align:center;
+                border-top:1px solid rgba(255,255,255,0.12);">
+        <div id="sb-clock-time"
+             style="color:#fff; font-size:1.35rem; font-weight:900; letter-spacing:3px;
+                    font-variant-numeric:tabular-nums; font-family:'Courier New',monospace;
+                    text-shadow:0 0 12px rgba(255,255,255,0.35); line-height:1;">
+            00:00:00
+        </div>
+        <div id="sb-clock-date"
+             style="color:rgba(255,255,255,0.6); font-size:0.6rem; font-weight:600;
+                    letter-spacing:1px; text-transform:uppercase; margin-top:4px;">
+            &nbsp;
+        </div>
+    </div>
 </nav>
 
 <!-- ═══ MAIN ═══ -->
@@ -520,6 +542,21 @@
 
 <th:block layout:fragment="page-scripts"></th:block>
 <script>
+(function(){
+    var days  = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    var months= ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    function pad(n){ return n < 10 ? '0'+n : n; }
+    function tick(){
+        var d = new Date();
+        var h = pad(d.getHours()), m = pad(d.getMinutes()), s = pad(d.getSeconds());
+        var te = document.getElementById('sb-clock-time');
+        var de = document.getElementById('sb-clock-date');
+        if(te) te.textContent = h + ':' + m + ':' + s;
+        if(de) de.textContent = days[d.getDay()] + ' ' + pad(d.getDate()) + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+    }
+    tick();
+    setInterval(tick, 1000);
+})();
 (function(){
     function applyTheme(t){
         var dark = t === 'dark';

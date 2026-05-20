@@ -45,10 +45,9 @@ public class AssignmentController {
         Assignment item = new Assignment();
         item.setStatus("Assigned");
         if (activityId != null) {
-            item.setActivityId(activityId);
             com.udjcs.activity.Activity act = activityService.findById(activityId);
             item.setActivityId(activityId);
-            if (act.getStartDate() != null) item.setAssignedDate(act.getStartDate());
+            item.setAssignedDate(java.time.LocalDate.now());
             model.addAttribute("preselectedActivity", act);
             model.addAttribute("existingAssignments", service.findByActivityId(activityId));
         }
@@ -164,6 +163,50 @@ public class AssignmentController {
         service.deleteById(id);
         attrs.addFlashAttribute("success", "Assignment deleted successfully.");
         return "redirect:/assignments";
+    }
+
+    // ── Manage members for one activity ──────────────────────────────────────
+    @GetMapping("/manage/{activityId}")
+    public String manage(@PathVariable Long activityId, Model model) {
+        model.addAttribute("activity",    activityService.findById(activityId));
+        model.addAttribute("assignments", service.findByActivityId(activityId));
+        model.addAttribute("members",     memberService.findAll());
+        return "assignment/manage";
+    }
+
+    @PostMapping("/manage/{activityId}/add")
+    public String manageAdd(@PathVariable Long activityId,
+                            @RequestParam(required = false) Long memberId,
+                            @RequestParam(defaultValue = "Volunteer") String role,
+                            RedirectAttributes attrs) {
+        if (memberId == null) {
+            attrs.addFlashAttribute("error", "Please select a member.");
+            return "redirect:/assignments/manage/" + activityId;
+        }
+        if (service.isDuplicate(activityId, memberId)) {
+            com.udjcs.member.Member m = memberService.findById(memberId);
+            attrs.addFlashAttribute("error", m.getFirstName() + " " + m.getLastName()
+                + " is already assigned to this activity.");
+            return "redirect:/assignments/manage/" + activityId;
+        }
+        Assignment a = new Assignment();
+        a.setActivityId(activityId);
+        a.setMemberId(memberId);
+        a.setAssignedDate(java.time.LocalDate.now());
+        a.setRole(role);
+        a.setStatus("Assigned");
+        service.save(a);
+        attrs.addFlashAttribute("success", "Member assigned successfully.");
+        return "redirect:/activities";
+    }
+
+    @PostMapping("/manage/{activityId}/remove/{id}")
+    public String manageRemove(@PathVariable Long activityId,
+                               @PathVariable Long id,
+                               RedirectAttributes attrs) {
+        service.deleteById(id);
+        attrs.addFlashAttribute("success", "Member removed from activity.");
+        return "redirect:/activities";
     }
 
     private void addFormData(Model model) {

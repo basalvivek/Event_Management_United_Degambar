@@ -1,0 +1,708 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head><title>Analytics</title></head>
+<body>
+<th:block layout:fragment="page-title">Analytics &amp; Insights</th:block>
+<div layout:fragment="content">
+<style>
+/* ── Design tokens ── */
+:root {
+  --an-r: 14px;
+  --an-sh: 0 1px 4px rgba(0,0,0,.05), 0 4px 14px rgba(0,0,0,.05);
+  --an-sh-h: 0 6px 22px rgba(0,0,0,.11);
+}
+
+/* ── Hero ── */
+.an-hero {
+  border-radius: 18px;
+  background: linear-gradient(135deg, #312e81 0%, #4338ca 35%, #6366f1 70%, #818cf8 100%);
+  padding: 28px 32px; position: relative; overflow: hidden;
+  box-shadow: 0 12px 40px rgba(99,102,241,.28);
+}
+.an-hero::before { content:''; position:absolute; inset:0;
+  background: radial-gradient(circle at 80% 30%, rgba(99,102,241,.2) 0%, transparent 50%),
+              radial-gradient(circle at 10% 70%, rgba(79,70,229,.15) 0%, transparent 45%); }
+.an-hero::after  { content:''; position:absolute; right:-50px; top:-50px;
+  width:200px; height:200px; border-radius:50%; background:rgba(255,255,255,.03); }
+.hero-title { color:#fff; font-weight:800; font-size:1.4rem; position:relative; z-index:1; }
+.hero-sub   { color:rgba(255,255,255,.55); font-size:.78rem; position:relative; z-index:1; margin-top:4px; }
+.hero-date  { color:rgba(255,255,255,.45); font-size:.72rem; position:relative; z-index:1; }
+.hero-kpi { text-align:center; padding:14px 20px; border-radius:12px; min-width:90px;
+  background:rgba(255,255,255,.1); backdrop-filter:blur(8px);
+  border:1px solid rgba(255,255,255,.15); position:relative; z-index:1; }
+.hero-kpi .kv { color:#fff; font-weight:900; font-size:1.6rem; line-height:1; font-variant-numeric:tabular-nums; }
+.hero-kpi .kl { color:rgba(255,255,255,.55); font-size:.59rem; text-transform:uppercase; letter-spacing:.9px; margin-top:3px; }
+
+/* ── Section heading ── */
+.an-sec {
+  display:flex; align-items:center; gap:12px; margin-bottom:16px; margin-top:8px;
+}
+.an-sec-icon {
+  width:36px; height:36px; border-radius:10px; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center; font-size:1rem;
+}
+.an-sec-title { font-size:.78rem; font-weight:800; text-transform:uppercase;
+  letter-spacing:1px; flex-grow:1; }
+.an-sec::after { content:''; flex:1; height:2px; border-radius:2px; min-width:20px; }
+
+/* ── Metric card ── */
+.mc { background:#fff; border:1px solid #e8ecf0; border-radius:var(--an-r);
+  padding:18px 20px; box-shadow:var(--an-sh); }
+.mc-num { font-size:2rem; font-weight:900; color:#0f172a; line-height:1;
+  font-variant-numeric:tabular-nums; letter-spacing:-.5px; }
+.mc-lbl { font-size:.68rem; font-weight:700; color:#64748b;
+  text-transform:uppercase; letter-spacing:.4px; margin-bottom:4px; }
+.mc-sub { font-size:.67rem; color:#94a3b8; margin-top:4px; }
+.mc-bar { width:4px; height:100%; border-radius:var(--an-r) 0 0 var(--an-r);
+  position:absolute; top:0; left:0; }
+
+/* ── Stat card (compact) ── */
+.sc { background:#fff; border:1px solid #e8ecf0; border-radius:10px;
+  padding:13px 16px; box-shadow:var(--an-sh); }
+.sc-val { font-size:1.5rem; font-weight:900; color:#0f172a; line-height:1; }
+.sc-lbl { font-size:.66rem; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:.3px; }
+
+/* ── Horizontal bar chart ── */
+.bar-item { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+.bar-lbl  { font-size:.76rem; font-weight:600; color:#374151; min-width:100px; }
+.bar-track { flex:1; height:8px; background:#f1f5f9; border-radius:4px; overflow:hidden; }
+.bar-fill  { height:100%; border-radius:4px; transition:width .5s ease; }
+.bar-val   { font-size:.73rem; font-weight:700; color:#374151; min-width:48px; text-align:right; }
+
+/* ── Donut ring (CSS only) ── */
+.ring-wrap { position:relative; width:80px; height:80px; flex-shrink:0; }
+.ring-wrap svg { transform:rotate(-90deg); }
+.ring-bg   { fill:none; stroke:#f1f5f9; stroke-width:8; }
+.ring-fill { fill:none; stroke-width:8; stroke-linecap:round; transition:stroke-dashoffset .6s ease; }
+.ring-lbl  { position:absolute; inset:0; display:flex; align-items:center;
+  justify-content:center; font-size:.82rem; font-weight:900; color:#0f172a; }
+
+/* ── Finance gradient cards ── */
+.fc { border-radius:var(--an-r); padding:18px 20px; position:relative;
+  overflow:hidden; display:block; text-decoration:none; }
+.fc::before { content:''; position:absolute; right:-20px; bottom:-20px;
+  width:80px; height:80px; border-radius:50%; background:rgba(255,255,255,.08); }
+.fc-amt { font-size:1.45rem; font-weight:900; color:#fff; line-height:1; font-variant-numeric:tabular-nums; }
+.fc-lbl { font-size:.72rem; color:rgba(255,255,255,.7); font-weight:600; margin:4px 0 8px; }
+.fc-ico { width:32px; height:32px; border-radius:8px; background:rgba(255,255,255,.2);
+  display:flex; align-items:center; justify-content:center; }
+.fc-badge { background:rgba(255,255,255,.2); color:#fff; border-radius:20px;
+  padding:2px 9px; font-size:.62rem; font-weight:700; display:inline-block; }
+
+/* ── Analytics table ── */
+.an-table { width:100%; border-collapse:collapse; }
+.an-table th { font-size:.62rem; font-weight:800; letter-spacing:.8px; text-transform:uppercase;
+  color:#94a3b8; padding:9px 14px; border-bottom:2px solid #f1f5f9; background:#fafbfc;
+  white-space:nowrap; }
+.an-table td { font-size:.8rem; padding:9px 14px; border-bottom:1px solid #f8fafc; color:#374151; vertical-align:middle; }
+.an-table tbody tr:hover td { background:#fafbff; }
+.an-table tbody tr:last-child td { border-bottom:none; }
+
+/* ── Status badges ── */
+.sb-active     { background:#d1fae5; color:#065f46; }
+.sb-planned    { background:#dbeafe; color:#1d4ed8; }
+.sb-completed  { background:#e0e7ff; color:#3730a3; }
+.sb-cancelled  { background:#fee2e2; color:#991b1b; }
+.sb-inprogress { background:#dbeafe; color:#1e40af; }
+.st-badge { border-radius:20px; padding:2px 9px; font-size:.63rem; font-weight:700; white-space:nowrap; }
+
+/* ── Dark mode ── */
+html.dark .mc, html.dark .sc { background:#111124; border-color:#1e1e3a; }
+html.dark .mc-num, html.dark .sc-val { color:#e2e2f0; }
+html.dark .mc-lbl, html.dark .sc-lbl { color:#7a7a9a; }
+html.dark .mc-sub  { color:#44445a; }
+html.dark .bar-lbl { color:#c0c0e0; }
+html.dark .bar-track { background:#1e1e3a; }
+html.dark .bar-val { color:#c0c0e0; }
+html.dark .ring-bg { stroke:#1e1e3a; }
+html.dark .ring-lbl { color:#e2e2f0; }
+html.dark .an-table th { background:#0e0e20; color:#44445a; border-color:#1e1e3a; }
+html.dark .an-table td { border-color:#1a1a32; color:#c0c0e0; }
+html.dark .an-table tbody tr:hover td { background:rgba(79,70,229,.05); }
+html.dark .sb-active    { background:rgba(5,150,105,.15); color:#4caf82; }
+html.dark .sb-planned   { background:rgba(29,78,216,.15); color:#818cf8; }
+html.dark .sb-completed { background:rgba(55,48,163,.15); color:#a5b4fc; }
+html.dark .sb-cancelled { background:rgba(153,27,27,.15); color:#f87171; }
+html.dark .sb-inprogress{ background:rgba(29,78,216,.15); color:#93c5fd; }
+</style>
+
+<!-- ════ HERO ════ -->
+<div class="an-hero mb-4">
+  <div class="d-flex align-items-center gap-4 flex-wrap">
+    <div class="flex-grow-1" style="position:relative;z-index:1;">
+      <div class="hero-title"><i class="bi bi-graph-up-arrow me-2"></i>Analytics &amp; Insights</div>
+      <div class="hero-sub">Community performance across all modules — 10 key reports</div>
+      <div class="hero-date mt-1">
+        <i class="bi bi-calendar3 me-1"></i>
+        <span th:text="${#temporals.format(#temporals.createNow(),'EEEE, dd MMMM yyyy')}"></span>
+      </div>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+      <div class="hero-kpi">
+        <div class="kv" th:text="${totalMembers}">0</div><div class="kl">Members</div>
+      </div>
+      <div class="hero-kpi">
+        <div class="kv" th:text="${totalEvents}">0</div><div class="kl">Events</div>
+      </div>
+      <div class="hero-kpi">
+        <div class="kv" th:text="${'£'+#numbers.formatDecimal(totalFunds,1,'COMMA',0,'POINT')}">£0</div>
+        <div class="kl">Total Funds</div>
+      </div>
+      <div class="hero-kpi">
+        <div class="kv" th:text="${overallCompletionPct}+'%'">0%</div>
+        <div class="kl">Completed</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SECTION: EVENTS
+════════════════════════════════════════════ -->
+<div class="an-sec">
+  <div class="an-sec-icon" style="background:#fef3c7;"><i class="bi bi-calendar-event-fill" style="color:#d97706;"></i></div>
+  <div class="an-sec-title" style="color:#d97706;">Events</div>
+  <div style="flex:1;height:2px;border-radius:2px;background:linear-gradient(to right,#fbbf24,transparent);min-width:20px;"></div>
+</div>
+
+<div class="row g-3 mb-4">
+
+  <!-- Report 1: Event Status Distribution -->
+  <div class="col-lg-4">
+    <div class="mc h-100" style="position:relative;">
+      <div class="mc-bar" style="background:#f59e0b;"></div>
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <div>
+          <div class="mc-lbl">Event Status Distribution</div>
+          <div class="mc-num" th:text="${totalEvents}">0</div>
+          <div class="mc-sub">Total events · <span th:text="${upcomingEvents}"></span> upcoming</div>
+        </div>
+        <div style="width:38px;height:38px;border-radius:10px;background:#fffbeb;display:flex;align-items:center;justify-content:center;">
+          <i class="bi bi-pie-chart-fill" style="color:#f59e0b;font-size:1rem;"></i>
+        </div>
+      </div>
+      <div th:each="entry : ${eventStatusMap}" class="bar-item">
+        <span class="bar-lbl" th:text="${entry.key}"></span>
+        <div class="bar-track">
+          <div class="bar-fill"
+               th:style="${'width:' + (maxEventStatus > 0 ? entry.value * 100 / maxEventStatus : 0) + '%;background:' + (entry.key == 'Active' ? '#10b981' : (entry.key == 'Planned' ? '#3b82f6' : (entry.key == 'Completed' ? '#6366f1' : '#f87171')))}"></div>
+        </div>
+        <span class="bar-val" th:text="${entry.value}"></span>
+      </div>
+      <div class="mt-2 pt-2" style="border-top:1px solid #f1f5f9;">
+        <div class="d-flex gap-3" style="font-size:.7rem;color:#64748b;">
+          <span><i class="bi bi-calendar-plus me-1" style="color:#3b82f6;"></i><span th:text="${upcomingEvents}"></span> upcoming</span>
+          <span><i class="bi bi-calendar-check me-1" style="color:#6366f1;"></i><span th:text="${pastEvents}"></span> past</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Report 2: Ticket Sales & Revenue -->
+  <div class="col-lg-4">
+    <div class="mc h-100" style="position:relative;">
+      <div class="mc-bar" style="background:#6366f1;"></div>
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <div>
+          <div class="mc-lbl">Ticket Sales</div>
+          <div class="mc-num" th:text="${totalTickets}">0</div>
+          <div class="mc-sub">Revenue: <span class="fw-bold" style="color:#059669;"
+               th:text="${'£'+#numbers.formatDecimal(ticketRevenue,1,'COMMA',2,'POINT')}">£0</span></div>
+        </div>
+        <div style="width:38px;height:38px;border-radius:10px;background:#eef2ff;display:flex;align-items:center;justify-content:center;">
+          <i class="bi bi-ticket-perforated-fill" style="color:#6366f1;font-size:1rem;"></i>
+        </div>
+      </div>
+      <div class="bar-item">
+        <span class="bar-lbl" style="color:#059669;">Accepted</span>
+        <div class="bar-track">
+          <div class="bar-fill" th:style="${'width:' + (totalTickets > 0 ? acceptedTickets * 100 / totalTickets : 0) + '%;background:#10b981;'}"></div>
+        </div>
+        <span class="bar-val" th:text="${acceptedTickets}"></span>
+      </div>
+      <div class="bar-item">
+        <span class="bar-lbl" style="color:#f59e0b;">Pending</span>
+        <div class="bar-track">
+          <div class="bar-fill" th:style="${'width:' + (totalTickets > 0 ? pendingTickets * 100 / totalTickets : 0) + '%;background:#fbbf24;'}"></div>
+        </div>
+        <span class="bar-val" th:text="${pendingTickets}"></span>
+      </div>
+      <div class="bar-item">
+        <span class="bar-lbl" style="color:#ef4444;">Rejected</span>
+        <div class="bar-track">
+          <div class="bar-fill" th:style="${'width:' + (totalTickets > 0 ? rejectedTickets * 100 / totalTickets : 0) + '%;background:#f87171;'}"></div>
+        </div>
+        <span class="bar-val" th:text="${rejectedTickets}"></span>
+      </div>
+      <div class="mt-2 pt-2" style="border-top:1px solid #f1f5f9;">
+        <span style="font-size:.7rem;color:#64748b;">
+          <i class="bi bi-check-circle-fill me-1" style="color:#059669;"></i>
+          Acceptance rate:
+          <strong th:text="${totalTickets > 0 ? acceptedTickets * 100 / totalTickets : 0}+'%'">0%</strong>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Report 3: Event Timeline -->
+  <div class="col-lg-4">
+    <div class="mc h-100" style="position:relative;">
+      <div class="mc-bar" style="background:#8b5cf6;"></div>
+      <div class="mc-lbl mb-2">Event Timeline</div>
+      <div class="row g-2 mb-3">
+        <div class="col-6">
+          <div class="sc text-center" style="border-color:#dbeafe;">
+            <div class="sc-val" style="color:#3b82f6;" th:text="${upcomingEvents}">0</div>
+            <div class="sc-lbl">Upcoming</div>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="sc text-center" style="border-color:#e0e7ff;">
+            <div class="sc-val" style="color:#6366f1;" th:text="${pastEvents}">0</div>
+            <div class="sc-lbl">Concluded</div>
+          </div>
+        </div>
+      </div>
+      <!-- Progress ring for upcoming % -->
+      <div class="d-flex align-items-center gap-3">
+        <div class="ring-wrap">
+          <svg viewBox="0 0 80 80" width="80" height="80">
+            <circle class="ring-bg" cx="40" cy="40" r="32"/>
+            <circle class="ring-fill" cx="40" cy="40" r="32"
+                    th:style="${'stroke:#3b82f6;stroke-dasharray:201;stroke-dashoffset:' + (201 - (totalEvents > 0 ? upcomingEvents * 201 / totalEvents : 0))}"></circle>
+          </svg>
+          <div class="ring-lbl" th:text="${totalEvents > 0 ? upcomingEvents * 100 / totalEvents : 0}+'%'">0%</div>
+        </div>
+        <div>
+          <div style="font-size:.78rem;font-weight:700;color:#1e293b;">Upcoming Rate</div>
+          <div style="font-size:.7rem;color:#94a3b8;">Events still ahead</div>
+          <div class="mt-2" style="font-size:.7rem;color:#64748b;">
+            <i class="bi bi-people me-1"></i>Supporter orgs: <strong th:text="${supporterOrgs}"></strong>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ════════════════════════════════════════════
+     SECTION: FINANCE
+════════════════════════════════════════════ -->
+<div class="an-sec">
+  <div class="an-sec-icon" style="background:#d1fae5;"><i class="bi bi-currency-pound" style="color:#059669;"></i></div>
+  <div class="an-sec-title" style="color:#059669;">Finance</div>
+  <div style="flex:1;height:2px;border-radius:2px;background:linear-gradient(to right,#34d399,transparent);min-width:20px;"></div>
+</div>
+
+<div class="row g-3 mb-4">
+
+  <!-- Report 4: Financial Summary Cards -->
+  <div class="col-12">
+    <div class="row g-2">
+      <div class="col-sm-6 col-lg-3">
+        <div class="fc" style="background:linear-gradient(135deg,#10b981,#059669);">
+          <div class="d-flex justify-content-between align-items-start mb-3">
+            <div class="fc-ico"><i class="bi bi-arrow-down-circle-fill text-white"></i></div>
+            <i class="bi bi-box-arrow-up-right" style="color:rgba(255,255,255,.3);font-size:.8rem;"></i>
+          </div>
+          <div class="fc-amt" th:text="${'£'+#numbers.formatDecimal(totalReceivable,1,'COMMA',2,'POINT')}">£0</div>
+          <div class="fc-lbl">Total Receivable</div>
+          <span class="fc-badge"><span th:text="${receivableCount}"></span> records</span>
+        </div>
+      </div>
+      <div class="col-sm-6 col-lg-3">
+        <div class="fc" style="background:linear-gradient(135deg,#f87171,#ef4444);">
+          <div class="d-flex justify-content-between align-items-start mb-3">
+            <div class="fc-ico"><i class="bi bi-arrow-up-circle-fill text-white"></i></div>
+            <i class="bi bi-box-arrow-up-right" style="color:rgba(255,255,255,.3);font-size:.8rem;"></i>
+          </div>
+          <div class="fc-amt" th:text="${'£'+#numbers.formatDecimal(totalPayable,1,'COMMA',2,'POINT')}">£0</div>
+          <div class="fc-lbl">Total Payable</div>
+          <span class="fc-badge"><span th:text="${payableCount}"></span> records</span>
+        </div>
+      </div>
+      <div class="col-sm-6 col-lg-3">
+        <div class="fc" th:style="${netPosition.signum() >= 0 ? 'background:linear-gradient(135deg,#6366f1,#8b5cf6);' : 'background:linear-gradient(135deg,#fbbf24,#f59e0b);'}">
+          <div class="d-flex justify-content-between align-items-start mb-3">
+            <div class="fc-ico"><i class="bi bi-balance-scale text-white"></i></div>
+          </div>
+          <div class="fc-amt" th:text="${'£'+#numbers.formatDecimal(netPosition,1,'COMMA',2,'POINT')}">£0</div>
+          <div class="fc-lbl">Net Position</div>
+          <span class="fc-badge">Receivable – Payable</span>
+        </div>
+      </div>
+      <div class="col-sm-6 col-lg-3">
+        <div class="fc" style="background:linear-gradient(135deg,#fbbf24,#f59e0b);">
+          <div class="d-flex justify-content-between align-items-start mb-3">
+            <div class="fc-ico"><i class="bi bi-ticket-perforated-fill text-white"></i></div>
+          </div>
+          <div class="fc-amt" th:text="${'£'+#numbers.formatDecimal(ticketRevenue,1,'COMMA',2,'POINT')}">£0</div>
+          <div class="fc-lbl">Ticket Revenue</div>
+          <span class="fc-badge"><span th:text="${acceptedTickets}"></span> accepted</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Report 5: Donation Analysis -->
+  <div class="col-lg-6">
+    <div class="mc h-100" style="position:relative;">
+      <div class="mc-bar" style="background:#0ea5e9;"></div>
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <div>
+          <div class="mc-lbl">Donation Analysis</div>
+          <div class="mc-num" th:text="${'£'+#numbers.formatDecimal(totalDonations,1,'COMMA',2,'POINT')}">£0</div>
+          <div class="mc-sub">Total donations collected</div>
+        </div>
+        <div style="width:38px;height:38px;border-radius:10px;background:#f0f9ff;display:flex;align-items:center;justify-content:center;">
+          <i class="bi bi-heart-fill" style="color:#0ea5e9;font-size:1rem;"></i>
+        </div>
+      </div>
+      <div class="bar-item">
+        <span class="bar-lbl">Organisation</span>
+        <div class="bar-track">
+          <div class="bar-fill" th:style="${'width:' + orgDonPct + '%;background:linear-gradient(90deg,#4f46e5,#7c3aed);'}"></div>
+        </div>
+        <span class="bar-val" th:text="${'£'+#numbers.formatDecimal(orgDonations,1,'COMMA',0,'POINT')}">£0</span>
+      </div>
+      <div class="bar-item">
+        <span class="bar-lbl">Member</span>
+        <div class="bar-track">
+          <div class="bar-fill" th:style="${'width:' + mbrDonPct + '%;background:linear-gradient(90deg,#0ea5e9,#0284c7);'}"></div>
+        </div>
+        <span class="bar-val" th:text="${'£'+#numbers.formatDecimal(memberDonations,1,'COMMA',0,'POINT')}">£0</span>
+      </div>
+      <div class="bar-item">
+        <span class="bar-lbl">Receivable</span>
+        <div class="bar-track">
+          <div class="bar-fill" th:style="${'width:' + recPct + '%;background:linear-gradient(90deg,#059669,#047857);'}"></div>
+        </div>
+        <span class="bar-val" th:text="${'£'+#numbers.formatDecimal(totalReceivable,1,'COMMA',0,'POINT')}">£0</span>
+      </div>
+      <div class="bar-item">
+        <span class="bar-lbl">Tickets</span>
+        <div class="bar-track">
+          <div class="bar-fill" th:style="${'width:' + tikPct + '%;background:linear-gradient(90deg,#d97706,#b45309);'}"></div>
+        </div>
+        <span class="bar-val" th:text="${'£'+#numbers.formatDecimal(ticketRevenue,1,'COMMA',0,'POINT')}">£0</span>
+      </div>
+      <div class="mt-2 pt-2" style="border-top:1px solid #f1f5f9;">
+        <div class="d-flex gap-3 flex-wrap" style="font-size:.7rem;color:#64748b;">
+          <span><i class="bi bi-building me-1" style="color:#4f46e5;"></i><span th:text="${orgDonCount}"></span> org donations</span>
+          <span><i class="bi bi-person me-1" style="color:#0ea5e9;"></i><span th:text="${mbrDonCount}"></span> member donations</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Report 6: Net Financial Position -->
+  <div class="col-lg-6">
+    <div class="mc h-100" style="position:relative;">
+      <div class="mc-bar" style="background:#059669;"></div>
+      <div class="mc-lbl mb-3">Financial Balance</div>
+      <div class="row g-2">
+        <div class="col-6">
+          <div class="sc" style="border-color:#bbf7d0;background:#f0fdf4;">
+            <div class="sc-val" style="color:#059669;" th:text="${'£'+#numbers.formatDecimal(totalReceivable,1,'COMMA',0,'POINT')}">£0</div>
+            <div class="sc-lbl" style="color:#059669;">Inflow</div>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="sc" style="border-color:#fecaca;background:#fef2f2;">
+            <div class="sc-val" style="color:#dc2626;" th:text="${'£'+#numbers.formatDecimal(totalPayable,1,'COMMA',0,'POINT')}">£0</div>
+            <div class="sc-lbl" style="color:#dc2626;">Outflow</div>
+          </div>
+        </div>
+      </div>
+      <div class="mt-3 p-3 rounded-3"
+           th:style="${netPosition.signum() >= 0 ? 'background:#f0fdf4;border:1px solid #bbf7d0;' : 'background:#fef2f2;border:1px solid #fecaca;'}">
+        <div class="d-flex align-items-center gap-2">
+          <i th:class="${netPosition.signum() >= 0} ? 'bi bi-trending-up' : 'bi bi-trending-down'"
+             th:style="${netPosition.signum() >= 0} ? 'color:#059669;font-size:1.2rem;' : 'color:#dc2626;font-size:1.2rem;'"></i>
+          <div>
+            <div style="font-size:.72rem;font-weight:700;color:#374151;">Net Position</div>
+            <div style="font-size:1.3rem;font-weight:900;font-variant-numeric:tabular-nums;"
+                 th:style="${netPosition.signum() >= 0} ? 'color:#059669;' : 'color:#dc2626;'"
+                 th:text="${(netPosition.signum() >= 0 ? '+' : '') + '£' + #numbers.formatDecimal(netPosition,1,'COMMA',2,'POINT')}">£0</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ════════════════════════════════════════════
+     SECTION: REGISTRATIONS
+════════════════════════════════════════════ -->
+<div class="an-sec">
+  <div class="an-sec-icon" style="background:#dbeafe;"><i class="bi bi-clipboard-check-fill" style="color:#3b82f6;"></i></div>
+  <div class="an-sec-title" style="color:#2563eb;">Registrations</div>
+  <div style="flex:1;height:2px;border-radius:2px;background:linear-gradient(to right,#60a5fa,transparent);min-width:20px;"></div>
+</div>
+
+<div class="row g-3 mb-4">
+
+  <!-- Report 7: Member Demographics -->
+  <div class="col-lg-5">
+    <div class="mc h-100" style="position:relative;">
+      <div class="mc-bar" style="background:#3b82f6;"></div>
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <div>
+          <div class="mc-lbl">Member Demographics</div>
+          <div class="mc-num" th:text="${totalMembers}">0</div>
+          <div class="mc-sub">Total registered members</div>
+        </div>
+        <div style="width:38px;height:38px;border-radius:10px;background:#eff6ff;display:flex;align-items:center;justify-content:center;">
+          <i class="bi bi-person-vcard-fill" style="color:#3b82f6;font-size:1rem;"></i>
+        </div>
+      </div>
+      <div class="row g-2 mb-3">
+        <div class="col-4">
+          <div class="sc text-center" style="border-color:#bbf7d0;background:#f0fdf4;">
+            <div class="sc-val" style="color:#059669;font-size:1.3rem;" th:text="${activeMembers}">0</div>
+            <div class="sc-lbl">Active</div>
+          </div>
+        </div>
+        <div class="col-4">
+          <div class="sc text-center" style="border-color:#fde68a;background:#fffbeb;">
+            <div class="sc-val" style="color:#d97706;font-size:1.3rem;" th:text="${pendingMembers}">0</div>
+            <div class="sc-lbl">Pending</div>
+          </div>
+        </div>
+        <div class="col-4">
+          <div class="sc text-center" style="border-color:#fecaca;background:#fef2f2;">
+            <div class="sc-val" style="color:#dc2626;font-size:1.3rem;" th:text="${inactiveMembers}">0</div>
+            <div class="sc-lbl">Inactive</div>
+          </div>
+        </div>
+      </div>
+      <!-- Gender split -->
+      <div style="font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:#94a3b8;margin-bottom:8px;">Gender Distribution</div>
+      <div th:each="entry : ${genderMap}" class="bar-item">
+        <span class="bar-lbl" th:text="${entry.key}"></span>
+        <div class="bar-track">
+          <div class="bar-fill"
+               th:style="${'width:' + (totalMembers > 0 ? entry.value * 100 / totalMembers : 0) + '%;background:#3b82f6;'}"></div>
+        </div>
+        <span class="bar-val" th:text="${entry.value + ' (' + (totalMembers > 0 ? entry.value * 100 / totalMembers : 0) + '%)'}"  ></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Report 8: Registrations & Top Cities -->
+  <div class="col-lg-7">
+    <div class="row g-2 h-100">
+      <div class="col-12">
+        <div class="row g-2">
+          <div class="col-sm-3">
+            <div class="sc text-center" style="border-color:#a5f3fc;background:#ecfeff;">
+              <div class="sc-val" style="color:#0891b2;" th:text="${hallCount}">0</div>
+              <div class="sc-lbl">Hall Bookings</div>
+            </div>
+          </div>
+          <div class="col-sm-3">
+            <div class="sc text-center" style="border-color:#fde68a;background:#fffbeb;">
+              <div class="sc-val" style="color:#d97706;" th:text="${foodCount}">0</div>
+              <div class="sc-lbl">Food Regs.</div>
+            </div>
+          </div>
+          <div class="col-sm-3">
+            <div class="sc text-center" style="border-color:#c7d2fe;background:#eef2ff;">
+              <div class="sc-val" style="color:#4f46e5;" th:text="${invitationCount}">0</div>
+              <div class="sc-lbl">Invitations</div>
+            </div>
+          </div>
+          <div class="col-sm-3">
+            <div class="sc text-center" style="border-color:#bbf7d0;background:#f0fdf4;">
+              <div class="sc-val" style="color:#059669;" th:text="${supporterOrgs}">0</div>
+              <div class="sc-lbl">Supporters</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12">
+        <div class="mc">
+          <div class="mc-lbl mb-3">Top Cities by Membership</div>
+          <div th:if="${#lists.isEmpty(topCities)}" class="text-muted" style="font-size:.78rem;">No city data available</div>
+          <div th:each="entry,i : ${topCities}" class="bar-item">
+            <span class="bar-lbl" th:text="${entry.key}"></span>
+            <div class="bar-track">
+              <div class="bar-fill"
+                   th:style="${'width:' + (maxCityCount > 0 ? entry.value * 100 / maxCityCount : 0) + '%;background:hsl(' + (i.index * 35 + 200) + ',65%,50%);'}"></div>
+            </div>
+            <span class="bar-val" th:text="${entry.value}"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ════════════════════════════════════════════
+     SECTION: ACTIVITIES
+════════════════════════════════════════════ -->
+<div class="an-sec">
+  <div class="an-sec-icon" style="background:#f5f3ff;"><i class="bi bi-list-task" style="color:#7c3aed;"></i></div>
+  <div class="an-sec-title" style="color:#7c3aed;">Activities</div>
+  <div style="flex:1;height:2px;border-radius:2px;background:linear-gradient(to right,#a78bfa,transparent);min-width:20px;"></div>
+</div>
+
+<div class="row g-3 mb-4">
+
+  <!-- Report 9: Activity & Rehearsal Performance -->
+  <div class="col-lg-5">
+    <div class="row g-2">
+      <div class="col-12">
+        <div class="mc" style="position:relative;">
+          <div class="mc-bar" style="background:#7c3aed;"></div>
+          <div class="d-flex align-items-center justify-content-between mb-3">
+            <div>
+              <div class="mc-lbl">Activity Performance</div>
+              <div class="mc-num" th:text="${totalActivities}">0</div>
+            </div>
+            <div style="width:38px;height:38px;border-radius:10px;background:#f5f3ff;display:flex;align-items:center;justify-content:center;">
+              <i class="bi bi-list-task" style="color:#7c3aed;font-size:1rem;"></i>
+            </div>
+          </div>
+          <div th:each="entry : ${actStatusMap}" class="bar-item">
+            <span class="bar-lbl" th:text="${entry.key}"></span>
+            <div class="bar-track">
+              <div class="bar-fill"
+                   th:style="${'width:' + (totalActivities > 0 ? entry.value * 100 / totalActivities : 0) + '%;background:' + (entry.key == 'Completed' ? '#6366f1' : (entry.key == 'In Progress' ? '#3b82f6' : (entry.key == 'Planned' ? '#f59e0b' : '#f87171')))}"></div>
+            </div>
+            <span class="bar-val" th:text="${entry.value}"></span>
+          </div>
+          <div class="mt-2 pt-2" style="border-top:1px solid #f1f5f9;">
+            <span style="font-size:.7rem;color:#64748b;">
+              <i class="bi bi-people me-1"></i><span th:text="${totalAssignments}"></span> total assignments
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="col-12">
+        <div class="mc" style="position:relative;">
+          <div class="mc-bar" style="background:#8b5cf6;"></div>
+          <div class="d-flex align-items-center gap-3">
+            <div class="ring-wrap">
+              <svg viewBox="0 0 80 80" width="80" height="80">
+                <circle class="ring-bg" cx="40" cy="40" r="32"/>
+                <circle class="ring-fill" cx="40" cy="40" r="32"
+                        th:style="${'stroke:#8b5cf6;stroke-dasharray:201;stroke-dashoffset:' + (201 - (rehCompletionPct * 201 / 100))}"></circle>
+              </svg>
+              <div class="ring-lbl" th:text="${rehCompletionPct}+'%'">0%</div>
+            </div>
+            <div class="flex-grow-1">
+              <div class="mc-lbl">Rehearsal Completion</div>
+              <div class="mc-num" th:text="${totalRehearsals}">0</div>
+              <div class="d-flex gap-3 mt-2" style="font-size:.68rem;color:#64748b;">
+                <span><i class="bi bi-check-circle-fill me-1" style="color:#059669;"></i><span th:text="${completedRehearsals}"></span> done</span>
+                <span><i class="bi bi-clock me-1" style="color:#3b82f6;"></i><span th:text="${scheduledRehearsals}"></span> scheduled</span>
+                <span><i class="bi bi-x-circle me-1" style="color:#ef4444;"></i><span th:text="${cancelledRehearsals}"></span> cancelled</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12">
+        <div class="mc" style="position:relative;">
+          <div class="mc-bar" style="background:#06b6d4;"></div>
+          <div class="mc-lbl mb-2">Assignment Roles</div>
+          <div th:each="entry,i : ${topRoles}" class="bar-item">
+            <span class="bar-lbl" th:text="${entry.key}"></span>
+            <div class="bar-track">
+              <div class="bar-fill"
+                   th:style="${'width:' + (maxRoleCount > 0 ? entry.value * 100 / maxRoleCount : 0) + '%;background:hsl(' + (220 + i.index * 30) + ',65%,55%);'}"></div>
+            </div>
+            <span class="bar-val" th:text="${entry.value}"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Report 10: Per-Activity Attendance Tracking Table -->
+  <div class="col-lg-7">
+    <div class="mc h-100" style="position:relative;">
+      <div class="mc-bar" style="background:#ec4899;"></div>
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <div>
+          <div class="mc-lbl">Per-Activity Rehearsal &amp; Attendance</div>
+          <div class="mc-sub">Sorted by rehearsal completion %</div>
+        </div>
+        <div style="width:38px;height:38px;border-radius:10px;background:#fdf2f8;display:flex;align-items:center;justify-content:center;">
+          <i class="bi bi-bar-chart-steps" style="color:#ec4899;font-size:1rem;"></i>
+        </div>
+      </div>
+      <div style="overflow-y:auto;max-height:460px;overflow-x:auto;">
+        <div th:if="${#lists.isEmpty(actAttRows)}"
+             class="text-center py-4 text-muted" style="font-size:.8rem;">
+          No activity data available yet
+        </div>
+        <table th:unless="${#lists.isEmpty(actAttRows)}" class="an-table">
+          <thead>
+            <tr>
+              <th>Activity</th>
+              <th style="text-align:center;">Status</th>
+              <th style="text-align:center;">Sessions</th>
+              <th style="min-width:100px;">Completion</th>
+              <th style="text-align:center;">Members</th>
+              <th style="min-width:90px;">Attendance</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr th:each="row : ${actAttRows}">
+              <td>
+                <div class="fw-semibold" style="font-size:.8rem;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px;"
+                     th:text="${row.name}"></div>
+              </td>
+              <td style="text-align:center;">
+                <span class="st-badge"
+                      th:classappend="${row.status == 'Active' ? 'sb-active' :
+                                       (row.status == 'Completed' ? 'sb-completed' :
+                                       (row.status == 'In Progress' ? 'sb-inprogress' :
+                                       (row.status == 'Planned' ? 'sb-planned' : 'sb-cancelled')))}"
+                      th:text="${row.status}"></span>
+              </td>
+              <td style="text-align:center;font-size:.78rem;">
+                <span class="fw-bold" th:text="${row.done}"></span>/<span th:text="${row.total}"></span>
+              </td>
+              <td>
+                <div class="d-flex align-items-center gap-1">
+                  <div class="bar-track" style="height:6px;">
+                    <div class="bar-fill" style="height:6px;"
+                         th:style="${'width:' + row.compPct + '%;background:' + (row.compPct > 75 ? '#10b981' : (row.compPct > 25 ? '#f59e0b' : '#f87171'))}"></div>
+                  </div>
+                  <span style="font-size:.68rem;font-weight:700;min-width:30px;"
+                        th:style="${row.compPct > 75 ? 'color:#059669;' : (row.compPct > 25 ? 'color:#d97706;' : 'color:#dc2626;')}"
+                        th:text="${row.compPct}+'%'"></span>
+                </div>
+              </td>
+              <td style="text-align:center;font-size:.78rem;">
+                <span class="fw-bold" th:text="${row.attMbr}"></span>/<span th:text="${row.totMbr}"></span>
+              </td>
+              <td>
+                <div class="d-flex align-items-center gap-1">
+                  <div class="bar-track" style="height:6px;">
+                    <div class="bar-fill" style="height:6px;"
+                         th:style="${'width:' + row.attPct + '%;background:#6366f1;'}"></div>
+                  </div>
+                  <span style="font-size:.68rem;font-weight:700;color:#4f46e5;min-width:30px;"
+                        th:text="${row.attPct}+'%'"></span>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+</body>
+</html>

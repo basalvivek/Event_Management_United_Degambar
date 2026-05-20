@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head><title>Manage Members</title></head>
+<body>
+<th:block layout:fragment="page-title">Manage Members</th:block>
+<div layout:fragment="content">
+<style>
+:root { --ac:#4f46e5; --ac-bg:#eef2ff; --ac-light:#818cf8; }
+
+/* ── Activity locked banner ── */
+.act-banner {
+  border-radius: 16px;
+  background: linear-gradient(135deg, #1e1b4b 0%, #3730a3 40%, #4f46e5 100%);
+  padding: 20px 24px; position: relative; overflow: hidden;
+  box-shadow: 0 8px 28px rgba(79,70,229,.28);
+}
+.act-banner::before { content:''; position:absolute; inset:0;
+  background: radial-gradient(circle at 20% 50%,rgba(255,255,255,.06) 0%,transparent 50%),
+              radial-gradient(circle at 85% 10%,rgba(255,255,255,.04) 0%,transparent 40%); }
+.act-banner::after  { content:''; position:absolute; right:-40px; top:-40px;
+  width:160px; height:160px; border-radius:50%; background:rgba(255,255,255,.04); }
+.abn-icon { width:46px; height:46px; border-radius:12px; background:rgba(255,255,255,.16);
+  display:flex; align-items:center; justify-content:center; font-size:1.2rem;
+  flex-shrink:0; position:relative; z-index:1; }
+.abn-title { color:#fff; font-weight:800; font-size:1rem; line-height:1.3; position:relative; z-index:1; }
+.abn-sub   { color:rgba(255,255,255,.62); font-size:.74rem; margin-top:3px; position:relative; z-index:1; }
+.abn-badge { border-radius:20px; padding:4px 12px; font-size:.68rem; font-weight:700;
+  position:relative; z-index:1; white-space:nowrap; }
+.abn-lock  { border-radius:8px; background:rgba(255,255,255,.15); color:rgba(255,255,255,.8);
+  font-size:.63rem; font-weight:700; padding:3px 9px; display:inline-flex; align-items:center; gap:4px;
+  position:relative; z-index:1; margin-top:6px; }
+
+/* status badges */
+.st-In-Progress { background:#dbeafe; color:#1e40af; }
+.st-Planned     { background:#ede9fe; color:#5b21b6; }
+.st-Completed   { background:#dcfce7; color:#166534; }
+.st-Cancelled   { background:#fee2e2; color:#991b1b; }
+
+/* ── Section card ── */
+.sec-card { background:#fff; border:1px solid #e8ecf0; border-radius:14px;
+  overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,.05),0 3px 10px rgba(0,0,0,.04); }
+.sec-head { background:#fafbfc; border-bottom:1px solid #f1f5f9;
+  padding:12px 18px; display:flex; align-items:center; gap:10px; }
+.sec-icon { width:30px; height:30px; border-radius:8px;
+  display:flex; align-items:center; justify-content:center; font-size:.84rem; flex-shrink:0; }
+.sec-title { font-size:.84rem; font-weight:700; color:#1e293b; }
+.sec-body  { padding:0; }
+
+/* ── Member rows ── */
+.member-row { display:flex; align-items:center; gap:12px;
+  padding:13px 18px; border-bottom:1px solid #f8fafc; transition:background .13s; }
+.member-row:last-child { border-bottom:none; }
+.member-row:hover { background:#fafbff; }
+.m-avatar { width:38px; height:38px; border-radius:50%; display:flex;
+  align-items:center; justify-content:center; font-size:.75rem; font-weight:800;
+  color:#fff; flex-shrink:0; }
+.m-name   { font-size:.85rem; font-weight:600; color:#1e293b; }
+.m-sub    { font-size:.7rem; color:#64748b; }
+.role-pill{ border-radius:20px; padding:2px 10px; font-size:.68rem; font-weight:700;
+  background:#f1f5f9; color:#475569; }
+.st-pill  { border-radius:20px; padding:2px 9px; font-size:.66rem; font-weight:700; }
+.sp-Assigned    { background:#eef2ff; color:#4338ca; }
+.sp-In-Progress { background:#dbeafe; color:#1e40af; }
+.sp-Completed   { background:#dcfce7; color:#166534; }
+.sp-Dropped     { background:#fee2e2; color:#991b1b; }
+
+/* ── Add member form ── */
+.add-section { padding:18px; background:#fff; }
+.form-label  { font-size:.77rem; font-weight:600; color:#374151; margin-bottom:5px; }
+.form-control, .form-select {
+  border-radius:9px; border:1.5px solid #e2e8f0; font-size:.85rem;
+  padding:9px 13px; color:#1e293b; transition:border-color .15s,box-shadow .15s; }
+.form-control:focus, .form-select:focus {
+  border-color:var(--ac); box-shadow:0 0 0 3px rgba(79,70,229,.1); outline:none; }
+.input-group-text { border-radius:9px 0 0 9px; border:1.5px solid #e2e8f0; border-right:0;
+  background:#f8fafc; color:#94a3b8; font-size:.88rem; padding:9px 13px; }
+.input-group .form-select { border-radius:0 9px 9px 0; border-left:0; }
+
+/* role chips */
+.role-chips { display:flex; gap:6px; flex-wrap:wrap; }
+.rc { border-radius:20px; padding:6px 14px; font-size:.76rem; font-weight:600;
+  border:1.5px solid #e2e8f0; background:#fff; color:#64748b;
+  cursor:pointer; transition:all .13s; }
+.rc.sel { background:#1e1b4b; border-color:#1e1b4b; color:#fff; }
+.rc:hover:not(.sel) { border-color:var(--ac-light); color:var(--ac); }
+
+/* ── Empty state ── */
+.empty-state { text-align:center; padding:36px 20px; color:#94a3b8; }
+
+/* Dark mode */
+html.dark .sec-card { background:#111124; border-color:#1e1e3a; }
+html.dark .sec-head { background:#0e0e20; border-bottom-color:#1e1e3a; }
+html.dark .sec-title { color:#e2e2f0; }
+html.dark .member-row { border-bottom-color:#1a1a32; }
+html.dark .member-row:hover { background:rgba(79,70,229,.05); }
+html.dark .m-name { color:#e2e2f0; }
+html.dark .m-sub  { color:#7a7a9a; }
+html.dark .role-pill { background:#1a1a32; color:#7a7a9a; }
+html.dark .add-section { background:#111124; }
+html.dark .form-control, html.dark .form-select { background:#191932; border-color:#272748; color:#e2e2f0; }
+html.dark .input-group-text { background:#191932; border-color:#272748; color:#7a7a9a; }
+html.dark .rc { background:#191932; border-color:#272748; color:#7a7a9a; }
+html.dark .rc.sel { background:#1e1e3a; border-color:#4f46e5; color:#818cf8; }
+</style>
+
+<!-- ── Back link ── -->
+<div class="mb-3">
+  <a th:href="@{/activities}" class="btn btn-sm btn-outline-secondary"
+     style="border-radius:20px;font-size:.77rem;">
+    <i class="bi bi-arrow-left me-1"></i>Back to Activity Hub
+  </a>
+</div>
+
+<!-- ── Locked activity banner ── -->
+<div class="act-banner mb-3">
+  <div class="d-flex align-items-start gap-3">
+    <div class="abn-icon"><i class="bi bi-list-task text-white"></i></div>
+    <div class="flex-grow-1">
+      <div class="abn-title" th:text="${activity.activityName}">Activity Name</div>
+      <div class="abn-sub d-flex align-items-center gap-2 flex-wrap mt-1">
+        <span th:text="${activity.activityCategory.categoryName}"></span>
+        <span th:if="${activity.responsiblePerson != null}">
+          · <i class="bi bi-person-fill me-1"></i><span th:text="${activity.responsiblePerson}"></span>
+        </span>
+        <span th:if="${activity.startDate != null}">
+          · <i class="bi bi-calendar3 me-1"></i>
+          <span th:text="${#temporals.format(activity.startDate,'dd/MM/yyyy')}"></span>
+          <span th:if="${activity.endDate != null}">
+            → <span th:text="${#temporals.format(activity.endDate,'dd/MM/yyyy')}"></span>
+          </span>
+        </span>
+        <span th:if="${activity.venue != null}">
+          · <i class="bi bi-geo-alt-fill me-1"></i><span th:text="${activity.venue}"></span>
+        </span>
+      </div>
+      <div class="mt-2 d-flex align-items-center gap-2 flex-wrap">
+        <span th:class="'abn-badge st-' + ${activity.status.replace(' ','-')}"
+              th:text="${activity.status}"></span>
+        <span class="abn-lock"><i class="bi bi-lock-fill"></i>Activity details are read-only</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Assigned members list ── -->
+<div class="sec-card mb-3">
+  <div class="sec-head">
+    <div class="sec-icon" style="background:#eef2ff;"><i class="bi bi-people-fill" style="color:#4f46e5;"></i></div>
+    <span class="sec-title">Assigned Members</span>
+    <span th:if="${not #lists.isEmpty(assignments)}"
+          class="badge rounded-pill ms-1"
+          style="background:#eef2ff;color:#4f46e5;font-size:.64rem;padding:3px 9px;"
+          th:text="${#lists.size(assignments)}"></span>
+    <span class="ms-auto text-muted" style="font-size:.7rem;">
+      Use the Remove button to un-assign a member
+    </span>
+  </div>
+
+  <div class="sec-body">
+
+    <!-- Empty state -->
+    <div th:if="${#lists.isEmpty(assignments)}" class="empty-state">
+      <i class="bi bi-people d-block mb-2" style="font-size:2rem;"></i>
+      <div style="font-size:.82rem;">No members assigned yet</div>
+      <div style="font-size:.73rem;margin-top:4px;">Use the form below to add members</div>
+    </div>
+
+    <!-- Member rows -->
+    <div th:each="a : ${assignments}" class="member-row">
+      <!-- Avatar -->
+      <div class="m-avatar"
+           th:style="'background:hsl(' + ${(a.member.id * 67) % 360} + ',55%,50%);'">
+        <span th:text="${#strings.substring(a.member.firstName,0,1) + #strings.substring(a.member.lastName,0,1)}"></span>
+      </div>
+      <!-- Name + sub -->
+      <div class="flex-grow-1 min-w-0">
+        <div class="m-name" th:text="${a.member.firstName + ' ' + a.member.lastName}"></div>
+        <div class="m-sub">
+          <span th:text="${a.member.phone}"></span>
+          <span th:if="${a.assignedDate != null}">
+            &nbsp;·&nbsp;<i class="bi bi-calendar3 me-1"></i>
+            <span th:text="${#temporals.format(a.assignedDate,'dd/MM/yyyy')}"></span>
+          </span>
+        </div>
+      </div>
+      <!-- Role -->
+      <span class="role-pill" th:text="${a.role}"></span>
+      <!-- Status -->
+      <span th:class="'st-pill sp-' + ${a.status.replace(' ','-')}"
+            th:text="${a.status}"></span>
+      <!-- Remove -->
+      <form th:action="@{/assignments/manage/{actId}/remove/{id}(actId=${activity.id},id=${a.id})}"
+            method="post" class="d-inline flex-shrink-0"
+            data-confirm="Remove this member from the activity?">
+        <button type="submit" class="btn btn-sm btn-outline-danger"
+                style="border-radius:8px;padding:4px 9px;" title="Remove from activity">
+          <i class="bi bi-person-dash-fill"></i>
+        </button>
+      </form>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── Add new member ── -->
+<div class="sec-card">
+  <div class="sec-head">
+    <div class="sec-icon" style="background:#f5f3ff;"><i class="bi bi-person-plus-fill" style="color:#7c3aed;"></i></div>
+    <span class="sec-title">Add Member</span>
+    <span class="ms-auto text-muted" style="font-size:.7rem;">
+      Already-assigned members are excluded from the dropdown
+    </span>
+  </div>
+
+  <div class="add-section">
+    <form th:action="@{/assignments/manage/{id}/add(id=${activity.id})}" method="post">
+
+      <div class="row g-3 align-items-end">
+
+        <!-- Member select -->
+        <div class="col-md-5">
+          <label class="form-label">Member <span style="color:#ef4444;">*</span></label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-person"></i></span>
+            <select class="form-select" name="memberId" id="memberSelect" required>
+              <option value="">— Select Member —</option>
+              <th:block th:each="m : ${members}">
+                <!-- Exclude already assigned members -->
+                <option th:unless="${#lists.contains(assignments.![member.id], m.id)}"
+                        th:value="${m.id}"
+                        th:text="${m.firstName + ' ' + m.lastName + ' — ' + m.phone}"></option>
+              </th:block>
+            </select>
+          </div>
+        </div>
+
+        <!-- Role picker -->
+        <div class="col-md-5">
+          <label class="form-label">Role <span style="color:#ef4444;">*</span></label>
+          <input type="hidden" name="role" id="roleHidden" value="Volunteer">
+          <div class="role-chips" id="roleChips">
+            <span th:each="r : ${ {'Volunteer','Lead','Co-Lead','Coordinator','Support','Other'} }"
+                  th:class="'rc' + (${r == 'Volunteer'} ? ' sel' : '')"
+                  th:attr="data-val=${r}" onclick="pickRole(this)"
+                  th:text="${r}"></span>
+          </div>
+        </div>
+
+        <!-- Submit -->
+        <div class="col-md-2">
+          <button type="submit" class="btn btn-primary w-100"
+                  style="border-radius:9px;padding:9px;">
+            <i class="bi bi-person-plus-fill me-1"></i>Add
+          </button>
+        </div>
+
+      </div>
+
+    </form>
+  </div>
+</div>
+
+</div>
+<th:block layout:fragment="page-scripts">
+<script>
+function pickRole(el) {
+    document.querySelectorAll('#roleChips .rc').forEach(function(c){ c.classList.remove('sel'); });
+    el.classList.add('sel');
+    document.getElementById('roleHidden').value = el.dataset.val;
+}
+</script>
+</th:block>
+</body>
+</html>

@@ -62,11 +62,12 @@
     <div class="rh-hero-icon"><i class="bi bi-clock-history text-white"></i></div>
     <div>
         <div class="rh-hero-title"
-             th:text="${item.id != null ? 'Edit Rehearsal' : (moreSession ? 'Add Another Session' : 'Schedule New Rehearsal')}"></div>
+             th:text="${item.id != null ? 'Edit Rehearsal' : (moreSession ? 'Add Another Session' : 'Add Rehearsal')}"></div>
         <div class="rh-hero-sub"
-             th:text="${moreSession ? 'Pre-filled from last session — review details and add new participants'
+             th:text="${moreSession ? 'Pre-filled from last session — review details and add participants'
                       : (item.id != null ? 'Update rehearsal details, members and status'
-                                        : 'Set date, time, venue and attach members to this session')}"></div>
+                      : (preselectedActivity != null ? 'Activity is pre-selected · fill in date, time, venue and members'
+                                                     : 'Set date, time, venue and attach members to this session'))}"></div>
     </div>
     <div th:if="${item.id != null and item.status != null}" class="ms-auto" style="position:relative;z-index:1;">
         <span th:class="'rh-status-chip chip-' + ${item.status}" th:text="${item.status}"></span>
@@ -75,6 +76,7 @@
 
 <form th:action="${addMembersMode ? '/rehearsals/' + item.id + '/add-members' : (item.id == null ? '/rehearsals' : '/rehearsals/' + item.id)}"
       th:object="${item}" method="post">
+    <input type="hidden" name="returnUrl" th:value="${returnUrl != null ? returnUrl : '/rehearsals'}">
 
     <!-- ── Section 1: Activity & Status ── -->
     <div class="sec-card">
@@ -86,16 +88,16 @@
         <div class="sec-body">
             <div class="row g-3">
 
-                <!-- Activity: locked in moreSession -->
+                <!-- Activity: locked when pre-selected from Activity Hub -->
                 <div class="col-12">
-                    <label class="form-label">Activity <span class="req" th:unless="${moreSession}">*</span></label>
-                    <div th:if="${moreSession}" class="locked-field locked-purple">
+                    <label class="form-label">Activity <span class="req" th:unless="${preselectedActivity != null}">*</span></label>
+                    <div th:if="${preselectedActivity != null}" class="locked-field locked-purple">
                         <i class="bi bi-bookmark-check-fill" style="color:#7c3aed;flex-shrink:0;"></i>
-                        <span th:text="${preselectedActivity != null ? preselectedActivity.activityName + ' [' + preselectedActivity.activityCategory.categoryName + ']' : 'Activity'}"></span>
+                        <span th:text="${preselectedActivity.activityName + ' [' + preselectedActivity.activityCategory.categoryName + ']'}"></span>
                         <input type="hidden" th:field="*{activityId}">
                         <span class="lock-badge"><i class="bi bi-lock-fill me-1"></i>Locked</span>
                     </div>
-                    <div th:unless="${moreSession}" class="input-group">
+                    <div th:unless="${preselectedActivity != null}" class="input-group">
                         <span class="input-group-text"><i class="bi bi-bookmark-check"></i></span>
                         <select class="form-select" th:field="*{activityId}"
                                 th:classappend="${#fields.hasErrors('activityId')} ? ' is-invalid'">
@@ -189,29 +191,26 @@
                 </div>
             </div>
 
-            <!-- Editable in create/edit -->
-            <div th:unless="${moreSession}" class="row g-3">
-                <div class="col-md-4">
-                    <label class="form-label">Rehearsal Date <span class="req">*</span></label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-calendar-event"></i></span>
-                        <input type="date" class="form-control" th:field="*{rehearsalDate}"
-                               th:classappend="${#fields.hasErrors('rehearsalDate')} ? ' is-invalid'"
-                               onchange="calcDuration()">
-                    </div>
+            <!-- Editable in create/edit — always one line -->
+            <div th:unless="${moreSession}" class="row g-2 flex-nowrap">
+                <div class="col-5">
+                    <label class="form-label">Date <span class="req">*</span></label>
+                    <input type="date" class="form-control form-control-sm" th:field="*{rehearsalDate}"
+                           th:classappend="${#fields.hasErrors('rehearsalDate')} ? ' is-invalid'"
+                           onchange="calcDuration()">
                     <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('rehearsalDate')}"
                          th:errors="*{rehearsalDate}"></div>
                 </div>
-                <div class="col-md-4">
-                    <label class="form-label">Start Time</label>
-                    <div class="input-group">
+                <div class="col">
+                    <label class="form-label">Start</label>
+                    <div class="input-group input-group-sm">
                         <span class="input-group-text"><i class="bi bi-clock"></i></span>
                         <input type="time" class="form-control" th:field="*{startTime}" oninput="calcDuration()">
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <label class="form-label">End Time</label>
-                    <div class="input-group">
+                <div class="col">
+                    <label class="form-label">End</label>
+                    <div class="input-group input-group-sm">
                         <span class="input-group-text"><i class="bi bi-clock-fill"></i></span>
                         <input type="time" class="form-control" th:field="*{endTime}" oninput="calcDuration()">
                     </div>
@@ -375,7 +374,7 @@
             <i class="bi bi-check-lg me-2"></i>
             <span th:text="${addMembersMode ? 'Add Members' : (item.id == null ? (moreSession ? 'Save Session' : 'Save Rehearsal') : 'Save Changes')}">Save</span>
         </button>
-        <a th:href="@{/rehearsals}" class="btn btn-cancel">
+        <a th:href="${returnUrl != null ? returnUrl : '/rehearsals'}" class="btn btn-cancel">
             <i class="bi bi-x me-1"></i>Cancel
         </a>
         <span class="ms-auto text-muted" style="font-size:.72rem;"><span class="req">*</span> Required</span>

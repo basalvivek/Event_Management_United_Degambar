@@ -18,6 +18,9 @@ public interface AssignmentRepository extends JpaRepository<Assignment, Long> {
 
     boolean existsByActivity_IdAndMember_Id(Long activityId, Long memberId);
 
+    @Query("SELECT a FROM Assignment a JOIN FETCH a.member WHERE a.activity.id IN :ids ORDER BY a.activity.id, a.id")
+    List<Assignment> findByActivityIds(@Param("ids") List<Long> ids);
+
     @Query("SELECT a FROM Assignment a JOIN FETCH a.activity act JOIN FETCH act.activityCategory WHERE a.member.id = :memberId ORDER BY a.id DESC")
     List<Assignment> findByMemberIdWithDetails(@Param("memberId") Long memberId);
 }

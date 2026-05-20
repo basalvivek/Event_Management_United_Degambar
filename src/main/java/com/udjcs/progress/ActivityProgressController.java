@@ -28,8 +28,16 @@ public class ActivityProgressController {
     }
 
     @GetMapping("/new")
-    public String showCreateForm(Model model) {
-        model.addAttribute("item", new ActivityProgress());
+    public String showCreateForm(@RequestParam(required = false) Long activityId, Model model) {
+        ActivityProgress item = new ActivityProgress();
+        item.setProgressDate(java.time.LocalDate.now());
+        if (activityId != null) {
+            item.setActivityId(activityId);
+            model.addAttribute("preselectedActivity", activityService.findById(activityId));
+        } else {
+            model.addAttribute("preselectedActivity", null);
+        }
+        model.addAttribute("item", item);
         model.addAttribute("activities", activityService.findAll());
         return "progress/form";
     }

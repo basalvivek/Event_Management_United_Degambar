@@ -24,6 +24,6 @@ public interface RehearsalMemberRepository extends JpaRepository<RehearsalMember
     @Query("SELECT rm, m FROM RehearsalMember rm JOIN Member m ON rm.memberId = m.id WHERE rm.rehearsalId = :rid")
     List<Object[]> findWithMembersByRehearsalId(@Param("rid") Long rehearsalId);
 
-    @Query("SELECT rm.rehearsalId, m.firstName, m.lastName, rm.role, rm.attended FROM RehearsalMember rm JOIN Member m ON rm.memberId = m.id WHERE rm.rehearsalId IN :ids ORDER BY rm.rehearsalId, m.firstName")
+    @Query("SELECT rm.rehearsalId, m.firstName, m.lastName, rm.role, rm.attended, rm.memberId FROM RehearsalMember rm JOIN Member m ON rm.memberId = m.id WHERE rm.rehearsalId IN :ids ORDER BY rm.rehearsalId, m.firstName")
     List<Object[]> findAllMembersForRehearsalIds(@Param("ids") List<Long> ids);
 }

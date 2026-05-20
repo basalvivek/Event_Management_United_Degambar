@@ -22,6 +22,12 @@ public interface RehearsalRepository extends JpaRepository<Rehearsal, Long> {
 
     boolean existsByActivity_IdAndRehearsalDate(Long activityId, LocalDate rehearsalDate);
 
+    @Query("SELECT r.activity.id, COUNT(r) FROM Rehearsal r GROUP BY r.activity.id")
+    List<Object[]> countAllByActivity();
+
+    @Query("SELECT r.activity.id, COUNT(r) FROM Rehearsal r WHERE r.status = 'Completed' GROUP BY r.activity.id")
+    List<Object[]> countCompletedByActivity();
+
     @Query("SELECT r FROM Rehearsal r JOIN FETCH r.activity a JOIN FETCH a.activityCategory WHERE r.activity.id = :activityId ORDER BY r.rehearsalDate DESC")
     List<Rehearsal> findByActivityIdOrderByDateDesc(@Param("activityId") Long activityId);
 }

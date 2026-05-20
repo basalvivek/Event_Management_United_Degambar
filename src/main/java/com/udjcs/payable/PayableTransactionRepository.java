@@ -15,4 +15,7 @@ public interface PayableTransactionRepository extends JpaRepository<PayableTrans
     java.util.Optional<PayableTransaction> findByIdWithEvent(@org.springframework.data.repository.query.Param("id") Long id);
 
     java.util.Optional<PayableTransaction> findBySourceTypeAndSourceId(String sourceType, Long sourceId);
+
+    @Query("SELECT COALESCE(SUM(p.totalAmount), 0) FROM PayableTransaction p")
+    java.math.BigDecimal sumTotalAmount();
 }
