@@ -83,10 +83,14 @@
                 <div class="col-md-7">
                     <label class="form-label">Organisation Name <span class="req-star" th:if="${!locked}">*</span></label>
                     <select th:if="${!locked}" class="form-select" th:field="*{sponsorOrgName}"
+                            id="sponsorOrgSelect"
+                            onchange="onSponsorChange(this)"
                             th:classappend="${#fields.hasErrors('sponsorOrgName')} ? ' is-invalid'">
-                        <option value="">— Select Sponsor —</option>
+                        <option value="" data-contact="">— Select Sponsor —</option>
                         <option th:each="sp : ${individualSponsors}"
-                                th:value="${sp.name}" th:text="${sp.name}"></option>
+                                th:value="${sp.name}"
+                                th:text="${sp.name}"
+                                th:attr="data-contact=${sp.contactPerson != null ? sp.contactPerson : ''}"></option>
                     </select>
                     <input th:if="${locked}" type="text" class="form-control bg-light text-muted"
                            th:field="*{sponsorOrgName}" th:readonly="true">
@@ -95,9 +99,10 @@
                 <div class="col-md-5">
                     <label class="form-label">Contact Person</label>
                     <input type="text" class="form-control" th:field="*{sponsorName}"
-                           placeholder="Representative name"
-                           th:readonly="${locked}"
-                           th:classappend="${locked} ? ' bg-light text-muted'">
+                           id="sponsorContactInput"
+                           placeholder="Auto-filled from sponsor record"
+                           th:readonly="${locked or (item.sponsorName != null and !#strings.isEmpty(item.sponsorName))}"
+                           th:classappend="${locked or (item.sponsorName != null and !#strings.isEmpty(item.sponsorName))} ? ' bg-light text-muted'">
                 </div>
             </div>
         </div>
@@ -339,6 +344,21 @@
 
 <th:block layout:fragment="page-scripts">
 <script>
+function onSponsorChange(sel) {
+    var opt = sel.options[sel.selectedIndex];
+    var contact = opt ? (opt.getAttribute('data-contact') || '') : '';
+    var inp = document.getElementById('sponsorContactInput');
+    if (!inp) return;
+    inp.value = contact;
+    if (contact) {
+        inp.readOnly = true;
+        inp.classList.add('bg-light', 'text-muted');
+    } else {
+        inp.readOnly = false;
+        inp.classList.remove('bg-light', 'text-muted');
+    }
+}
+
 function selectMode(chip) {
     document.querySelectorAll('.mode-chip').forEach(c => c.classList.remove('selected'));
     chip.classList.add('selected');

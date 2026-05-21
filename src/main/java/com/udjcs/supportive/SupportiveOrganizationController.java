@@ -10,8 +10,11 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/supportive")
@@ -25,13 +28,36 @@ public class SupportiveOrganizationController {
 
     @GetMapping
     public String list(Model model) {
-        model.addAttribute("items", service.findAll());
+        List<SupportiveOrganization> all = service.findAll();
+
+        LinkedHashMap<String, List<SupportiveOrganization>> grouped = all.stream()
+            .sorted(Comparator.comparing(o -> o.getName() != null ? o.getName().toLowerCase() : ""))
+            .collect(Collectors.groupingBy(
+                o -> (o.getOrganizationType() != null && !o.getOrganizationType().isBlank())
+                     ? o.getOrganizationType() : "Uncategorised",
+                LinkedHashMap::new,
+                Collectors.toList()
+            ));
+
+        LinkedHashMap<String, List<SupportiveOrganization>> sortedGrouped = new LinkedHashMap<>();
+        grouped.entrySet().stream()
+            .sorted(Map.Entry.comparingByKey(
+                Comparator.comparing(k -> k.equals("Uncategorised") ? "zzz" : k.toLowerCase())
+            ))
+            .forEach(e -> sortedGrouped.put(e.getKey(), e.getValue()));
+
+        model.addAttribute("groupedItems", sortedGrouped);
+        model.addAttribute("items", all);
         return "supportive/list";
     }
 
     @GetMapping("/new")
-    public String showCreateForm(Model model) {
-        model.addAttribute("item", new SupportiveOrganization());
+    public String showCreateForm(@RequestParam(required = false) String type, Model model) {
+        SupportiveOrganization item = new SupportiveOrganization();
+        boolean isSponsor = "sponsor".equals(type);
+        if (isSponsor) item.setOrganizationType("Sponsor");
+        model.addAttribute("item", item);
+        model.addAttribute("formType", isSponsor ? "sponsor" : "org");
         return "supportive/form";
     }
 
@@ -53,7 +79,14 @@ public class SupportiveOrganizationController {
 
     @GetMapping("/{id}/edit")
     public String showEditForm(@PathVariable Long id, Model model) {
-        model.addAttribute("item", service.findById(id));
+        SupportiveOrganization item = service.findById(id);
+        model.addAttribute("item", item);
+        String ot = item.getOrganizationType();
+        boolean isSponsor = "Sponsor".equals(ot)
+                || "Group Sponsor".equals(ot)
+                || "Individual Sponsor".equals(ot)
+                || (item.getSponsorshipType() != null && !item.getSponsorshipType().isBlank());
+        model.addAttribute("formType", isSponsor ? "sponsor" : "org");
         return "supportive/form";
     }
 

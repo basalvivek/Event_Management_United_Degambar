@@ -53,6 +53,10 @@ public class SupportiveOrganization extends BaseEntity {
     @Column(name = "logo_path", length = 255)
     private String logoPath;
 
+    @Size(max = 50)
+    @Column(name = "sponsorship_type", length = 50)
+    private String sponsorshipType;
+
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 
@@ -85,4 +89,7 @@ public class SupportiveOrganization extends BaseEntity {
 
     public String getLogoPath() { return logoPath; }
     public void setLogoPath(String logoPath) { this.logoPath = logoPath; }
+
+    public String getSponsorshipType() { return sponsorshipType; }
+    public void setSponsorshipType(String sponsorshipType) { this.sponsorshipType = sponsorshipType; }
 }

@@ -41,15 +41,22 @@
 <div style="max-width:860px;">
 
     <!-- Hero -->
-    <div class="so-hero mb-4">
+    <div class="so-hero mb-4"
+         th:style="${formType == 'sponsor'} ? 'background:linear-gradient(135deg,#78350f 0%,#b45309 60%,#d97706 100%)' : ''">
         <div class="d-flex align-items-center gap-3">
-            <div class="so-hero-icon"><i class="bi bi-people-fill"></i></div>
+            <div class="so-hero-icon"
+                 th:style="${formType == 'sponsor'} ? 'background:rgba(255,255,255,0.15);' : ''">
+                <i th:class="${formType == 'sponsor'} ? 'bi bi-award-fill' : 'bi bi-people-fill'"></i>
+            </div>
             <div>
                 <div class="so-hero-title"
-                     th:text="${item.id == null ? 'Add Supportive Organization' : 'Edit Supportive Organization'}">
+                     th:text="${formType == 'sponsor'} ? (${item.id == null} ? 'Add Sponsor' : 'Edit Sponsor') : (${item.id == null} ? 'Add Supportive Organization' : 'Edit Supportive Organization')">
                     Supportive Organization
                 </div>
-                <div class="so-hero-sub">Partner &amp; supporting organisation details</div>
+                <div class="so-hero-sub"
+                     th:text="${formType == 'sponsor'} ? 'Sponsor details and sponsorship tier' : 'Partner &amp; supporting organisation details'">
+                    details
+                </div>
             </div>
         </div>
     </div>
@@ -100,15 +107,64 @@
                         <label class="form-label">Organisation Type</label>
                         <select class="form-select" th:field="*{organizationType}">
                             <option value="">— Select type —</option>
-                            <option value="Religious Trust">Religious Trust</option>
-                            <option value="Charitable Trust">Charitable Trust</option>
-                            <option value="NGO">NGO</option>
-                            <option value="Corporate">Corporate</option>
-                            <option value="Government Body">Government Body</option>
-                            <option value="Educational Institution">Educational Institution</option>
-                            <option value="Individual Sponsor">Individual Sponsor</option>
+                            <!-- Sponsor form: only sponsor-relevant types -->
+                            <th:block th:if="${formType == 'sponsor'}">
+                                <option value="Group Sponsor">Group Sponsor</option>
+                                <option value="Individual Sponsor">Individual Sponsor</option>
+                                <option value="Other">Other</option>
+                            </th:block>
+                            <!-- Standard org form: full list -->
+                            <th:block th:unless="${formType == 'sponsor'}">
+                                <option value="Religious Trust">Religious Trust</option>
+                                <option value="Charitable Trust">Charitable Trust</option>
+                                <option value="NGO">NGO</option>
+                                <option value="Corporate">Corporate</option>
+                                <option value="Government Body">Government Body</option>
+                                <option value="Educational Institution">Educational Institution</option>
+                                <option value="Individual Sponsor">Individual Sponsor</option>
+                                <option value="Other">Other</option>
+                            </th:block>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sponsorship Details — shown only for sponsor form type -->
+        <div class="section-card" th:if="${formType == 'sponsor' or (item.sponsorshipType != null and !#strings.isEmpty(item.sponsorshipType))}">
+            <div class="section-hdr" style="background:linear-gradient(90deg,#fffbeb,#fef3c7);color:#92400e;border-bottom:2px solid #fde68a;">
+                <i class="bi bi-award-fill" style="color:#d97706;"></i> Sponsorship Details
+            </div>
+            <div class="section-body">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-5">
+                        <label class="form-label">Sponsorship Tier <span class="req">*</span></label>
+                        <select class="form-select" th:field="*{sponsorshipType}"
+                                style="border-color:#fde68a;">
+                            <option value="">— Select tier —</option>
+                            <option value="Platinum">Platinum</option>
+                            <option value="Gold">Gold</option>
+                            <option value="Silver">Silver</option>
+                            <option value="Bronze">Bronze</option>
                             <option value="Other">Other</option>
                         </select>
+                    </div>
+                    <div class="col-md-7">
+                        <!-- Tier visual guide -->
+                        <div class="d-flex gap-2 flex-wrap pb-1">
+                            <span style="background:#e8eaf6;color:#1a237e;border-radius:20px;padding:4px 14px;font-size:.73rem;font-weight:700;border:1.5px solid #c5cae9;">
+                                <i class="bi bi-gem me-1"></i>Platinum
+                            </span>
+                            <span style="background:#fef9c3;color:#713f12;border-radius:20px;padding:4px 14px;font-size:.73rem;font-weight:700;border:1.5px solid #fde68a;">
+                                <i class="bi bi-trophy-fill me-1"></i>Gold
+                            </span>
+                            <span style="background:#f1f5f9;color:#475569;border-radius:20px;padding:4px 14px;font-size:.73rem;font-weight:700;border:1.5px solid #cbd5e1;">
+                                <i class="bi bi-award me-1"></i>Silver
+                            </span>
+                            <span style="background:#fff7ed;color:#9a3412;border-radius:20px;padding:4px 14px;font-size:.73rem;font-weight:700;border:1.5px solid #fed7aa;">
+                                <i class="bi bi-award me-1"></i>Bronze
+                            </span>
+                        </div>
                     </div>
                 </div>
             </div>

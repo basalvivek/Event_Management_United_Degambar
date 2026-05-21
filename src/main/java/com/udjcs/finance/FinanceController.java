@@ -164,7 +164,7 @@ public class FinanceController {
     public String newSponsor(Model model) {
         model.addAttribute("item", new SponsorDonation());
         model.addAttribute("locked", false);
-        model.addAttribute("individualSponsors", supportiveOrgRepo.findByOrganizationTypeOrderByNameAsc("Individual Sponsor"));
+        model.addAttribute("individualSponsors", supportiveOrgRepo.findAllSponsors());
         model.addAttribute("events", eventRepo.findAll(org.springframework.data.domain.Sort.by("eventName")));
         return "finance/sponsor-form";
     }
@@ -206,7 +206,7 @@ public class FinanceController {
         model.addAttribute("instalments", insts);
         model.addAttribute("newInstalment", new PaymentInstalment());
         model.addAttribute("locked", !insts.isEmpty());
-        model.addAttribute("individualSponsors", supportiveOrgRepo.findByOrganizationTypeOrderByNameAsc("Individual Sponsor"));
+        model.addAttribute("individualSponsors", supportiveOrgRepo.findAllSponsors());
         model.addAttribute("events", eventRepo.findAll(org.springframework.data.domain.Sort.by("eventName")));
         return "finance/sponsor-form";
     }

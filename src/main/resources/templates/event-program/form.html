@@ -103,11 +103,22 @@
 
         <!-- Section 2: Programme Rows -->
         <div class="section-card">
-            <div class="section-hdr section-hdr-purple">
-                <i class="bi bi-layout-text-sidebar-reverse"></i> Programme Schedule
-                <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:0.75rem;opacity:0.7;">
-                    — add one or more programme segments
-                </span>
+            <div class="section-hdr section-hdr-purple" style="justify-content:space-between;flex-wrap:wrap;gap:8px;">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-layout-text-sidebar-reverse"></i> Programme Schedule
+                    <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:0.75rem;opacity:0.7;">
+                        — add one or more programme segments
+                    </span>
+                </div>
+                <button type="button" onclick="loadDefaultProgramme()"
+                        style="border-radius:22px;background:linear-gradient(135deg,#4f46e5,#7c3aed);
+                               color:#fff;border:0;font-size:0.74rem;font-weight:700;padding:7px 18px;
+                               box-shadow:0 3px 12px rgba(79,70,229,.30);cursor:pointer;
+                               display:inline-flex;align-items:center;gap:7px;
+                               text-transform:none;letter-spacing:.2px;transition:opacity .15s;">
+                    <i class="bi bi-calendar2-star-fill" style="font-size:0.88rem;"></i>
+                    Default Religious Programme
+                </button>
             </div>
             <div class="section-body">
                 <div id="programRows" class="d-flex flex-column gap-3 mb-3"></div>
@@ -251,6 +262,74 @@
     </form>
 </div>
 
+<!-- ── Default Religious Programme Confirmation Modal ─────────── -->
+<div class="modal fade" id="defaultProgConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:460px;">
+        <div class="modal-content border-0" style="border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,0.16);overflow:hidden;">
+
+            <div style="background:linear-gradient(135deg,#4f46e5,#7c3aed);padding:22px 28px 18px;">
+                <div class="d-flex align-items-center gap-3">
+                    <div style="width:46px;height:46px;border-radius:13px;background:rgba(255,255,255,0.18);
+                                display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <i class="bi bi-calendar2-star-fill text-white" style="font-size:1.4rem;"></i>
+                    </div>
+                    <div>
+                        <div class="fw-bold text-white" style="font-size:0.97rem;line-height:1.2;">Load Default Religious Programme?</div>
+                        <div style="color:rgba(255,255,255,0.75);font-size:0.74rem;margin-top:3px;">Existing items will be replaced</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-body px-4 pt-3 pb-1">
+                <p style="font-size:0.86rem;color:#374151;line-height:1.6;margin-bottom:12px;">
+                    You have <strong id="defaultProgReplaceCount" style="color:#6d28d9;">0</strong> existing programme(s) that will be
+                    <span style="color:#dc2626;font-weight:600;">replaced</span> with the standard 17-item Religious Culture schedule.
+                </p>
+                <div style="background:#f5f3ff;border:1.5px solid #ede9fe;border-radius:12px;padding:14px 16px;">
+                    <div style="font-size:0.63rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#6d28d9;margin-bottom:10px;">
+                        <i class="bi bi-clock-history me-1"></i>Schedule Preview — 9:00 AM to 6:00 PM (17 items)
+                    </div>
+                    <div style="font-size:0.76rem;color:#374151;line-height:1.8;">
+                        <span class="badge rounded-pill me-1" style="background:#ede9fe;color:#6d28d9;font-size:0.62rem;">09:00</span>Welcome Speech &nbsp;·&nbsp;
+                        <span class="badge rounded-pill me-1" style="background:#ede9fe;color:#6d28d9;font-size:0.62rem;">09:20</span>Mangala Charan &nbsp;·&nbsp;
+                        <span class="badge rounded-pill me-1" style="background:#ede9fe;color:#6d28d9;font-size:0.62rem;">09:45</span>Inaugural Speech &nbsp;·&nbsp;
+                        <span class="badge rounded-pill me-1" style="background:#ede9fe;color:#6d28d9;font-size:0.62rem;">10:15</span>Recognition for Teachers &nbsp;·&nbsp;
+                        <span class="badge rounded-pill me-1" style="background:#ede9fe;color:#6d28d9;font-size:0.62rem;">10:45</span>Achievement Awards &nbsp;·&nbsp;
+                        <span class="badge rounded-pill me-1" style="background:#ede9fe;color:#6d28d9;font-size:0.62rem;">11:30</span>Group Song &nbsp;·&nbsp;
+                        <span class="badge rounded-pill me-1" style="background:#ede9fe;color:#6d28d9;font-size:0.62rem;">12:00</span>Lunch Break &nbsp;·&nbsp;
+                        <span class="badge rounded-pill me-1" style="background:#ede9fe;color:#6d28d9;font-size:0.62rem;">13:00</span>Dance Performance &nbsp;·&nbsp;
+                        <span class="badge rounded-pill me-1" style="background:#ede9fe;color:#6d28d9;font-size:0.62rem;">13:30</span>Skit – Adult &nbsp;·&nbsp;
+                        <span class="badge rounded-pill me-1" style="background:#ede9fe;color:#6d28d9;font-size:0.62rem;">14:00</span>Skit – Kids &nbsp;·&nbsp;
+                        <span class="badge rounded-pill me-1" style="background:#ede9fe;color:#6d28d9;font-size:0.62rem;">14:25</span>Debate Competition &nbsp;·&nbsp;
+                        <span class="badge rounded-pill me-1" style="background:#ede9fe;color:#6d28d9;font-size:0.62rem;">14:55</span>Solo Dance &nbsp;·&nbsp;
+                        <span class="badge rounded-pill me-1" style="background:#ede9fe;color:#6d28d9;font-size:0.62rem;">15:20</span>Fancy Dress &nbsp;·&nbsp;
+                        <span class="badge rounded-pill me-1" style="background:#ede9fe;color:#6d28d9;font-size:0.62rem;">15:50</span>Garba &amp; Raas &nbsp;·&nbsp;
+                        <span class="badge rounded-pill me-1" style="background:#ede9fe;color:#6d28d9;font-size:0.62rem;">16:30</span>Aarti &nbsp;·&nbsp;
+                        <span class="badge rounded-pill me-1" style="background:#ede9fe;color:#6d28d9;font-size:0.62rem;">17:00</span>Vote of Thanks &nbsp;·&nbsp;
+                        <span class="badge rounded-pill me-1" style="background:#ede9fe;color:#6d28d9;font-size:0.62rem;">17:20</span>Closing Ceremony
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer border-0 px-4 pb-4 pt-3 gap-2">
+                <button type="button" class="btn btn-outline-secondary px-4"
+                        style="border-radius:10px;font-size:0.84rem;font-weight:600;"
+                        data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg me-1"></i>Cancel
+                </button>
+                <button type="button" data-bs-dismiss="modal" onclick="applyDefaultProgramme()"
+                        style="border-radius:10px;background:linear-gradient(135deg,#4f46e5,#7c3aed);
+                               color:#fff;border:0;font-size:0.84rem;font-weight:700;padding:9px 22px;
+                               display:inline-flex;align-items:center;gap:7px;cursor:pointer;">
+                    <i class="bi bi-calendar2-star-fill"></i>Yes, Load Default Programme
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+<!-- ──────────────────────────────────────────────────────────── -->
+
 </div>
 
 <th:block layout:fragment="page-scripts">
@@ -337,6 +416,162 @@
         });
         rowCount = document.querySelectorAll('#programRows .prog-row-card').length;
     }
+
+    /* ── Add a row with pre-filled values ─────────────────────── */
+    window.addProgramRowWithValues = function (name, startT, endT, desc, remark) {
+        rowCount++;
+        var memberSrc = document.getElementById('memberSrc');
+        var firstMemberId = (memberSrc && memberSrc.options.length > 1) ? memberSrc.options[1].value : '';
+
+        var memberOptHtml = '';
+        if (memberSrc) {
+            for (var i = 0; i < memberSrc.options.length; i++) {
+                var o = memberSrc.options[i];
+                memberOptHtml += '<option value="' + o.value + '"' +
+                    (o.value === firstMemberId ? ' selected' : '') + '>' +
+                    o.text.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</option>';
+            }
+        }
+
+        var div = document.createElement('div');
+        div.className = 'prog-row-card';
+        div.innerHTML =
+            '<button type="button" class="prog-remove-btn" onclick="removeRow(this)" title="Remove">' +
+                '<i class="bi bi-x-lg"></i>' +
+            '</button>' +
+            '<div class="d-flex align-items-center gap-2 mb-3">' +
+                '<span class="prog-row-num">' +
+                    '<i class="bi bi-layout-text-sidebar-reverse"></i>Programme ' + rowCount +
+                '</span>' +
+            '</div>' +
+            '<div class="row g-3">' +
+                '<div class="col-md-6">' +
+                    '<label class="form-label">Name <span class="required-star">*</span></label>' +
+                    '<input type="text" name="programNames" class="form-control" placeholder="e.g. Welcome Address" required>' +
+                '</div>' +
+                '<div class="col-md-6">' +
+                    '<label class="form-label">Responsible Person</label>' +
+                    '<select name="responsibleMemberIds" class="form-select">' + memberOptHtml + '</select>' +
+                '</div>' +
+                '<div class="col-12">' +
+                    '<label class="form-label">Description</label>' +
+                    '<textarea name="programDescriptions" class="form-control" rows="2" placeholder="Brief description…"></textarea>' +
+                '</div>' +
+                '<div class="col-md-4">' +
+                    '<label class="form-label">Start Time <span class="required-star">*</span></label>' +
+                    '<div class="time-input-wrap"><i class="bi bi-clock"></i>' +
+                        '<input type="time" name="startTimes" class="form-control time-input-with-icon" required>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="col-md-4">' +
+                    '<label class="form-label">End Time <span class="required-star">*</span></label>' +
+                    '<div class="time-input-wrap"><i class="bi bi-clock-fill"></i>' +
+                        '<input type="time" name="endTimes" class="form-control time-input-with-icon" required>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="col-md-4">' +
+                    '<label class="form-label">Remark</label>' +
+                    '<input type="text" name="remarks" class="form-control" placeholder="Optional note…">' +
+                '</div>' +
+            '</div>';
+
+        document.getElementById('programRows').appendChild(div);
+
+        /* Set values via properties — safe for apostrophes and special chars */
+        div.querySelector('[name="programNames"]').value        = name   || '';
+        div.querySelector('[name="programDescriptions"]').value = desc   || '';
+        div.querySelector('[name="startTimes"]').value          = startT || '';
+        div.querySelector('[name="endTimes"]').value            = endT   || '';
+        div.querySelector('[name="remarks"]').value             = remark || '';
+
+        renumber();
+    };
+
+    /* ── Count rows that have actual content ───────────────────── */
+    function filledProgRowCount() {
+        return Array.from(document.querySelectorAll('#programRows .prog-row-card'))
+            .filter(function (row) {
+                var inp = row.querySelector('[name="programNames"]');
+                return inp && inp.value.trim() !== '';
+            }).length;
+    }
+
+    /* ── Apply the standard 17-item schedule ──────────────────── */
+    window.applyDefaultProgramme = function () {
+        document.getElementById('programRows').innerHTML = '';
+        rowCount = 0;
+
+        var s = [
+            { n: 'Welcome Speech',          st: '09:00', et: '09:20',
+              d: 'Opening welcome by the host, introduction of dignitaries and guests of honour.',
+              r: 'Formal welcome ceremony' },
+            { n: 'Mangala Charan',           st: '09:20', et: '09:45',
+              d: 'Auspicious invocation with sacred Jain verses, devotional prayers and traditional benediction.',
+              r: 'Traditional opening prayer' },
+            { n: 'Inaugural Speech',         st: '09:45', et: '10:15',
+              d: 'Keynote address by the chief guest and senior community leaders on the significance of the occasion.',
+              r: 'Key speech of morning session' },
+            { n: 'Recognition for Teachers', st: '10:15', et: '10:45',
+              d: 'Felicitation of dedicated teachers and educators in recognition of their invaluable contribution to the community.',
+              r: 'Felicitation ceremony' },
+            { n: 'Achievement Awards',       st: '10:45', et: '11:30',
+              d: 'Distribution of awards, trophies and certificates to students and achievers for academic and cultural excellence.',
+              r: 'Award and certificate ceremony' },
+            { n: 'Group Song',              st: '11:30', et: '12:00',
+              d: 'Harmonious group singing of devotional bhajans and cultural songs by community participants.',
+              r: 'Cultural performance' },
+            { n: 'Lunch Break',             st: '12:00', et: '13:00',
+              d: 'Lunch break — traditional vegetarian meals will be served to all attendees in the dining area.',
+              r: 'Refreshment break' },
+            { n: 'Dance Performance',       st: '13:00', et: '13:30',
+              d: 'Classical and folk dance performances celebrating our rich cultural heritage and traditions.',
+              r: 'Afternoon cultural session' },
+            { n: 'Skit – Adult',       st: '13:30', et: '14:00',
+              d: 'Drama and skit performance by adult participants conveying meaningful social and cultural messages.',
+              r: 'Adult drama segment' },
+            { n: 'Skit – Kids',        st: '14:00', et: '14:25',
+              d: 'Entertaining and educational skit performance by the young children of our community.',
+              r: "Children's drama segment" },
+            { n: 'Debate Competition',      st: '14:25', et: '14:55',
+              d: 'Thought-provoking debate on cultural, social and ethical topics among youth participants.',
+              r: 'Youth debate segment' },
+            { n: 'Solo Dance',              st: '14:55', et: '15:20',
+              d: 'Individual dance performances by talented community members showcasing diverse classical art forms.',
+              r: 'Solo performance segment' },
+            { n: 'Fancy Dress',             st: '15:20', et: '15:50',
+              d: 'Vibrant fancy dress competition for children and youth representing cultural and religious themes.',
+              r: "Children's competition" },
+            { n: 'Garba & Raas',            st: '15:50', et: '16:30',
+              d: 'Traditional Garba and Raas folk dance celebration with full community participation and festive spirit.',
+              r: 'Community participation encouraged' },
+            { n: 'Aarti',                   st: '16:30', et: '17:00',
+              d: 'Devotional Aarti ceremony with collective prayer, offering of light to the divine and chanting of sacred mantras.',
+              r: 'Sacred evening prayer' },
+            { n: 'Vote of Thanks',          st: '17:00', et: '17:20',
+              d: 'Expression of sincere gratitude to all honoured guests, participants, volunteers and generous sponsors.',
+              r: 'Formal acknowledgement' },
+            { n: 'Closing Ceremony',        st: '17:20', et: '18:00',
+              d: 'Formal closing of the event with community gathering, prasad distribution and refreshments for all attendees.',
+              r: 'Formal close of event' },
+        ];
+
+        s.forEach(function (item) {
+            addProgramRowWithValues(item.n, item.st, item.et, item.d, item.r);
+        });
+
+        document.getElementById('programRows').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+
+    /* ── Button click handler ──────────────────────────────────── */
+    window.loadDefaultProgramme = function () {
+        var count = filledProgRowCount();
+        if (count > 0) {
+            document.getElementById('defaultProgReplaceCount').textContent = count;
+            new bootstrap.Modal(document.getElementById('defaultProgConfirmModal')).show();
+        } else {
+            applyDefaultProgramme();
+        }
+    };
 
     addProgramRow();
 })();
