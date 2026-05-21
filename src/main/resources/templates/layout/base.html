@@ -230,7 +230,7 @@
 
         <li><span class="sb-label">Finance</span></li>
         <li><a th:href="@{/finance}"
-               th:class="${currentUri != null and currentUri.startsWith('/finance')} ? 'active'">
+               th:class="${currentUri != null and currentUri.startsWith('/finance') and not currentUri.startsWith('/finance/payment-collection')} ? 'active'">
             <i class="bi bi-credit-card-2-front"></i> Donation <span class="sb-badge">05</span></a></li>
         <li><a th:href="@{/ticket-payments}"
                th:class="${currentUri != null and currentUri.startsWith('/ticket-payments')} ? 'active'">
@@ -241,6 +241,9 @@
         <li><a th:href="@{/receivable}"
                th:class="${currentUri != null and currentUri.startsWith('/receivable')} ? 'active'">
             <i class="bi bi-arrow-down-circle"></i> Receivable <span class="sb-badge">08</span></a></li>
+        <li><a th:href="@{/finance/payment-collection}"
+               th:class="${currentUri != null and currentUri.startsWith('/finance/payment-collection')} ? 'active'">
+            <i class="bi bi-bell-fill"></i> Payment Collection <span class="sb-badge">PC</span></a></li>
 
         <li><hr class="sb-divider"></li>
 

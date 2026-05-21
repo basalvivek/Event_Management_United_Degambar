@@ -427,6 +427,10 @@
                         <label class="form-label">State / County <span class="required-star">*</span></label>
                         <input type="text" class="form-control" id="v_state" placeholder="e.g. Greater London">
                     </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Post Code</label>
+                        <input type="text" class="form-control" id="v_postCode" placeholder="e.g. HA1 2AB">
+                    </div>
                     <div class="col-md-6">
                         <label class="form-label">Venue Type <span class="required-star">*</span></label>
                         <select class="form-select" id="v_venueType">
@@ -444,6 +448,73 @@
                         <label class="form-label">Capacity</label>
                         <input type="number" class="form-control" id="v_capacity" min="1" placeholder="e.g. 200">
                     </div>
+
+                    <!-- Contact Person Details -->
+                    <div class="col-12 mt-1">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <div class="d-flex align-items-center justify-content-center rounded-2"
+                                 style="width:22px;height:22px;background:linear-gradient(135deg,#4f46e5,#7c3aed);flex-shrink:0;">
+                                <i class="bi bi-person-lines-fill text-white" style="font-size:0.65rem;"></i>
+                            </div>
+                            <span class="fw-semibold" style="font-size:0.82rem;">Contact Person Details</span>
+                            <hr class="flex-grow-1 my-0" style="border-color:#e2e8f0;">
+                        </div>
+                    </div>
+
+                    <!-- Primary -->
+                    <div class="col-12">
+                        <div class="rounded-3 p-3" style="background:#f8f7ff;border:1.5px solid #e0e7ff;">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <span class="badge rounded-pill" style="background:#4f46e5;font-size:0.62rem;">PRIMARY</span>
+                                <span class="fw-medium" style="font-size:0.78rem;">Primary Contact</span>
+                                <span class="text-danger" style="font-size:0.72rem;">— Required</span>
+                            </div>
+                            <div class="row g-2">
+                                <div class="col-md-6">
+                                    <label class="form-label" style="font-size:0.78rem;">Contact Name <span class="required-star">*</span></label>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text bg-white"><i class="bi bi-person" style="color:#4f46e5;"></i></span>
+                                        <input type="text" class="form-control form-control-sm" id="v_contactPerson" placeholder="Full name">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" style="font-size:0.78rem;">Contact Phone <span class="required-star">*</span></label>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text bg-white"><i class="bi bi-telephone" style="color:#4f46e5;"></i></span>
+                                        <input type="text" class="form-control form-control-sm" id="v_contactPhone" placeholder="+44 7xxx xxxxxx">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Secondary -->
+                    <div class="col-12">
+                        <div class="rounded-3 p-3" style="background:#f8fafc;border:1.5px dashed #cbd5e1;">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <span class="badge rounded-pill" style="background:#64748b;font-size:0.62rem;">SECONDARY</span>
+                                <span class="fw-medium text-muted" style="font-size:0.78rem;">Secondary Contact</span>
+                                <span class="text-muted" style="font-size:0.72rem;">— Optional</span>
+                            </div>
+                            <div class="row g-2">
+                                <div class="col-md-6">
+                                    <label class="form-label" style="font-size:0.78rem;">Contact Name</label>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text bg-white"><i class="bi bi-person" style="color:#94a3b8;"></i></span>
+                                        <input type="text" class="form-control form-control-sm" id="v_secondaryContactName" placeholder="Full name (optional)">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" style="font-size:0.78rem;">Contact Phone</label>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text bg-white"><i class="bi bi-telephone" style="color:#94a3b8;"></i></span>
+                                        <input type="text" class="form-control form-control-sm" id="v_secondaryContactPhone" placeholder="+44 7xxx xxxxxx (optional)">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
             <div class="modal-footer border-0 px-4 pb-4 pt-0 gap-2">
@@ -509,17 +580,27 @@ function saveOrganiserQuick() {
 }
 
 function saveVenueQuick() {
-    var name    = document.getElementById('v_venueName').value.trim();
-    var address = document.getElementById('v_address').value.trim();
-    var city    = document.getElementById('v_city').value.trim();
-    var state   = document.getElementById('v_state').value.trim();
-    var type    = document.getElementById('v_venueType').value;
-    var cap     = document.getElementById('v_capacity').value;
-    var errEl   = document.getElementById('venueFormError');
+    var name          = document.getElementById('v_venueName').value.trim();
+    var address       = document.getElementById('v_address').value.trim();
+    var city          = document.getElementById('v_city').value.trim();
+    var state         = document.getElementById('v_state').value.trim();
+    var type          = document.getElementById('v_venueType').value;
+    var cap           = document.getElementById('v_capacity').value;
+    var postCode      = document.getElementById('v_postCode').value.trim();
+    var contactPerson = document.getElementById('v_contactPerson').value.trim();
+    var contactPhone  = document.getElementById('v_contactPhone').value.trim();
+    var secName       = document.getElementById('v_secondaryContactName').value.trim();
+    var secPhone      = document.getElementById('v_secondaryContactPhone').value.trim();
+    var errEl         = document.getElementById('venueFormError');
 
     errEl.classList.add('d-none');
     if (!name || !address || !city || !state || !type) {
-        errEl.textContent = 'Please fill in all required fields.';
+        errEl.textContent = 'Please fill in all required venue fields.';
+        errEl.classList.remove('d-none');
+        return;
+    }
+    if (!contactPerson || !contactPhone) {
+        errEl.textContent = 'Primary contact name and phone are required.';
         errEl.classList.remove('d-none');
         return;
     }
@@ -530,9 +611,13 @@ function saveVenueQuick() {
 
     var params = new URLSearchParams({
         venueName: name, address: address, city: city,
-        state: state, venueType: type
+        state: state, venueType: type,
+        contactPerson: contactPerson, contactPhone: contactPhone
     });
-    if (cap) params.append('capacity', cap);
+    if (cap)      params.append('capacity', cap);
+    if (postCode) params.append('postCode', postCode);
+    if (secName)  params.append('secondaryContactName', secName);
+    if (secPhone) params.append('secondaryContactPhone', secPhone);
 
     fetch('/venues/quick-add', { method: 'POST', body: params })
         .then(function(r) { return r.json(); })
@@ -544,7 +629,8 @@ function saveVenueQuick() {
             opt.selected = true;
             sel.appendChild(opt);
             bootstrap.Modal.getInstance(document.getElementById('addVenueModal')).hide();
-            ['v_venueName','v_address','v_city','v_state','v_capacity'].forEach(function(id) {
+            ['v_venueName','v_address','v_city','v_state','v_postCode','v_capacity',
+             'v_contactPerson','v_contactPhone','v_secondaryContactName','v_secondaryContactPhone'].forEach(function(id) {
                 document.getElementById(id).value = '';
             });
             document.getElementById('v_venueType').value = '';

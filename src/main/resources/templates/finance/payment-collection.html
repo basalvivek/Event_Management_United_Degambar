@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head><title>Payment Collection</title></head>
+<body>
+
+<th:block layout:fragment="page-title">Payment Collection</th:block>
+
+<div layout:fragment="content">
+
+    <style>
+        .pc-stat-card {
+            border-radius: 16px; overflow: hidden;
+            transition: transform .18s, box-shadow .18s;
+        }
+        .pc-stat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 28px rgba(0,0,0,0.10) !important; }
+
+        .pc-section-header {
+            cursor: pointer; user-select: none;
+            border-radius: 14px 14px 0 0;
+            transition: background .15s;
+        }
+        .pc-section-header:hover { filter: brightness(.97); }
+
+        .pc-table thead th {
+            font-size: 0.68rem; font-weight: 700;
+            letter-spacing: .7px; text-transform: uppercase;
+            border-bottom: none; padding: 10px 14px; white-space: nowrap;
+        }
+        .pc-table tbody td { padding: 11px 14px; vertical-align: middle; }
+        .pc-table tbody tr { transition: background .12s; }
+
+        .pending-badge {
+            font-size: 0.83rem; font-weight: 700;
+            padding: 4px 10px; border-radius: 8px;
+            display: inline-block;
+        }
+
+        .remind-btn {
+            border-radius: 22px; padding: 5px 15px;
+            font-size: 0.76rem; font-weight: 600;
+            display: inline-flex; align-items: center; gap: 7px;
+            transition: all .16s;
+            white-space: nowrap;
+        }
+        .remind-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(0,0,0,.12); }
+
+        .remind-count {
+            min-width: 20px; height: 20px;
+            border-radius: 10px; display: inline-flex;
+            align-items: center; justify-content: center;
+            font-size: 0.68rem; font-weight: 700; line-height: 1;
+            padding: 0 5px;
+        }
+
+        .event-pill {
+            font-size: 0.71rem; font-weight: 600;
+            padding: 3px 10px; border-radius: 20px;
+            display: inline-block; white-space: nowrap;
+        }
+
+        .section-card {
+            border-radius: 14px; overflow: hidden;
+            border: 1px solid rgba(0,0,0,.07);
+        }
+
+        .empty-state { padding: 48px 24px; text-align: center; }
+        .empty-state .empty-icon {
+            width: 60px; height: 60px; border-radius: 50%;
+            display: inline-flex; align-items: center; justify-content: center;
+            background: #f0fdf4; margin-bottom: 14px;
+        }
+
+        /* Dark mode overrides */
+        html.dark .pc-stat-card .card-body { background: #111124 !important; }
+        html.dark .section-card { border-color: #1e1e3a; }
+        html.dark .pc-section-header { background: #111124 !important; filter: none; }
+        html.dark .pc-section-header:hover { background: #191932 !important; }
+        html.dark .pc-table thead th { color: #44445a !important; background: #0e0e20 !important; }
+        html.dark .pc-table tbody td { border-color: #1e1e3a; color: #c0c0e0; }
+        html.dark .pc-table tbody tr:hover td { background: rgba(79,70,229,.07); }
+        html.dark .event-pill { background: rgba(79,70,229,.18) !important; color: #818cf8 !important; border-color: rgba(99,102,241,.3) !important; }
+    </style>
+
+    <!-- ── Page Header ─────────────────────────────────────────────────── -->
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h5 class="fw-bold mb-1" style="font-size:1.15rem;">Payment Collection</h5>
+            <p class="text-muted mb-0" style="font-size:0.8rem;">Track pending donations and send reminders to sponsors, organisations, and members.</p>
+        </div>
+        <a th:href="@{/finance}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-2"
+           style="border-radius:20px;font-size:0.78rem;">
+            <i class="bi bi-arrow-left"></i> Back to Ledger
+        </a>
+    </div>
+
+    <!-- ── Summary Stat Cards ───────────────────────────────────────────── -->
+    <div class="row g-3 mb-4">
+
+        <!-- Sponsor -->
+        <div class="col-6 col-xl-3">
+            <div class="card pc-stat-card border-0 shadow-sm h-100">
+                <div class="card-body p-3" style="background:linear-gradient(135deg,#fff7ed 0%,#fff 100%);">
+                    <div class="d-flex align-items-start gap-3">
+                        <div class="flex-shrink-0 d-flex align-items-center justify-content-center rounded-3"
+                             style="width:44px;height:44px;background:linear-gradient(135deg,#f97316,#c2410c);">
+                            <i class="bi bi-building-fill text-white" style="font-size:1.15rem;"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <div class="text-muted mb-1" style="font-size:0.64rem;font-weight:700;letter-spacing:.9px;text-transform:uppercase;">Sponsor Pending</div>
+                            <div class="fw-bold lh-1 mb-1" style="font-size:1.2rem;color:#c2410c;"
+                                 th:text="'£' + ${#numbers.formatDecimal(sponsorTotal, 1, 'COMMA', 2, 'POINT')}">£0.00</div>
+                            <div class="text-muted" style="font-size:0.7rem;"
+                                 th:text="${#lists.size(sponsorRows)} + ' record(s)'">0 records</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Organisation -->
+        <div class="col-6 col-xl-3">
+            <div class="card pc-stat-card border-0 shadow-sm h-100">
+                <div class="card-body p-3" style="background:linear-gradient(135deg,#eff6ff 0%,#fff 100%);">
+                    <div class="d-flex align-items-start gap-3">
+                        <div class="flex-shrink-0 d-flex align-items-center justify-content-center rounded-3"
+                             style="width:44px;height:44px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);">
+                            <i class="bi bi-people-fill text-white" style="font-size:1.15rem;"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <div class="text-muted mb-1" style="font-size:0.64rem;font-weight:700;letter-spacing:.9px;text-transform:uppercase;">Organisation Pending</div>
+                            <div class="fw-bold lh-1 mb-1" style="font-size:1.2rem;color:#1d4ed8;"
+                                 th:text="'£' + ${#numbers.formatDecimal(orgTotal, 1, 'COMMA', 2, 'POINT')}">£0.00</div>
+                            <div class="text-muted" style="font-size:0.7rem;"
+                                 th:text="${#lists.size(orgRows)} + ' record(s)'">0 records</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Member -->
+        <div class="col-6 col-xl-3">
+            <div class="card pc-stat-card border-0 shadow-sm h-100">
+                <div class="card-body p-3" style="background:linear-gradient(135deg,#f0fdf4 0%,#fff 100%);">
+                    <div class="d-flex align-items-start gap-3">
+                        <div class="flex-shrink-0 d-flex align-items-center justify-content-center rounded-3"
+                             style="width:44px;height:44px;background:linear-gradient(135deg,#22c55e,#15803d);">
+                            <i class="bi bi-person-fill text-white" style="font-size:1.15rem;"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <div class="text-muted mb-1" style="font-size:0.64rem;font-weight:700;letter-spacing:.9px;text-transform:uppercase;">Member Pending</div>
+                            <div class="fw-bold lh-1 mb-1" style="font-size:1.2rem;color:#15803d;"
+                                 th:text="'£' + ${#numbers.formatDecimal(memberTotal, 1, 'COMMA', 2, 'POINT')}">£0.00</div>
+                            <div class="text-muted" style="font-size:0.7rem;"
+                                 th:text="${#lists.size(memberRows)} + ' record(s)'">0 records</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Grand Total -->
+        <div class="col-6 col-xl-3">
+            <div class="card pc-stat-card border-0 shadow-sm h-100">
+                <div class="card-body p-3" style="background:linear-gradient(135deg,#fdf4ff 0%,#fff 100%);">
+                    <div class="d-flex align-items-start gap-3">
+                        <div class="flex-shrink-0 d-flex align-items-center justify-content-center rounded-3"
+                             style="width:44px;height:44px;background:linear-gradient(135deg,#a855f7,#7e22ce);">
+                            <i class="bi bi-cash-coin text-white" style="font-size:1.15rem;"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <div class="text-muted mb-1" style="font-size:0.64rem;font-weight:700;letter-spacing:.9px;text-transform:uppercase;">Grand Total Pending</div>
+                            <div class="fw-bold lh-1 mb-1" style="font-size:1.2rem;color:#7e22ce;"
+                                 th:text="'£' + ${#numbers.formatDecimal(grandTotal, 1, 'COMMA', 2, 'POINT')}">£0.00</div>
+                            <div class="text-muted" style="font-size:0.7rem;"
+                                 th:text="${#lists.size(sponsorRows) + #lists.size(orgRows) + #lists.size(memberRows)} + ' total records'">0 total records</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ─────────────────────────────────────────────────────────────────── -->
+    <!-- SECTION 1 · SPONSOR DONATIONS                                       -->
+    <!-- ─────────────────────────────────────────────────────────────────── -->
+    <div class="card section-card shadow-sm mb-3">
+        <div class="pc-section-header card-header d-flex align-items-center justify-content-between px-4 py-3"
+             style="background:#fff7ed;border-bottom:1.5px solid #fed7aa;"
+             data-bs-toggle="collapse" data-bs-target="#sponsorSection" aria-expanded="true">
+            <div class="d-flex align-items-center gap-3">
+                <div class="d-flex align-items-center justify-content-center rounded-3"
+                     style="width:34px;height:34px;background:linear-gradient(135deg,#f97316,#c2410c);flex-shrink:0;">
+                    <i class="bi bi-building-fill text-white" style="font-size:0.85rem;"></i>
+                </div>
+                <div>
+                    <span class="fw-bold" style="font-size:0.92rem;color:#1e293b;">Sponsor Donations</span>
+                    <span class="ms-2 text-muted" style="font-size:0.75rem;"
+                          th:text="${#lists.size(sponsorRows)} + ' pending · £' + ${#numbers.formatDecimal(sponsorTotal, 1, 'COMMA', 2, 'POINT')} + ' outstanding'">0 pending</span>
+                </div>
+            </div>
+            <i class="bi bi-chevron-down text-muted" style="transition:transform .2s;" id="chevron-sponsor"></i>
+        </div>
+        <div class="collapse show" id="sponsorSection">
+            <div class="empty-state" th:if="${#lists.isEmpty(sponsorRows)}">
+                <div class="empty-icon mx-auto">
+                    <i class="bi bi-check2-all text-success" style="font-size:1.6rem;"></i>
+                </div>
+                <div class="fw-semibold text-muted" style="font-size:0.88rem;">All sponsor donations fully received</div>
+                <small class="text-muted">No pending balances at this time.</small>
+            </div>
+            <div class="table-responsive" th:if="${not #lists.isEmpty(sponsorRows)}">
+                <table class="table table-hover pc-table mb-0">
+                    <thead style="background:#fff7ed;">
+                        <tr>
+                            <th class="ps-4 text-muted" style="width:44px;">#</th>
+                            <th class="text-muted">Event</th>
+                            <th class="text-muted">Sponsor Organisation</th>
+                            <th class="text-muted">Contact Person</th>
+                            <th class="text-end text-muted">Committed</th>
+                            <th class="text-end text-muted">Paid</th>
+                            <th class="text-end text-muted">Pending</th>
+                            <th class="pe-4 text-end text-muted">Reminder</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="row, stat : ${sponsorRows}">
+                            <td class="ps-4 text-muted fw-semibold" style="font-size:0.78rem;"
+                                th:text="${stat.count}">1</td>
+                            <td>
+                                <span class="event-pill"
+                                      style="background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;"
+                                      th:text="${row.eventName}">Event</span>
+                            </td>
+                            <td>
+                                <div class="fw-semibold" style="font-size:0.85rem;color:#1e293b;"
+                                     th:text="${row.donorName}">Name</div>
+                            </td>
+                            <td>
+                                <span style="font-size:0.82rem;" class="text-muted"
+                                      th:text="${row.contactPerson != null and !#strings.isEmpty(row.contactPerson)} ? row.contactPerson : '—'">—</span>
+                            </td>
+                            <td class="text-end">
+                                <span style="font-size:0.82rem;color:#64748b;"
+                                      th:text="'£' + ${#numbers.formatDecimal(row.committedAmount, 1, 'COMMA', 2, 'POINT')}">£0</span>
+                            </td>
+                            <td class="text-end">
+                                <span style="font-size:0.82rem;color:#15803d;font-weight:500;"
+                                      th:text="'£' + ${#numbers.formatDecimal(row.paidAmount, 1, 'COMMA', 2, 'POINT')}">£0</span>
+                            </td>
+                            <td class="text-end">
+                                <span class="pending-badge"
+                                      style="background:#fef2f2;color:#dc2626;border:1px solid #fecaca;"
+                                      th:text="'£' + ${#numbers.formatDecimal(row.pendingAmount, 1, 'COMMA', 2, 'POINT')}">£0</span>
+                            </td>
+                            <td class="pe-4 text-end">
+                                <form th:action="@{/finance/payment-collection/reminder}" method="post"
+                                      data-confirm="Send a payment reminder for this sponsor donation?">
+                                    <input type="hidden" name="sourceType" th:value="${row.sourceType}">
+                                    <input type="hidden" name="sourceId"   th:value="${row.sourceId}">
+                                    <button type="submit" class="remind-btn"
+                                            style="border:1.5px solid #f97316;color:#c2410c;background:#fff7ed;">
+                                        <span class="remind-count"
+                                              th:style="${row.reminderCount > 0} ? 'background:#ea580c;color:#fff;' : 'background:#e2e8f0;color:#94a3b8;'"
+                                              th:text="${row.reminderCount}">0</span>
+                                        <i class="bi bi-bell-fill" style="font-size:0.78rem;"></i>
+                                        Send Reminder
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    </tbody>
+                    <tfoot style="background:#fffbf5;border-top:2px solid #fed7aa;">
+                        <tr>
+                            <td colspan="4" class="ps-4 fw-semibold text-muted" style="font-size:0.78rem;padding:10px 14px;">Total</td>
+                            <td class="text-end fw-semibold" style="font-size:0.82rem;color:#64748b;padding:10px 14px;"
+                                th:text="'£' + ${#numbers.formatDecimal(sponsorCommittedTotal, 1, 'COMMA', 2, 'POINT')}"></td>
+                            <td class="text-end fw-semibold" style="font-size:0.82rem;color:#15803d;padding:10px 14px;"
+                                th:text="'£' + ${#numbers.formatDecimal(sponsorPaidTotal, 1, 'COMMA', 2, 'POINT')}"></td>
+                            <td class="text-end fw-bold pe-4" style="font-size:0.87rem;color:#dc2626;padding:10px 14px;"
+                                th:text="'£' + ${#numbers.formatDecimal(sponsorTotal, 1, 'COMMA', 2, 'POINT')}"></td>
+                            <td class="pe-4"></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ─────────────────────────────────────────────────────────────────── -->
+    <!-- SECTION 2 · ORGANISATION DONATIONS                                  -->
+    <!-- ─────────────────────────────────────────────────────────────────── -->
+    <div class="card section-card shadow-sm mb-3">
+        <div class="pc-section-header card-header d-flex align-items-center justify-content-between px-4 py-3"
+             style="background:#eff6ff;border-bottom:1.5px solid #bfdbfe;"
+             data-bs-toggle="collapse" data-bs-target="#orgSection" aria-expanded="true">
+            <div class="d-flex align-items-center gap-3">
+                <div class="d-flex align-items-center justify-content-center rounded-3"
+                     style="width:34px;height:34px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);flex-shrink:0;">
+                    <i class="bi bi-people-fill text-white" style="font-size:0.85rem;"></i>
+                </div>
+                <div>
+                    <span class="fw-bold" style="font-size:0.92rem;color:#1e293b;">Organisation Donations</span>
+                    <span class="ms-2 text-muted" style="font-size:0.75rem;"
+                          th:text="${#lists.size(orgRows)} + ' pending · £' + ${#numbers.formatDecimal(orgTotal, 1, 'COMMA', 2, 'POINT')} + ' outstanding'">0 pending</span>
+                </div>
+            </div>
+            <i class="bi bi-chevron-down text-muted" style="transition:transform .2s;" id="chevron-org"></i>
+        </div>
+        <div class="collapse show" id="orgSection">
+            <div class="empty-state" th:if="${#lists.isEmpty(orgRows)}">
+                <div class="empty-icon mx-auto" style="background:#eff6ff;">
+                    <i class="bi bi-check2-all text-primary" style="font-size:1.6rem;"></i>
+                </div>
+                <div class="fw-semibold text-muted" style="font-size:0.88rem;">All organisation donations fully received</div>
+                <small class="text-muted">No pending balances at this time.</small>
+            </div>
+            <div class="table-responsive" th:if="${not #lists.isEmpty(orgRows)}">
+                <table class="table table-hover pc-table mb-0">
+                    <thead style="background:#eff6ff;">
+                        <tr>
+                            <th class="ps-4 text-muted" style="width:44px;">#</th>
+                            <th class="text-muted">Event</th>
+                            <th class="text-muted">Organisation Name</th>
+                            <th class="text-end text-muted">Committed</th>
+                            <th class="text-end text-muted">Paid</th>
+                            <th class="text-end text-muted">Pending</th>
+                            <th class="pe-4 text-end text-muted">Reminder</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="row, stat : ${orgRows}">
+                            <td class="ps-4 text-muted fw-semibold" style="font-size:0.78rem;"
+                                th:text="${stat.count}">1</td>
+                            <td>
+                                <span class="event-pill"
+                                      style="background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;"
+                                      th:text="${row.eventName}">Event</span>
+                            </td>
+                            <td>
+                                <div class="fw-semibold" style="font-size:0.85rem;color:#1e293b;"
+                                     th:text="${row.donorName}">Name</div>
+                            </td>
+                            <td class="text-end">
+                                <span style="font-size:0.82rem;color:#64748b;"
+                                      th:text="'£' + ${#numbers.formatDecimal(row.committedAmount, 1, 'COMMA', 2, 'POINT')}">£0</span>
+                            </td>
+                            <td class="text-end">
+                                <span style="font-size:0.82rem;color:#15803d;font-weight:500;"
+                                      th:text="'£' + ${#numbers.formatDecimal(row.paidAmount, 1, 'COMMA', 2, 'POINT')}">£0</span>
+                            </td>
+                            <td class="text-end">
+                                <span class="pending-badge"
+                                      style="background:#fef2f2;color:#dc2626;border:1px solid #fecaca;"
+                                      th:text="'£' + ${#numbers.formatDecimal(row.pendingAmount, 1, 'COMMA', 2, 'POINT')}">£0</span>
+                            </td>
+                            <td class="pe-4 text-end">
+                                <form th:action="@{/finance/payment-collection/reminder}" method="post"
+                                      data-confirm="Send a payment reminder for this organisation donation?">
+                                    <input type="hidden" name="sourceType" th:value="${row.sourceType}">
+                                    <input type="hidden" name="sourceId"   th:value="${row.sourceId}">
+                                    <button type="submit" class="remind-btn"
+                                            style="border:1.5px solid #3b82f6;color:#1d4ed8;background:#eff6ff;">
+                                        <span class="remind-count"
+                                              th:style="${row.reminderCount > 0} ? 'background:#2563eb;color:#fff;' : 'background:#e2e8f0;color:#94a3b8;'"
+                                              th:text="${row.reminderCount}">0</span>
+                                        <i class="bi bi-bell-fill" style="font-size:0.78rem;"></i>
+                                        Send Reminder
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    </tbody>
+                    <tfoot style="background:#f0f7ff;border-top:2px solid #bfdbfe;">
+                        <tr>
+                            <td colspan="3" class="ps-4 fw-semibold text-muted" style="font-size:0.78rem;padding:10px 14px;">Total</td>
+                            <td class="text-end fw-semibold" style="font-size:0.82rem;color:#64748b;padding:10px 14px;"
+                                th:text="'£' + ${#numbers.formatDecimal(orgCommittedTotal, 1, 'COMMA', 2, 'POINT')}"></td>
+                            <td class="text-end fw-semibold" style="font-size:0.82rem;color:#15803d;padding:10px 14px;"
+                                th:text="'£' + ${#numbers.formatDecimal(orgPaidTotal, 1, 'COMMA', 2, 'POINT')}"></td>
+                            <td class="text-end fw-bold pe-4" style="font-size:0.87rem;color:#dc2626;padding:10px 14px;"
+                                th:text="'£' + ${#numbers.formatDecimal(orgTotal, 1, 'COMMA', 2, 'POINT')}"></td>
+                            <td class="pe-4"></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ─────────────────────────────────────────────────────────────────── -->
+    <!-- SECTION 3 · MEMBER DONATIONS                                        -->
+    <!-- ─────────────────────────────────────────────────────────────────── -->
+    <div class="card section-card shadow-sm mb-3">
+        <div class="pc-section-header card-header d-flex align-items-center justify-content-between px-4 py-3"
+             style="background:#f0fdf4;border-bottom:1.5px solid #bbf7d0;"
+             data-bs-toggle="collapse" data-bs-target="#memberSection" aria-expanded="true">
+            <div class="d-flex align-items-center gap-3">
+                <div class="d-flex align-items-center justify-content-center rounded-3"
+                     style="width:34px;height:34px;background:linear-gradient(135deg,#22c55e,#15803d);flex-shrink:0;">
+                    <i class="bi bi-person-fill text-white" style="font-size:0.85rem;"></i>
+                </div>
+                <div>
+                    <span class="fw-bold" style="font-size:0.92rem;color:#1e293b;">Member Donations</span>
+                    <span class="ms-2 text-muted" style="font-size:0.75rem;"
+                          th:text="${#lists.size(memberRows)} + ' pending · £' + ${#numbers.formatDecimal(memberTotal, 1, 'COMMA', 2, 'POINT')} + ' outstanding'">0 pending</span>
+                </div>
+            </div>
+            <i class="bi bi-chevron-down text-muted" style="transition:transform .2s;" id="chevron-member"></i>
+        </div>
+        <div class="collapse show" id="memberSection">
+            <div class="empty-state" th:if="${#lists.isEmpty(memberRows)}">
+                <div class="empty-icon mx-auto" style="background:#f0fdf4;">
+                    <i class="bi bi-check2-all text-success" style="font-size:1.6rem;"></i>
+                </div>
+                <div class="fw-semibold text-muted" style="font-size:0.88rem;">All member donations fully received</div>
+                <small class="text-muted">No pending balances at this time.</small>
+            </div>
+            <div class="table-responsive" th:if="${not #lists.isEmpty(memberRows)}">
+                <table class="table table-hover pc-table mb-0">
+                    <thead style="background:#f0fdf4;">
+                        <tr>
+                            <th class="ps-4 text-muted" style="width:44px;">#</th>
+                            <th class="text-muted">Event</th>
+                            <th class="text-muted">Member Name</th>
+                            <th class="text-end text-muted">Committed</th>
+                            <th class="text-end text-muted">Paid</th>
+                            <th class="text-end text-muted">Pending</th>
+                            <th class="pe-4 text-end text-muted">Reminder</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="row, stat : ${memberRows}">
+                            <td class="ps-4 text-muted fw-semibold" style="font-size:0.78rem;"
+                                th:text="${stat.count}">1</td>
+                            <td>
+                                <span class="event-pill"
+                                      style="background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;"
+                                      th:text="${row.eventName}">Event</span>
+                            </td>
+                            <td>
+                                <div class="fw-semibold" style="font-size:0.85rem;color:#1e293b;"
+                                     th:text="${row.donorName}">Name</div>
+                            </td>
+                            <td class="text-end">
+                                <span style="font-size:0.82rem;color:#64748b;"
+                                      th:text="'£' + ${#numbers.formatDecimal(row.committedAmount, 1, 'COMMA', 2, 'POINT')}">£0</span>
+                            </td>
+                            <td class="text-end">
+                                <span style="font-size:0.82rem;color:#15803d;font-weight:500;"
+                                      th:text="'£' + ${#numbers.formatDecimal(row.paidAmount, 1, 'COMMA', 2, 'POINT')}">£0</span>
+                            </td>
+                            <td class="text-end">
+                                <span class="pending-badge"
+                                      style="background:#fef2f2;color:#dc2626;border:1px solid #fecaca;"
+                                      th:text="'£' + ${#numbers.formatDecimal(row.pendingAmount, 1, 'COMMA', 2, 'POINT')}">£0</span>
+                            </td>
+                            <td class="pe-4 text-end">
+                                <form th:action="@{/finance/payment-collection/reminder}" method="post"
+                                      data-confirm="Send a payment reminder for this member donation?">
+                                    <input type="hidden" name="sourceType" th:value="${row.sourceType}">
+                                    <input type="hidden" name="sourceId"   th:value="${row.sourceId}">
+                                    <button type="submit" class="remind-btn"
+                                            style="border:1.5px solid #22c55e;color:#15803d;background:#f0fdf4;">
+                                        <span class="remind-count"
+                                              th:style="${row.reminderCount > 0} ? 'background:#16a34a;color:#fff;' : 'background:#e2e8f0;color:#94a3b8;'"
+                                              th:text="${row.reminderCount}">0</span>
+                                        <i class="bi bi-bell-fill" style="font-size:0.78rem;"></i>
+                                        Send Reminder
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    </tbody>
+                    <tfoot style="background:#f0faf0;border-top:2px solid #bbf7d0;">
+                        <tr>
+                            <td colspan="3" class="ps-4 fw-semibold text-muted" style="font-size:0.78rem;padding:10px 14px;">Total</td>
+                            <td class="text-end fw-semibold" style="font-size:0.82rem;color:#64748b;padding:10px 14px;"
+                                th:text="'£' + ${#numbers.formatDecimal(memberCommittedTotal, 1, 'COMMA', 2, 'POINT')}"></td>
+                            <td class="text-end fw-semibold" style="font-size:0.82rem;color:#15803d;padding:10px 14px;"
+                                th:text="'£' + ${#numbers.formatDecimal(memberPaidTotal, 1, 'COMMA', 2, 'POINT')}"></td>
+                            <td class="text-end fw-bold pe-4" style="font-size:0.87rem;color:#dc2626;padding:10px 14px;"
+                                th:text="'£' + ${#numbers.formatDecimal(memberTotal, 1, 'COMMA', 2, 'POINT')}"></td>
+                            <td class="pe-4"></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<th:block layout:fragment="page-scripts">
+<script>
+(function () {
+    // Rotate chevron on collapse toggle
+    ['sponsor','org','member'].forEach(function(key) {
+        var el = document.getElementById(key + 'Section');
+        if (!el) return;
+        var chevron = document.getElementById('chevron-' + key);
+        if (!chevron) return;
+        el.addEventListener('hide.bs.collapse', function () {
+            chevron.style.transform = 'rotate(-90deg)';
+        });
+        el.addEventListener('show.bs.collapse', function () {
+            chevron.style.transform = 'rotate(0deg)';
+        });
+    });
+})();
+</script>
+</th:block>
+
+</body>
+</html>

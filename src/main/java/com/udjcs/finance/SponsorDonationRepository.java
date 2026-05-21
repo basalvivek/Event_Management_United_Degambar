@@ -14,4 +14,7 @@ public interface SponsorDonationRepository extends JpaRepository<SponsorDonation
 
     @Query("SELECT s FROM SponsorDonation s LEFT JOIN FETCH s.event WHERE s.id = :id")
     Optional<SponsorDonation> findByIdWithEvent(@org.springframework.data.repository.query.Param("id") Long id);
+
+    @Query("SELECT s FROM SponsorDonation s LEFT JOIN FETCH s.event WHERE s.donatedAmount IS NULL OR s.committedAmount > s.donatedAmount ORDER BY s.id DESC")
+    List<SponsorDonation> findPendingWithEvent();
 }

@@ -31,4 +31,7 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
     @Query("SELECT COUNT(p) FROM Payment p WHERE p.member IS NOT NULL")
     long countMemberDonations();
+
+    @Query("SELECT p FROM Payment p LEFT JOIN FETCH p.supportiveOrganization LEFT JOIN FETCH p.member LEFT JOIN FETCH p.event WHERE p.committedAmount IS NOT NULL AND (p.amount IS NULL OR p.committedAmount > p.amount) ORDER BY p.id DESC")
+    List<Payment> findPendingWithDetails();
 }

@@ -71,6 +71,13 @@ public class Organization extends BaseEntity {
     @Column(name = "banner_mime_type", length = 50)
     private String bannerMimeType;
 
+    @Size(max = 150)
+    @Column(name = "signature_name", length = 150)
+    private String signatureName;
+
+    @Column(name = "signature_data", columnDefinition = "TEXT")
+    private String signatureData;
+
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 
@@ -118,4 +125,10 @@ public class Organization extends BaseEntity {
 
     public String getBannerMimeType() { return bannerMimeType; }
     public void setBannerMimeType(String bannerMimeType) { this.bannerMimeType = bannerMimeType; }
+
+    public String getSignatureName() { return signatureName; }
+    public void setSignatureName(String signatureName) { this.signatureName = signatureName; }
+
+    public String getSignatureData() { return signatureData; }
+    public void setSignatureData(String signatureData) { this.signatureData = signatureData; }
 }

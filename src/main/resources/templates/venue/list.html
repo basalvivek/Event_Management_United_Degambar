@@ -38,14 +38,27 @@
                         <td class="fw-medium" th:text="${item.venueName}"></td>
                         <td><span class="badge bg-primary bg-opacity-75" th:text="${item.venueType}"></span></td>
                         <td th:text="${item.city}"></td>
-                        <td th:text="${item.state}"></td>
+                        <td>
+                            <span th:text="${item.state}"></span>
+                            <span th:if="${item.postCode != null and !#strings.isEmpty(item.postCode)}"
+                                  class="text-muted d-block" style="font-size:0.75rem;" th:text="${item.postCode}"></span>
+                        </td>
                         <td th:text="${item.capacity != null} ? ${item.capacity} : '-'"></td>
                         <td th:text="${item.bookingPrice != null} ? ${#numbers.formatDecimal(item.bookingPrice, 1, 2)} : '-'"></td>
                         <td th:text="${item.discountPrice != null} ? ${#numbers.formatDecimal(item.discountPrice, 1, 2)} : '-'"></td>
-                        <td>
-                            <span th:if="${item.contactPerson != null}" th:text="${item.contactPerson}"></span>
-                            <span th:if="${item.contactPhone != null}" class="text-muted d-block" style="font-size:0.78rem;" th:text="${item.contactPhone}"></span>
-                            <span th:if="${item.contactPerson == null}" class="text-muted">-</span>
+                        <td style="min-width:160px;">
+                            <div class="d-flex align-items-center gap-1 mb-1">
+                                <span class="badge rounded-pill" style="background:#4f46e5;font-size:0.6rem;padding:2px 6px;">P</span>
+                                <span style="font-size:0.82rem;font-weight:500;" th:text="${item.contactPerson}"></span>
+                            </div>
+                            <div class="text-muted mb-1" style="font-size:0.75rem;padding-left:20px;" th:text="${item.contactPhone}"></div>
+                            <th:block th:if="${item.secondaryContactName != null and !#strings.isEmpty(item.secondaryContactName)}">
+                                <div class="d-flex align-items-center gap-1 mb-1">
+                                    <span class="badge rounded-pill" style="background:#64748b;font-size:0.6rem;padding:2px 6px;">S</span>
+                                    <span style="font-size:0.82rem;" th:text="${item.secondaryContactName}"></span>
+                                </div>
+                                <div class="text-muted" style="font-size:0.75rem;padding-left:20px;" th:if="${item.secondaryContactPhone != null}" th:text="${item.secondaryContactPhone}"></div>
+                            </th:block>
                         </td>
                         <td>
                             <span th:with="sc=${item.status == 'Available'} ? 'bg-success' : (${item.status == 'Booked'} ? 'bg-warning text-dark' : 'bg-danger')"

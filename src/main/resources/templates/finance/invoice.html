@@ -202,8 +202,14 @@
         </div>
         <div class="col-6 text-end">
             <div style="border-top:1.5px solid #374151;padding-top:8px;margin-top:40px;">
+                <th:block th:if="${org != null and org.signatureData != null}">
+                    <img th:src="${org.signatureData}"
+                         alt="Signature"
+                         style="max-width:220px;max-height:72px;object-fit:contain;display:block;margin-left:auto;margin-bottom:4px;">
+                </th:block>
                 <div class="info-sub">Authorised Signatory</div>
-                <div class="info-sub mt-1" th:text="${org != null ? org.name : 'Organisation'}"></div>
+                <div class="info-sub mt-1 fw-semibold"
+                     th:text="${org != null and org.signatureName != null and !#strings.isEmpty(org.signatureName)} ? org.signatureName : (org != null ? org.name : 'Organisation')"></div>
             </div>
         </div>
     </div>

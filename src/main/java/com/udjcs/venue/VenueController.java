@@ -81,7 +81,12 @@ public class VenueController {
             @RequestParam String city,
             @RequestParam String state,
             @RequestParam String venueType,
-            @RequestParam(required = false) Integer capacity) {
+            @RequestParam(required = false) Integer capacity,
+            @RequestParam(required = false) String postCode,
+            @RequestParam String contactPerson,
+            @RequestParam String contactPhone,
+            @RequestParam(required = false) String secondaryContactName,
+            @RequestParam(required = false) String secondaryContactPhone) {
         Venue v = new Venue();
         v.setVenueName(venueName.trim());
         v.setAddress(address.trim());
@@ -89,6 +94,13 @@ public class VenueController {
         v.setState(state.trim());
         v.setVenueType(venueType.trim());
         v.setCapacity(capacity);
+        if (postCode != null && !postCode.isBlank()) v.setPostCode(postCode.trim());
+        v.setContactPerson(contactPerson.trim());
+        v.setContactPhone(contactPhone.trim());
+        if (secondaryContactName != null && !secondaryContactName.isBlank())
+            v.setSecondaryContactName(secondaryContactName.trim());
+        if (secondaryContactPhone != null && !secondaryContactPhone.isBlank())
+            v.setSecondaryContactPhone(secondaryContactPhone.trim());
         v.setStatus("Active");
         service.save(v);
         Map<String, String> result = new LinkedHashMap<>();

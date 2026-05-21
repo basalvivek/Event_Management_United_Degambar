@@ -2,7 +2,10 @@
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout/base}">
-<head><title>Organization Form</title></head>
+<head>
+    <title>Organization Form</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&display=swap">
+</head>
 <body>
 
 <th:block layout:fragment="page-title"
@@ -132,6 +135,81 @@
                               placeholder="Brief description of the organization"></textarea>
                 </div>
 
+                <!-- ── Digital Signature ─────────────────────────────────── -->
+                <div class="mb-4">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <div class="d-flex align-items-center justify-content-center rounded-2"
+                             style="width:28px;height:28px;background:linear-gradient(135deg,#4f46e5,#7c3aed);flex-shrink:0;">
+                            <i class="bi bi-pen-fill text-white" style="font-size:0.72rem;"></i>
+                        </div>
+                        <span class="fw-semibold" style="font-size:0.92rem;">Digital Signature</span>
+                        <hr class="flex-grow-1 my-0" style="border-color:#e2e8f0;">
+                        <span class="badge rounded-pill"
+                              style="background:#eef2ff;color:#4f46e5;font-size:0.67rem;font-weight:600;">
+                            Used on all print documents
+                        </span>
+                    </div>
+
+                    <div class="rounded-3 p-4" style="background:#f8f7ff;border:1.5px solid #e0e7ff;">
+
+                        <div class="row g-3 align-items-end mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-medium" style="font-size:0.85rem;">
+                                    Signatory Name
+                                </label>
+                                <input type="text" class="form-control" th:field="*{signatureName}"
+                                       id="signatureName"
+                                       placeholder="e.g. Dr. Ramesh Jain, Secretary">
+                            </div>
+                            <div class="col-md-auto">
+                                <button type="button" class="btn btn-primary d-flex align-items-center gap-2"
+                                        onclick="generateSignature()"
+                                        style="border-radius:8px;">
+                                    <i class="bi bi-pen-fill" style="font-size:0.85rem;"></i>
+                                    Generate Digital Signature
+                                </button>
+                            </div>
+                            <div class="col-md-auto" th:if="${item.signatureData != null}">
+                                <button type="button" class="btn btn-outline-danger btn-sm d-flex align-items-center gap-1"
+                                        onclick="clearSignature()" style="border-radius:8px;">
+                                    <i class="bi bi-x-lg" style="font-size:0.75rem;"></i> Clear
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Preview area -->
+                        <div id="sigPreviewWrap"
+                             th:style="${item.signatureData != null} ? 'display:block' : 'display:none'">
+                            <div class="mb-2 text-muted" style="font-size:0.72rem;font-weight:600;letter-spacing:.5px;text-transform:uppercase;">
+                                Signature Preview
+                            </div>
+                            <div style="background:#fff;border:1px solid #c7d2fe;border-radius:10px;
+                                        display:inline-block;padding:12px 24px;min-width:320px;text-align:center;">
+                                <img id="sigPreviewImg"
+                                     th:src="${item.signatureData != null ? item.signatureData : ''}"
+                                     alt="Digital Signature"
+                                     style="max-width:380px;max-height:90px;object-fit:contain;display:block;">
+                            </div>
+                            <div class="mt-2 text-muted d-flex align-items-center gap-1" style="font-size:0.72rem;">
+                                <i class="bi bi-check-circle-fill text-success"></i>
+                                Signature saved — will appear on all printed documents.
+                            </div>
+                        </div>
+
+                        <!-- Help text when no signature -->
+                        <div th:if="${item.signatureData == null}" class="text-muted d-flex align-items-center gap-2 mt-1"
+                             style="font-size:0.78rem;">
+                            <i class="bi bi-info-circle"></i>
+                            Enter a name above and click <strong>Generate Digital Signature</strong> to create a cursive signature.
+                        </div>
+
+                        <!-- Hidden field stores base64 PNG -->
+                        <input type="hidden" th:field="*{signatureData}" id="signatureData">
+
+                    </div>
+                </div>
+                <!-- ──────────────────────────────────────────────────────── -->
+
                 <div class="d-flex gap-2">
                     <button type="submit" class="btn btn-primary px-4">
                         <i class="bi bi-check-lg me-1"></i>Save
@@ -260,6 +338,86 @@
 
 <th:block layout:fragment="page-scripts">
 <script>
+/* ── Digital Signature ── */
+(function () {
+
+    /* Draw the signature onto canvas, update preview + hidden field */
+    function draw() {
+        var nameInput = document.getElementById('signatureName');
+        var name = nameInput ? nameInput.value.trim() : '';
+        if (!name) {
+            alert('Please enter the signatory name first.');
+            return;
+        }
+
+        var canvas = document.createElement('canvas');
+        canvas.width  = 480;
+        canvas.height = 130;
+        var ctx = canvas.getContext('2d');
+
+        /* White background */
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        /* Signature baseline */
+        ctx.strokeStyle = '#c7d2fe';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath();
+        ctx.moveTo(24, canvas.height - 22);
+        ctx.lineTo(canvas.width - 24, canvas.height - 22);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        /* Auto-fit font size */
+        var maxW = canvas.width - 60;
+        var fs = 72;
+        ctx.font = 'bold ' + fs + 'px "Dancing Script", cursive';
+        while (ctx.measureText(name).width > maxW && fs > 24) {
+            fs -= 2;
+            ctx.font = 'bold ' + fs + 'px "Dancing Script", cursive';
+        }
+
+        /* Render name */
+        ctx.fillStyle = '#1e1b4b';
+        ctx.textBaseline = 'alphabetic';
+        ctx.textAlign = 'center';
+        ctx.fillText(name, canvas.width / 2, canvas.height - 28);
+
+        var dataUrl = canvas.toDataURL('image/png');
+
+        /* Update preview img */
+        var img = document.getElementById('sigPreviewImg');
+        if (img) {
+            img.src = dataUrl;
+        }
+        document.getElementById('sigPreviewWrap').style.display = 'block';
+
+        /* Store in hidden field */
+        var hidden = document.getElementById('signatureData');
+        if (hidden) hidden.value = dataUrl;
+    }
+
+    window.generateSignature = function () {
+        /* Wait for fonts to be ready, then draw */
+        if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(draw);
+        } else {
+            setTimeout(draw, 600);
+        }
+    };
+
+    window.clearSignature = function () {
+        var hidden = document.getElementById('signatureData');
+        if (hidden) hidden.value = '';
+        var nameInput = document.getElementById('signatureName');
+        if (nameInput) nameInput.value = '';
+        document.getElementById('sigPreviewWrap').style.display = 'none';
+        var img = document.getElementById('sigPreviewImg');
+        if (img) img.src = '';
+    };
+})();
+
 function previewBanner(input) {
     if (input.files && input.files[0]) {
         var reader = new FileReader();

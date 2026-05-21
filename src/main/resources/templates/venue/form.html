@@ -9,7 +9,7 @@
           th:text="${item.id == null ? 'Add' : 'Edit'} + ' Venue'">Venue</th:block>
 
 <div layout:fragment="content">
-    <div class="card shadow-sm border-0" style="max-width:720px;">
+    <div class="card shadow-sm border-0" style="max-width:760px;">
         <div class="card-header bg-white border-bottom fw-semibold"
              th:text="${item.id == null ? 'Add New Venue' : 'Edit Venue'}"></div>
         <div class="card-body">
@@ -74,11 +74,19 @@
                     </div>
 
                     <div class="col-md-4">
+                        <label class="form-label fw-medium">Post Code</label>
+                        <input type="text" class="form-control" th:field="*{postCode}"
+                               placeholder="e.g. HA1 2AB"
+                               th:classappend="${#fields.hasErrors('postCode')} ? ' is-invalid'">
+                        <div class="invalid-feedback" th:errors="*{postCode}"></div>
+                    </div>
+
+                    <div class="col-md-4">
                         <label class="form-label fw-medium">Capacity</label>
                         <input type="number" class="form-control" th:field="*{capacity}" min="0">
                     </div>
 
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <label class="form-label fw-medium">Booking Price (£)</label>
                         <div class="input-group">
                             <span class="input-group-text">£</span>
@@ -87,27 +95,13 @@
                         </div>
                     </div>
 
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <label class="form-label fw-medium">Discount Price (£)</label>
                         <div class="input-group">
                             <span class="input-group-text">£</span>
                             <input type="number" class="form-control" th:field="*{discountPrice}"
                                    step="0.01" min="0">
                         </div>
-                    </div>
-
-                    <div class="col-md-4">
-                        <label class="form-label fw-medium">Contact Person</label>
-                        <input type="text" class="form-control" th:field="*{contactPerson}"
-                               th:classappend="${#fields.hasErrors('contactPerson')} ? ' is-invalid'">
-                        <div class="invalid-feedback" th:errors="*{contactPerson}"></div>
-                    </div>
-
-                    <div class="col-md-4">
-                        <label class="form-label fw-medium">Contact Phone</label>
-                        <input type="text" class="form-control" th:field="*{contactPhone}"
-                               th:classappend="${#fields.hasErrors('contactPhone')} ? ' is-invalid'">
-                        <div class="invalid-feedback" th:errors="*{contactPhone}"></div>
                     </div>
 
                     <div class="col-12">
@@ -119,6 +113,98 @@
                     </div>
 
                 </div>
+
+                <!-- ── Contact Person Details ──────────────────────────────── -->
+                <div class="mt-4 mb-1">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <div class="d-flex align-items-center justify-content-center rounded-2"
+                             style="width:28px;height:28px;background:linear-gradient(135deg,#4f46e5,#7c3aed);flex-shrink:0;">
+                            <i class="bi bi-person-lines-fill text-white" style="font-size:0.75rem;"></i>
+                        </div>
+                        <span class="fw-semibold" style="font-size:0.92rem;">Contact Person Details</span>
+                        <hr class="flex-grow-1 my-0" style="border-color:#e2e8f0;">
+                    </div>
+
+                    <!-- Primary Contact -->
+                    <div class="rounded-3 p-3 mb-3"
+                         style="background:#f8f7ff;border:1.5px solid #e0e7ff;">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <span class="badge rounded-pill"
+                                  style="background:#4f46e5;font-size:0.67rem;letter-spacing:.4px;">PRIMARY</span>
+                            <span class="fw-medium text-dark" style="font-size:0.83rem;">Primary Contact</span>
+                            <span class="text-danger" style="font-size:0.75rem;">— Required</span>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-medium" style="font-size:0.83rem;">
+                                    Contact Name <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white">
+                                        <i class="bi bi-person" style="color:#4f46e5;font-size:0.85rem;"></i>
+                                    </span>
+                                    <input type="text" class="form-control" th:field="*{contactPerson}"
+                                           placeholder="Full name"
+                                           th:classappend="${#fields.hasErrors('contactPerson')} ? ' is-invalid'">
+                                    <div class="invalid-feedback" th:errors="*{contactPerson}"></div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-medium" style="font-size:0.83rem;">
+                                    Contact Phone <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white">
+                                        <i class="bi bi-telephone" style="color:#4f46e5;font-size:0.85rem;"></i>
+                                    </span>
+                                    <input type="text" class="form-control" th:field="*{contactPhone}"
+                                           placeholder="+44 7xxx xxxxxx"
+                                           th:classappend="${#fields.hasErrors('contactPhone')} ? ' is-invalid'">
+                                    <div class="invalid-feedback" th:errors="*{contactPhone}"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Secondary Contact -->
+                    <div class="rounded-3 p-3"
+                         style="background:#f8fafc;border:1.5px dashed #cbd5e1;">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <span class="badge rounded-pill"
+                                  style="background:#64748b;font-size:0.67rem;letter-spacing:.4px;">SECONDARY</span>
+                            <span class="fw-medium text-muted" style="font-size:0.83rem;">Secondary Contact</span>
+                            <span class="text-muted" style="font-size:0.75rem;">— Optional</span>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-medium" style="font-size:0.83rem;">Contact Name</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white">
+                                        <i class="bi bi-person" style="color:#94a3b8;font-size:0.85rem;"></i>
+                                    </span>
+                                    <input type="text" class="form-control" th:field="*{secondaryContactName}"
+                                           placeholder="Full name (optional)"
+                                           th:classappend="${#fields.hasErrors('secondaryContactName')} ? ' is-invalid'">
+                                    <div class="invalid-feedback" th:errors="*{secondaryContactName}"></div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-medium" style="font-size:0.83rem;">Contact Phone</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white">
+                                        <i class="bi bi-telephone" style="color:#94a3b8;font-size:0.85rem;"></i>
+                                    </span>
+                                    <input type="text" class="form-control" th:field="*{secondaryContactPhone}"
+                                           placeholder="+44 7xxx xxxxxx (optional)"
+                                           th:classappend="${#fields.hasErrors('secondaryContactPhone')} ? ' is-invalid'">
+                                    <div class="invalid-feedback" th:errors="*{secondaryContactPhone}"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <!-- ──────────────────────────────────────────────────────── -->
 
                 <div class="d-flex gap-2 mt-4">
                     <button type="submit" class="btn btn-primary px-4">

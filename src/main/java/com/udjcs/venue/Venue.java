@@ -30,16 +30,30 @@ public class Venue extends BaseEntity {
     @Column(nullable = false, length = 100)
     private String state;
 
+    @Size(max = 20)
+    @Column(name = "post_code", length = 20)
+    private String postCode;
+
     @Column
     private Integer capacity;
 
+    @NotBlank(message = "Primary contact name is required")
     @Size(max = 100)
-    @Column(name = "contact_person", length = 100)
+    @Column(name = "contact_person", nullable = false, length = 100)
     private String contactPerson;
 
+    @NotBlank(message = "Primary contact phone is required")
     @Size(max = 20)
-    @Column(name = "contact_phone", length = 20)
+    @Column(name = "contact_phone", nullable = false, length = 20)
     private String contactPhone;
+
+    @Size(max = 100)
+    @Column(name = "secondary_contact_name", length = 100)
+    private String secondaryContactName;
+
+    @Size(max = 20)
+    @Column(name = "secondary_contact_phone", length = 20)
+    private String secondaryContactPhone;
 
     @NotBlank
     @Size(max = 50)
@@ -73,6 +87,9 @@ public class Venue extends BaseEntity {
     public String getState() { return state; }
     public void setState(String state) { this.state = state; }
 
+    public String getPostCode() { return postCode; }
+    public void setPostCode(String postCode) { this.postCode = postCode; }
+
     public Integer getCapacity() { return capacity; }
     public void setCapacity(Integer capacity) { this.capacity = capacity; }
 
@@ -81,6 +98,12 @@ public class Venue extends BaseEntity {
 
     public String getContactPhone() { return contactPhone; }
     public void setContactPhone(String contactPhone) { this.contactPhone = contactPhone; }
+
+    public String getSecondaryContactName() { return secondaryContactName; }
+    public void setSecondaryContactName(String secondaryContactName) { this.secondaryContactName = secondaryContactName; }
+
+    public String getSecondaryContactPhone() { return secondaryContactPhone; }
+    public void setSecondaryContactPhone(String secondaryContactPhone) { this.secondaryContactPhone = secondaryContactPhone; }
 
     public String getVenueType() { return venueType; }
     public void setVenueType(String venueType) { this.venueType = venueType; }
